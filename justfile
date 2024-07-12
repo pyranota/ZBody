@@ -6,6 +6,17 @@ default: run
 run:
     zig build run
 
+# -target x86_64-linux
+# Compile in release mode
+release:
+    zig build -Doptimize=ReleaseFast -Dtarget=x86_64-linux-gnu.2.17
+
+release-win:
+    zig build -Doptimize=ReleaseFast -Dtarget=x86_64-windows
+
+release-osx:
+    zig build -Doptimize=ReleaseFast -Dtarget=x86_64-macos -framework Cocoa
+
 # Compile project with maven to ./target
 build:
     zig build
