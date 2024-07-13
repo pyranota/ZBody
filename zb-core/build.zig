@@ -16,45 +16,31 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const lib = b.addStaticLibrary(.{
-        .name = "Z-body",
+        .name = "zb-core",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = b.path("src/root.zig"),
         .target = target,
         .optimize = optimize,
     });
-    const raylib_dep = b.dependency("raylib-zig", .{
-        .target = target,
-        .optimize = optimize,
-    });
 
-    const raylib = raylib_dep.module("raylib"); // main raylib module
-    const raygui = raylib_dep.module("raygui"); // raygui module
-    const raylib_artifact = raylib_dep.artifact("raylib"); // raylib C library
-
-    // load the "zig-speak" dependency from build.zig.zon
-    const zb_core = b.dependency("zb-core", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    // load the "speak" module from the package
-    const zb_core_module = zb_core.module("zb-core");
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
     // running `zig build`).
     b.installArtifact(lib);
 
-    const exe = b.addExecutable(.{
-        .name = "Z-body",
-        .root_source_file = b.path("src/main.zig"),
+    _ = b.addModule("zb-core", .{
+        .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    exe.linkLibrary(raylib_artifact);
-    exe.root_module.addImport("raylib", raylib);
-    exe.root_module.addImport("raygui", raygui);
-    exe.root_module.addImport("zb-core", zb_core_module);
+    const exe = b.addExecutable(.{
+        .name = "zb-core",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default

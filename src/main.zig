@@ -3,6 +3,7 @@
 const std = @import("std");
 const RndGen = std.rand.DefaultPrng;
 const rl = @import("raylib");
+const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
 const boxSize = 5000;
@@ -11,6 +12,7 @@ const amount = 5040;
 
 pub fn main() anyerror!void {
     // Initialization
+    core.Engine();
     //--------------------------------------------------------------------------------------
     const screenWidth = 1000;
     const screenHeight = 1200;
