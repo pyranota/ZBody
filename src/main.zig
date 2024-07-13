@@ -11,12 +11,18 @@ pub fn main() !void {
     _ = nwin.bind("my_function_count", my_function_count);
     _ = nwin.bind("my_function_exit", my_function_exit);
 
+    _ = nwin.showBrowser(html, .ChromiumBased);
     // Show the window
-    _ = nwin.show(html);
-    // _ = nwin.showBrowser(html, .Chrome);
+    // std.time.sleep(1000 * 1000 * 100);
+    // _ = nwin.show(html);
+    // _ = nwin.show(html);
 
     // Wait until all windows get closed
-    webui.wait();
+    // webui.wait();
+    while (nwin.isShown()) {
+        std.debug.print("Frame", .{});
+        std.time.sleep(1000 * 1000 * 100);
+    }
 
     // Free all memory resources (Optional)
     webui.clean();
