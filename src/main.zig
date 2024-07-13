@@ -42,6 +42,12 @@ pub fn main() anyerror!void {
         rl.clearBackground(rl.Color.black);
 
         rl.drawFPS(10, 10);
+        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left)) {
+            const d = rl.getMouseDelta();
+            const sens = 1;
+            player.x -= (d.x * sens) / camera.zoom;
+            player.y -= (d.y * sens) / camera.zoom;
+        }
         // Camera zoom controls
         camera.zoom += rl.getMouseWheelMove() * 0.09;
 
