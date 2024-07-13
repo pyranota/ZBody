@@ -1,4 +1,7 @@
+// raylib-zig (c) Nikolas Wipper 2023
+
 const rl = @import("raylib");
+const Color = rl.Color;
 
 pub fn main() anyerror!void {
     // Initialization
@@ -6,11 +9,13 @@ pub fn main() anyerror!void {
     const screenWidth = 800;
     const screenHeight = 450;
 
-    rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
+    rl.initWindow(screenWidth, screenHeight, "Z-body");
     defer rl.closeWindow(); // Close window and OpenGL context
 
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
+
+    const raylib_zig = rl.Color.init(247, 164, 29, 255);
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
@@ -24,9 +29,14 @@ pub fn main() anyerror!void {
         rl.beginDrawing();
         defer rl.endDrawing();
 
-        rl.clearBackground(rl.Color.white);
+        rl.clearBackground(rl.Color.ray_white);
 
-        rl.drawText("Congrads! You created your first window!", 190, 200, 20, rl.Color.light_gray);
+        rl.drawRectangle(screenWidth / 2 - 128, screenHeight / 2 - 128, 256, 256, raylib_zig);
+        rl.drawRectangle(screenWidth / 2 - 112, screenHeight / 2 - 112, 224, 224, rl.Color.ray_white);
+        // rl.drawCircle(110, 100, 25, Color.blue);
+        rl.drawText("raylib-zig", screenWidth / 2 - 96, screenHeight / 2 + 57, 41, raylib_zig);
+
+        rl.drawText("this is NOT a texture!", 350, 370, 10, rl.Color.gray);
         //----------------------------------------------------------------------------------
     }
 }
