@@ -1,6 +1,9 @@
 const std = @import("std");
+const engine = @import("./engine.zig");
+const tree = @import("./tree.zig");
 
 pub fn main() !void {
+    tree.Tree().new().addBody(81, .{ 0, 1 });
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
 
