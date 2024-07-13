@@ -21,6 +21,11 @@ release-osx:
 build:
     zig build
 
+# Clean cache
+clean:
+    rm -rf zig-out
+    rm -rf .zig-cache
+
 # Run all tests in project
 test:
     echo TODO
