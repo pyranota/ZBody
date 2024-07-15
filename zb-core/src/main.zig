@@ -3,10 +3,16 @@ const engine = @import("./engine.zig");
 const tree = @import("./tree.zig");
 
 pub fn main() !void {
-    var tr = tree.Tree().new();
-    tr.addBody(81, .{ .x = 0, .y = 1 });
+    // var tr = tree.Tree().new();
+    // tr.addBody(81, .{ .x = 0, .y = 1 });
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("{?}\n", .{tr});
+    // std.debug.print("{?}\n", .{tr});
+    var tr = tree.Tree().init(16);
+    tr.addBody(1, .{ .x = 1, .y = 9 });
+    tr.addBody(81, .{ .x = 0, .y = 1 });
+    // tr.addBody(81, .{ .x = 8, .y = 8 });
+    tr.addBody(81, .{ .x = 9, .y = 9 });
+    try tr.print();
 }
 
 test "simple test" {

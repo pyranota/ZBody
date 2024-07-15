@@ -41,6 +41,9 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    // add the following:
+    const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
+    exe.root_module.addImport("pretty", pretty.module("pretty"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
@@ -85,6 +88,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const tree_unit_tests = b.addTest(.{
+        .root_source_file = b.path("src/tree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    tree_unit_tests.root_module.addImport("pretty", pretty.module("pretty"));
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
