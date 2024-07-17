@@ -1,13 +1,12 @@
 const std = @import("std");
 const Vec2 = @import("vec2.zig");
-const pretty = @import("pretty");
 const alloc = std.heap.page_allocator;
 
 pub fn Tree() type {
     return struct {
         /// Building block of the quad tree.
         /// Node is wether a branch or leaf.
-        const Node = union(enum) {
+        pub const Node = union(enum) {
             const Branch =
                 struct {
                 // Queadtree needs to reference subnodes
@@ -32,40 +31,52 @@ pub fn Tree() type {
                 position: Vec2 = .{},
                 /// Quadrant size
                 size: u32,
-                /// Split leaf on branch and move body to new leaf
-                fn split(self: @This()) Branch {
-                    var branch = Branch{
-                        // We will push leaf to corresponding child later
-                        .children = .{null} ** 4,
-                        // Center of mass does not change, since we have only one leaf at the moment
-                        // Only the next iteration should modify center of mass
-                        .centerOfMass = self.position,
-                        .mass = self.mass,
-                        .size = self.size,
-                    };
-
-                    // Copy
-                    var leaf = self;
-
-                    // TODO: Safetychecks on 0
-                    leaf.size /= 2;
-
-                    // Ask a new branch where to put leaf
-                    const quadrant = branch.which(self.position);
-
-                    // Fit leaf's position to new quadrant which is 2 times smaller
-                    leaf.position = leaf.position.fit(self.size);
-
-                    // self.position.fit();
-                    // TODO: Should be This with modified position
-                    branch.children[quadrant] = @constCast(&Node{ .leaf = leaf });
-                    return branch;
-                }
             };
 
-            // One of those:
+            // Enum / Union Variants
             leaf: Leaf,
             branch: Branch,
+            /// Split leaf on branch and move body to new leaf
+            /// Transform leaf to the branch
+            /// Also allocate a new leaf
+            fn split(self: *@This()) !void {
+                // TODO: Not leaf check
+
+                // Allocate
+                var node = &((try ally.alloc(Node, 1))[0]);
+                node.* = Node{ .leaf = .{ .size = 0 } };
+                var leaf = &node.leaf;
+
+                leaf.* = self.leaf;
+
+                var branch = Branch{
+                    // We will push leaf to corresponding child later
+                    .children = .{null} ** 4,
+                    // Center of mass does not change, since we have only one leaf at the moment
+                    // Only the next iteration should modify center of mass
+                    .centerOfMass = leaf.position,
+                    .mass = leaf.mass,
+                    .size = leaf.size,
+                };
+
+                self.* = Node{ .branch = branch };
+
+                // TODO: Safetychecks on 0
+                leaf.size /= 2;
+
+                // Ask a new branch where to put leaf
+                const quadrant = branch.which(leaf.position);
+
+                // TODO: Move into leaf struct itself
+                // Fit leaf's position to new quadrant which is 2 times smaller
+                leaf.position = leaf.position.fit(leaf.size);
+                // var newNode = ally.alloc(Node, 1);
+
+                // self.position.fit();
+                // TODO: Should be This with modified position
+                self.branch.children[quadrant] = node;
+                // return branch;
+            }
 
             fn newLeaf(mass: u32, position: Vec2) Node {
                 return .{
@@ -107,7 +118,11 @@ pub fn Tree() type {
 
         const Self = @This();
 
-        root: ?*Node,
+        // TODO: Find better allocator
+        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+        const ally = arena.allocator();
+
+        root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
         /// 16, 32, 64, 128, 256, 512, 1024,
         /// And not:
@@ -115,12 +130,18 @@ pub fn Tree() type {
         size: u32,
 
         /// Create new QuadTree
-        pub fn init(size: u32) Self {
-            return .{ .root = null, .size = size };
+        pub fn init(size: u32) !Self {
+            return .{ .size = size };
+        }
+        /// Deinit QuadTree
+        pub fn deinit(self: @This()) void {
+            _ = self; // autofix
+            arena.deinit();
         }
 
         pub fn print(self: Self) !void {
-            try pretty.print(alloc, self, .{ .max_depth = 0 });
+            // _ = self; // autofix
+            try @import("pretty").print(alloc, self, .{ .max_depth = 0 });
         }
 
         /// Add Astronomical Body to the System
@@ -133,33 +154,42 @@ pub fn Tree() type {
 
                 // In *which* *quadrant* do we want to put this node
                 const quadrant = n.which(position);
-                std.debug.print("QUADRANT: {}", .{quadrant});
+                std.debug.print("QUADRANT: {} \n", .{quadrant});
 
                 // If we have our node being something (not a null) we always need it to be a branch.
                 // But it can be a Branch or a Leaf.
                 // We dont want it to be a Leaf, so in case it is, we just split it.
 
-                const branch = switch (n.*) {
-                    //
-                    .branch => |branch| &branch,
+                // if (n.* == Node.Leaf) {
+                //     n.split();
+                // }
+                switch (n.*) {
                     // Split and move current leaf one level below
                     // It will be attached to newly created branch
-                    .leaf => |leaf| &leaf.split(),
-                };
+                    .leaf => n.split() catch unreachable,
+                    else => {},
+                }
+
+                const br = &n.branch;
 
                 // TODO: Is this branch to branch reassignment without split costly?
-                n.* = .{ .branch = branch.* };
+                // n.* = .{ .branch = branch.* };
 
-                const child: ?*Node = switch (n.*) {
-                    .branch => |br| br.children[quadrant],
-                    else => unreachable,
-                };
-                std.testing.expectEqual(child, branch.children[quadrant]) catch unreachable;
+                // const child = switch (n.*) {
+                //     .branch => |br| &br.children[quadrant],
+                //     else => unreachable,
+                // };
+
+                // const at: u32 = 2;
+                // const bt: u2 = 2;
+                // std.testing.expectEqual(branch.children[at], branch.children[bt]) catch unreachable;
+
+                // std.testing.expectEqual(child, branch.children[quadrant]) catch unreachable;
                 // Call it recursivly
                 Tree().visitNode(
                 // Formatter
                 // &branch.children[quadrant],
-                @constCast(&child),
+                @constCast(&br.children[quadrant]),
                 // Why are you
                 mass,
                 // Not working correctly??
@@ -170,15 +200,18 @@ pub fn Tree() type {
             // Here our journey ends. We found a null node and can use it.
             else {
                 std.debug.print("Before: {?} \n", .{node.*});
-                node.* = @constCast(&Node{
+
+                const newNode = &((ally.alloc(Node, 1) catch unreachable)[0]);
+                newNode.* = Node{
                     .leaf = .{
                         //
                         .mass = mass,
                         .position = position,
                         .size = size,
                     },
-                });
-                // std.debug.print("After: {?} \n", .{node.*});
+                };
+                node.* = newNode;
+                std.debug.print("After: {?} \n", .{node.*});
             }
         }
 
@@ -252,12 +285,20 @@ test "init tree, 2 bodies test" {
     var tr = Tree().init(16);
     tr.addBody(81, .{ .x = 0, .y = 1 });
     tr.addBody(81, .{ .x = 8, .y = 8 });
+    tr.addBody(81, .{ .x = 10, .y = 0 });
+    tr.addBody(81, .{ .x = 0, .y = 10 });
 
     // std.debug.print("{?}", .{tr});
     // try pretty.print(alloc, tr, .{});
 
     // Expected tree
-    try tt.expect(false);
+    // try tt.expect(false);
+    try tt.expect(tr.root != null);
+    try tt.expect(tr.root.?.branch.children[0] != null);
+    // try tt.expect(tr.root.?.branch.children[3] != null);
+    // for (0..4) |i| {
+    std.debug.print("{any}\n", .{tr.root.?.branch.children});
+    // }
     // var exTr = Tree().init();
 
     // exTr.root = @constCast(&Tree().Node.newLeaf(81, .{ .x = 0, .y = 1 }));
