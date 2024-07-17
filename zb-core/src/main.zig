@@ -10,10 +10,10 @@ pub fn main() !void {
     var tr = try tree.Tree().init(16);
     defer tr.deinit();
 
-    tr.addBody(1, .{ .x = 1, .y = 9 });
-    tr.addBody(8, .{ .x = 0, .y = 1 });
-    tr.addBody(10, .{ .x = 10, .y = 0 });
-    tr.addBody(81, .{ .x = 9, .y = 11 });
+    try tr.addBody(1, .{ .x = 1, .y = 9 });
+    try tr.addBody(8, .{ .x = 0, .y = 1 });
+    try tr.addBody(10, .{ .x = 10, .y = 0 });
+    try tr.addBody(81, .{ .x = 9, .y = 11 });
     try tr.print();
 }
 

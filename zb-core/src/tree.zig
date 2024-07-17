@@ -19,10 +19,8 @@ pub fn Tree() type {
                 size: u32,
                 /// Find out in which quadrant should we put node with given position
                 pub fn which(self: @This(), position: Vec2) u2 {
-                    const half = self.size / 2;
-                    const x: u2 = if (position.x < half) 0 else 1;
-                    const y: u2 = if (position.y < half) 0 else 1;
-                    return (x + y * 2);
+                    const node = Node{ .branch = self };
+                    return node.which(position);
                 }
             };
             const Leaf = struct {
@@ -43,7 +41,7 @@ pub fn Tree() type {
                 // TODO: Not leaf check
 
                 // Allocate
-                var node = &((try ally.alloc(Node, 1))[0]);
+                var node = try ally.create(Node);
                 node.* = Node{ .leaf = .{ .size = 0 } };
                 var leaf = &node.leaf;
 
@@ -96,24 +94,12 @@ pub fn Tree() type {
 
             /// Find out in which quadrant should we put node with given position
             fn which(self: @This(), position: Vec2) u2 {
-                const half = switch (self) {
-                    inline else => |case| case.size,
-                } / 2;
+                const half = self.size() / 2;
 
                 const x: u2 = if (position.x < half) 0 else 1;
                 const y: u2 = if (position.y < half) 0 else 1;
                 return (x + y * 2);
             }
-
-            // /// Add body to the system
-            // pub fn addBody(self: *Self, mass: u32, position: Vec2) !void {
-            //     if (self.root) |root| {
-            //         _ = root;
-            //         // If leaf -> split
-            //     } else {
-            //         self.root = Node.newLeaf(mass, position);
-            //     }
-            // }
         };
 
         const Self = @This();
@@ -134,62 +120,40 @@ pub fn Tree() type {
             return .{ .size = size };
         }
         /// Deinit QuadTree
-        pub fn deinit(self: @This()) void {
-            _ = self; // autofix
+        pub fn deinit(_: @This()) void {
             arena.deinit();
         }
 
         pub fn print(self: Self) !void {
-            // _ = self; // autofix
             try @import("pretty").print(alloc, self, .{ .max_depth = 0 });
         }
 
         /// Add Astronomical Body to the System
-        pub fn addBody(self: *@This(), mass: u32, position: Vec2) void {
-            Tree().visitNode(&self.root, mass, position, self.size);
+        pub fn addBody(self: *@This(), mass: u32, position: Vec2) !void {
+            try Tree().visitNode(&self.root, mass, position, self.size);
         }
 
-        fn visitNode(node: *?*Node, mass: u32, position: Vec2, size: u32) void {
+        fn visitNode(node: *?*Node, mass: u32, position: Vec2, size: u32) !void {
             if (node.*) |n| {
 
                 // In *which* *quadrant* do we want to put this node
                 const quadrant = n.which(position);
-                std.debug.print("QUADRANT: {} \n", .{quadrant});
 
                 // If we have our node being something (not a null) we always need it to be a branch.
                 // But it can be a Branch or a Leaf.
                 // We dont want it to be a Leaf, so in case it is, we just split it.
 
-                // if (n.* == Node.Leaf) {
-                //     n.split();
-                // }
                 switch (n.*) {
                     // Split and move current leaf one level below
-                    // It will be attached to newly created branch
-                    .leaf => n.split() catch unreachable,
+                    .leaf => try n.split(),
                     else => {},
                 }
 
-                const br = &n.branch;
-
-                // TODO: Is this branch to branch reassignment without split costly?
-                // n.* = .{ .branch = branch.* };
-
-                // const child = switch (n.*) {
-                //     .branch => |br| &br.children[quadrant],
-                //     else => unreachable,
-                // };
-
-                // const at: u32 = 2;
-                // const bt: u2 = 2;
-                // std.testing.expectEqual(branch.children[at], branch.children[bt]) catch unreachable;
-
-                // std.testing.expectEqual(child, branch.children[quadrant]) catch unreachable;
                 // Call it recursivly
-                Tree().visitNode(
+                try Tree().visitNode(
                 // Formatter
                 // &branch.children[quadrant],
-                @constCast(&br.children[quadrant]),
+                @constCast(&n.branch.children[quadrant]),
                 // Why are you
                 mass,
                 // Not working correctly??
@@ -199,9 +163,7 @@ pub fn Tree() type {
             }
             // Here our journey ends. We found a null node and can use it.
             else {
-                std.debug.print("Before: {?} \n", .{node.*});
-
-                const newNode = &((ally.alloc(Node, 1) catch unreachable)[0]);
+                const newNode = try ally.create(Node);
                 newNode.* = Node{
                     .leaf = .{
                         //
@@ -211,7 +173,6 @@ pub fn Tree() type {
                     },
                 };
                 node.* = newNode;
-                std.debug.print("After: {?} \n", .{node.*});
             }
         }
 
