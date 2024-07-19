@@ -11,7 +11,11 @@ pub fn Tree() type {
                 struct {
                 // Queadtree needs to reference subnodes
                 children: [4]?*Node,
-                // Center of mass in region
+                /// Center of mass in region
+                /// If tree is not finalized, than centerOfMass is nothing but
+                /// sum of positions multiplied by their mass each.
+                /// In order to get actual center of mass we need to devide it by total mass
+                /// We dont do this until tree is structured, because we need to add bodies.
                 centerOfMass: Vec2,
                 // Total mass
                 mass: u32,
@@ -99,7 +103,6 @@ pub fn Tree() type {
             /// Can return error if position is out of bound
             fn which(self: @This(), position: Vec2) u2 {
                 const half = self.size() / 2;
-
                 const x: u2 = if (position.x < half) 0 else 1;
                 const y: u2 = if (position.y < half) 0 else 1;
                 return (x + y * 2);
@@ -135,6 +138,7 @@ pub fn Tree() type {
         /// And not:
         /// 3, 88, 194, 666, 777
         size: u32,
+        final: bool = false,
 
         /// Create new QuadTree
         pub fn init(comptime size: u32) !Self {
@@ -170,7 +174,7 @@ pub fn Tree() type {
                     // Cuz if it is, than there is more than one leaf and we cannot determine if position is actually the same
                     .leaf => |leaf| {
                         if (position.x == leaf.position.x and position.y == leaf.position.y) {
-                            return;
+                            return ErrorError.Abc;
                         }
                     },
                     else => {},
@@ -189,17 +193,31 @@ pub fn Tree() type {
                     else => {},
                 }
 
+                var br = &n.branch;
+
                 // Call it recursivly
                 try Tree().visitNode(
                 // Formatter
                 // &branch.children[quadrant],
-                @constCast(&n.branch.children[quadrant]),
+                @constCast(&br.children[quadrant]),
                 // Why are you
                 mass,
                 // Not working correctly??
                 position.fit(size / 2),
                 //
                 size / 2);
+                // Add mass
+                // Its actually pretty clever solution.
+                // As you can see, we dont want to change branches (modify its mass or/and center of mass)
+                // until we know that we place new node.
+                // In some cases we dont want to place a node and return an error.
+                // In order for this to work we put mass and center of mass modification logic after recursion
+                // In other words if `try` statement above will fail, this mass modificatin will not occure and tree wont be modified
+                // But if it works correctly we use stacked values to modify needed values in inverted order (from bottom to up).
+                br.mass += mass;
+                var cm = &br.centerOfMass;
+                cm.x += position.x * mass;
+                cm.y += position.y * mass;
             }
             // Here our journey ends. We found a null node and can use it.
             else {
@@ -256,11 +274,34 @@ pub fn Tree() type {
             return e + b;
         }
 
-        pub fn traverse(self: Self) void {
+        pub fn finalize(self: *Self) void {
+            self.final = true;
+            Self.visitNodeTraverse(@constCast(&self.root), .{}, finalizeCB);
+        }
+
+        pub fn finalizeCB(node: *Node, _: Vec2) bool {
+            std.debug.print("HOWOO", .{});
+            switch (node.*) {
+                // TODO: Refactor
+                .leaf => {},
+                .branch => {
+                    var cm = &node.branch.centerOfMass;
+                    cm.x /= node.branch.mass;
+                    cm.y /= node.branch.mass;
+                },
+            }
+
+            return true;
+        }
+
+        pub fn traverse(self: Self) !void {
+            if (!self.final) {
+                return ErrorError.NotFinalized;
+            }
             Self.visitNodeTraverse(@constCast(&self.root), .{}, cb);
         }
 
-        fn cb(node: *Node, position: Vec2) void {
+        fn cb(node: *Node, position: Vec2) bool {
             switch (node.*) {
                 .leaf => |leaf| {
                     _ = leaf; // autofix
@@ -272,18 +313,32 @@ pub fn Tree() type {
                     std.debug.print("Branch Position: {?} \n", .{node.branch.mass});
                 },
             }
+
+            return true;
         }
 
-        fn visitNodeTraverse(node: *?*Node, position: Vec2, callback: fn (*Node, Vec2) void) void {
+        fn visitNodeTraverse(node: *?*Node, position: Vec2, callback: fn (*Node, Vec2) bool) void {
             if (node.*) |n| {
                 switch (n.*) {
                     .leaf => |leaf| {
+                        // TODO: Move to Vec2
                         var p = position;
                         p.x += leaf.position.x;
                         p.y += leaf.position.y;
-                        cb(n, p);
+                        // TODO: Refactor callback invokation
+                        if (!callback(n, p)) {
+                            return;
+                        }
                     },
                     .branch => |branch| {
+                        var p = position;
+                        p.x += branch.centerOfMass.x;
+                        p.y += branch.centerOfMass.y;
+
+                        if (!callback(n, p)) {
+                            return;
+                        }
+
                         for (branch.children, 0..) |child, quadrant| {
                             var qPosition = n.where(@intCast(quadrant));
                             // std.debug.print("qPos: {?}", .{qPosition});
@@ -299,13 +354,38 @@ pub fn Tree() type {
     };
 }
 // TODO: Move in other module
-const ErrorError = error{
-    Abc,
-};
+const ErrorError = error{ Abc, NotFinalized };
 
 const tt = std.testing;
 
-test "init tree test" {
+test "mass" {
+    std.debug.print("New test starting\n", .{});
+    // TODO
+    var tr = try Tree().init(64);
+
+    try tr.addBody(10, .{ .x = 0, .y = 0 });
+    try tr.addBody(20, .{ .x = 9, .y = 9 });
+    try tr.addBody(50, .{ .x = 19, .y = 12 });
+    // try tr.print();
+    try tt.expectEqual((10 + 20 + 50), tr.root.?.branch.mass);
+    std.debug.print("Actual mass: {?}", .{tr.root.?.branch.mass});
+    std.debug.print("Test is finished\n\n\n\n", .{});
+}
+
+test "center of mass" {
+    // TODO
+    var tr = try Tree().init(64);
+
+    try tr.addBody(10, .{ .x = 0, .y = 7 });
+    try tr.addBody(20, .{ .x = 9, .y = 15 });
+    try tr.addBody(50, .{ .x = 19, .y = 12 });
+
+    tr.finalize();
+
+    try tr.print();
+}
+
+test "size" {
     // TODO
 }
 
@@ -325,8 +405,10 @@ test "init tree with wrong size" {
     // In order to run tests, we need to compile first
     //
     // Uncomment next line to test if it fails to build
+
+    // _ = try Tree().init(99);
+
     // You should get this error: Bad value, size should be a power of two.
-    _ = try Tree().init(99);
 }
 
 test "add body with same position" {
@@ -344,7 +426,7 @@ test "add body with same position" {
     try tr2.addBody(13, .{ .x = 10, .y = 0 });
     try tr2.addBody(14, .{ .x = 0, .y = 10 });
     // Add the same body
-    try tr2.addBody(14, .{ .x = 0, .y = 10 });
+    try tt.expectError(ErrorError.Abc, tr2.addBody(14, .{ .x = 0, .y = 10 }));
 
     try tt.expectEqualDeep(tr, tr2);
 }
@@ -357,9 +439,14 @@ test "traverse leafs and check positions" {
     try tr.addBody(13, .{ .x = 10, .y = 0 });
     try tr.addBody(14, .{ .x = 0, .y = 10 });
 
+    tr.finalize();
     // TODO: Do actual testing
     // Rn just watch the output and compare with values above
-    tr.traverse();
+    try tr.traverse();
+}
+test "traverse without finalizing" {
+    var tr = try Tree().init(64);
+    try tt.expectError(ErrorError.NotFinalized, tr.traverse());
 }
 
 test "Add node outside the bound" {

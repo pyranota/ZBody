@@ -88,12 +88,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const tree_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/tree.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    tree_unit_tests.root_module.addImport("pretty", pretty.module("pretty"));
+    exe_unit_tests.root_module.addImport("pretty", pretty.module("pretty"));
 
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 

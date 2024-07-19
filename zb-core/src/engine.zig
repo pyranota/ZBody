@@ -49,7 +49,7 @@ pub fn Engine() type {
 }
 
 test "init engine" {
-    var engine = Engine().init(16);
+    var engine = try Engine().init(16);
     defer engine.deinit();
 
     try engine.addBody(.{});

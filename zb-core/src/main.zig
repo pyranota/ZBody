@@ -22,7 +22,7 @@ pub fn main() !void {
     try e.addBody(Body{ .mass = 16, .position = .{ .x = 99, .y = 99 }, .velocity = .{} });
     try e.step(0.1);
     // try e.print();
-    e.tree.traverse();
+    // e.tree.traverse();
     defer e.deinit();
 }
 
@@ -31,4 +31,8 @@ test "simple test" {
     defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
     try list.append(42);
     try std.testing.expectEqual(@as(i32, 42), list.pop());
+}
+// Hook up all tests in subfiles
+test {
+    std.testing.refAllDecls(@This());
 }
