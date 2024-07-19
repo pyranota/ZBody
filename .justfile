@@ -3,8 +3,12 @@
 default: run
 
 # Compile and run
-run:
+run: pull
     zig build run
+
+# Pull dependencies to latest version
+pull:
+    zig fetch --save ./zb-core
 
 # -target x86_64-linux
 # Compile in release mode

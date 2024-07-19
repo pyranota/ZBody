@@ -12,10 +12,12 @@ const amount = 5040;
 
 pub fn main() anyerror!void {
     // Initialization
-    core.Engine();
+    var engine = try core.engine.Engine().init(256);
+    defer engine.deinit();
+
     //--------------------------------------------------------------------------------------
     const screenWidth = 1000;
-    const screenHeight = 1200;
+    const screenHeight = 1000;
 
     rl.initWindow(screenWidth, screenHeight, "Z-body");
     defer rl.closeWindow(); // Close window and OpenGL context
@@ -26,7 +28,7 @@ pub fn main() anyerror!void {
     var player = rl.Rectangle{ .x = 400, .y = 280, .width = 40, .height = 40 };
     // const raylib_zig = rl.Color.init(247, 164, 29, 255);
     var camera = rl.Camera2D{
-        .target = rl.Vector2.init(20, 20),
+        .target = rl.Vector2.init(1000, 1000),
         .offset = rl.Vector2.init(screenWidth / 2, screenHeight / 2),
         .rotation = 0,
         .zoom = 1,
@@ -48,10 +50,20 @@ pub fn main() anyerror!void {
             player.x -= (d.x * sens) / camera.zoom;
             player.y -= (d.y * sens) / camera.zoom;
         }
+        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+            const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+
+            const x = pos.x;
+            const y = pos.y;
+
+            if (x > 0 and y > 0) {
+                try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
+            }
+        }
         // Camera zoom controls
         camera.zoom += rl.getMouseWheelMove() * 0.09;
-
         camera.zoom = rl.math.clamp(camera.zoom, 0.1, 19.0);
+
         // Player movement
         if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
             player.x += 9;
@@ -59,13 +71,20 @@ pub fn main() anyerror!void {
             player.x -= 9;
         }
         // Camera target follows player
-        camera.target = rl.Vector2.init(player.x + 20, player.y + 20);
+        camera.target = rl.Vector2.init(player.x, player.y);
+        camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
+        camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
 
         defer camera.end();
 
+        for (engine.bodies.items) |body| {
+            drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+        }
+
         for (0..amount) |i| {
-            randomPlanet(i);
+            _ = i; // autofix
+            // randomPlanet(i);
             // rl.drawCircle(@intCast(i), 100, 100, Color.white);
         }
     }
@@ -82,6 +101,6 @@ fn randomPlanet(seed: u64) void {
     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
 }
 
-fn drawPlanet(x: i32, y: i32, r: f32, col: Color) void {
-    rl.drawCircle(x, y, r, col);
+fn drawPlanet(x: u32, y: u32, r: f32, col: Color) void {
+    rl.drawCircle(@intCast(x), @intCast(y), r, col);
 }
