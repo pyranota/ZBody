@@ -57,7 +57,6 @@ pub fn main() anyerror!void {
             player.y -= (d.y * sens) / camera.zoom;
         }
         if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right) or rl.isKeyDown(rl.KeyboardKey.key_s)) {
-            player.x += 9;
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
 
             const x = pos.x;
