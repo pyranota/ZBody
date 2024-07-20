@@ -145,6 +145,7 @@ pub fn Tree() type {
 
         /// Create new QuadTree
         pub fn init(comptime size: u32) !Self {
+            // TODO: Use math.isPowOfTwo
             if (!((size & (size - 1)) == 0)) {
                 @compileError("Bad value, size should be a power of two.");
             }
@@ -267,15 +268,12 @@ pub fn Tree() type {
         /// Make a step in simulation
         /// Delta needed to make it smooth
         /// For example if program runs at 60 fps, than delta will be 16ms
-        pub fn step(
-            self: Self,
-            delta: f32,
-            args: struct { //
-                force: *Vec2F,
-                bodyPos: Vec2,
-                bodyMass: u32,
-            },
-        ) void {
+        const stepArgs = struct {
+            force: *Vec2F,
+            bodyPos: Vec2,
+            bodyMass: u32,
+        };
+        pub fn step(self: Self, delta: f32, args: stepArgs) void {
             _ = delta; // autofix
             // self.traverse(a);
             self.traverseArgs(calcForces, args) catch unreachable;
@@ -287,23 +285,43 @@ pub fn Tree() type {
             self.traverseArgs(finalizeCB, .{}) catch unreachable;
         }
 
-        fn calcForces(node: *Node, position: Vec2, args: anytype) bool {
+        fn calcForces(node: *Node, position: Vec2, args: stepArgs) bool {
             switch (node.*) {
                 // TODO: Refactor
                 .leaf => |leaf| {
-                    _ = leaf; // autofix
-                    // TODO: Implement distance()
-                    const distance = args.bodyPos.distance(position);
+                    // _ = leaf; // autofix
+
+                    // TODO: Use float for better accuracy
+                    const distance: f32 = @floatFromInt(args.bodyPos.distance(position));
+
+                    std.debug.print("Distance: {d}\n", .{distance});
 
                     if (distance == 0) {
                         return true;
                     }
 
-                    // const generalForce = (args.bodyMass * leaf.mass) / std.math.pow(distance, 2);
-                    const generalForce = 9;
+                    const bMass: f32 = @floatFromInt(args.bodyMass);
+                    const lMass: f32 = @floatFromInt(leaf.mass);
+
+                    // std.debug.print("GenForce: {d}\n", .{generalForce});
+
+                    const otherPX: f32 = @floatFromInt(position.x);
+                    const otherPY: f32 = @floatFromInt(position.y);
+
+                    const selfPX: f32 = @floatFromInt(args.bodyPos.x);
+                    const selfPY: f32 = @floatFromInt(args.bodyPos.y);
+
+                    const dx = otherPX - selfPX;
+                    const dy = otherPY - selfPY;
+
+                    const forceX: f32 = (bMass * lMass) / dx;
+                    const forceY: f32 = (bMass * lMass) / dy;
+
+                    // const genForceFloat: f32 = @floatFromInt(generalForce);
+                    // const generalForce = 9;
 
                     // TODO: Implement generalForce to directionalForce
-                    const directionalForce: Vec2F = .{ .x = generalForce * 0.5, .y = generalForce * 0.5 };
+                    const directionalForce: Vec2F = .{ .x = forceX, .y = forceY };
 
                     args.force.* = directionalForce;
                 },

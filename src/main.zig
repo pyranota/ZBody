@@ -6,7 +6,7 @@ const rl = @import("raylib");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 8;
+const boxSize: u32 = 1024 * 16;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
@@ -79,7 +79,7 @@ pub fn main() anyerror!void {
 
         defer camera.end();
 
-        try engine.step(1);
+        try engine.step(0.05);
 
         for (engine.bodies.items) |body| {
             drawPlanet(body.position.x, body.position.y, 10, Color.gold);

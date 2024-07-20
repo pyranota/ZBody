@@ -50,16 +50,16 @@ pub fn Engine() type {
             }
 
             self.tree.finalize();
-            // for (self.bodies.items, 0..) |body, i| {
-            //     self.tree.step(delta, .{ //
-            //         .force = &self.forces.items[i],
-            //         .bodyPos = body.position,
-            //         .bodyMass = @intFromFloat(body.mass),
-            //     });
-            // }
-            _ = delta;
+            for (self.bodies.items, 0..) |body, i| {
+                self.tree.step(delta, .{ //
+                    .force = &self.forces.items[i],
+                    .bodyPos = body.position,
+                    .bodyMass = @intFromFloat(body.mass),
+                });
+            }
+            // _ = delta;
 
-            // self.applyForces(0.01);
+            self.applyForces(1);
         }
 
         /// Apply forces to velocity
@@ -72,14 +72,24 @@ pub fn Engine() type {
 
                 std.debug.print("Force: X: {d}, Y: {d}\n", .{ force.x, force.y });
 
-                const accelerationX: f32 = body.mass / force.x;
-                const accelerationY: f32 = body.mass / force.y;
-
-                body.velocity.x += accelerationX * delta;
-                body.velocity.y += accelerationY * delta;
-
-                body.position.x += @intFromFloat(body.velocity.x);
-                body.position.y += @intFromFloat(body.velocity.y);
+                if (force.x != 0) {
+                    const accelerationX: f32 = force.x / body.mass;
+                    body.velocity.x += accelerationX * delta;
+                    if (body.velocity.x < 0) {
+                        body.position.x -= @intFromFloat(-body.velocity.x);
+                    } else {
+                        body.position.x += @intFromFloat(body.velocity.x);
+                    }
+                }
+                if (force.y != 0) {
+                    const accelerationY: f32 = force.y / body.mass;
+                    body.velocity.y += accelerationY * delta;
+                    if (body.velocity.y < 0) {
+                        body.position.y -= @intFromFloat(-body.velocity.y);
+                    } else {
+                        body.position.y += @intFromFloat(body.velocity.y);
+                    }
+                }
             }
         }
 

@@ -1,4 +1,8 @@
 //
+const std = @import("std");
+const math = std.math;
+usingnamespace math;
+
 pub const Vec2 = struct {
     x: u32 = 0,
     y: u32 = 0,
@@ -13,9 +17,15 @@ pub const Vec2 = struct {
     }
 
     pub fn distance(self: @This(), other: Vec2) u32 {
-        _ = self; // autofix
-        _ = other; // autofix
-        return 1;
+        const sx: i32 = @intCast(self.x);
+        const sy: i32 = @intCast(self.x);
+
+        const ox: i32 = @intCast(other.x);
+        const oy: i32 = @intCast(other.x);
+        const noSqrt: u32 = @intCast(math.pow(i32, ox - sx, 2) + math.pow(i32, oy - sy, 2));
+
+        const res = math.sqrt(noSqrt);
+        return @intCast(res);
     }
 
     pub fn fit(self: @This(), width: u32) @This() {
