@@ -39,6 +39,10 @@ pub fn Engine() type {
             try self.tree.print();
         }
 
+        pub fn showBounds(self: Self, comptime callb: anytype) !void {
+            try self.tree.showBounds(callb);
+        }
+
         pub fn step(self: *Self, delta: f32) !void {
             self.tree.clean();
             for (self.bodies.items) |body| {
@@ -46,15 +50,16 @@ pub fn Engine() type {
             }
 
             self.tree.finalize();
-            for (self.bodies.items, 0..) |body, i| {
-                self.tree.step(delta, .{ //
-                    .force = &self.forces.items[i],
-                    .bodyPos = body.position,
-                    .bodyMass = @intFromFloat(body.mass),
-                });
-            }
+            // for (self.bodies.items, 0..) |body, i| {
+            //     self.tree.step(delta, .{ //
+            //         .force = &self.forces.items[i],
+            //         .bodyPos = body.position,
+            //         .bodyMass = @intFromFloat(body.mass),
+            //     });
+            // }
+            _ = delta;
 
-            self.applyForces(0.01);
+            // self.applyForces(0.01);
         }
 
         /// Apply forces to velocity

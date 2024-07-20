@@ -6,13 +6,14 @@ const rl = @import("raylib");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize = 5000;
+const boxSize: u32 = 1024 * 8;
 // Amount of space objects in galaxy
 const amount = 5040;
+const Vec2 = core.vec2.Vec2;
 
 pub fn main() anyerror!void {
     // Initialization
-    var engine = try core.engine.Engine().init(256 * 16);
+    var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
 
     //--------------------------------------------------------------------------------------
@@ -78,7 +79,8 @@ pub fn main() anyerror!void {
 
         defer camera.end();
 
-        // try engine.step(1);
+        try engine.step(1);
+        try engine.showBounds(drawBound);
 
         for (engine.bodies.items) |body| {
             drawPlanet(body.position.x, body.position.y, 10, Color.gold);
@@ -90,6 +92,17 @@ pub fn main() anyerror!void {
             // rl.drawCircle(@intCast(i), 100, 100, Color.white);
         }
     }
+}
+
+fn drawBound(position: Vec2, size: u32) void {
+    // Also add padding
+    const padding = 4;
+    rl.drawRectangleLines( //
+        @intCast(position.x + padding), //
+        @intCast(position.y + padding), //
+        @intCast(size - padding * 2), //
+        @intCast(size - padding * 2), //
+        Color.orange);
 }
 
 fn randomPlanet(seed: u64) void {

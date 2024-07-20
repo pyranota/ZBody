@@ -200,15 +200,16 @@ pub fn Tree() type {
 
                 // Call it recursivly
                 try Tree().visitNode(
-                // Formatter
-                // &branch.children[quadrant],
-                @constCast(&br.children[quadrant]),
-                // Why are you
-                mass,
-                // Not working correctly??
-                position.fit(size / 2),
-                //
-                size / 2);
+                    // Formatter
+                    // &branch.children[quadrant],
+                    @constCast(&br.children[quadrant]),
+                    // Why are you
+                    mass,
+                    // Not working correctly??
+                    position.fit(size / 2),
+                    //
+                    size / 2,
+                );
                 // Add mass
                 // Its actually pretty clever solution.
                 // As you can see, we dont want to change branches (modify its mass or/and center of mass)
@@ -310,6 +311,25 @@ pub fn Tree() type {
             }
 
             return true;
+        }
+
+        pub fn showBounds(self: Self, callb: anytype) !void {
+            try self.traverseArgs(treeBoundsCB, callb);
+        }
+
+        fn treeBoundsCB(node: *Node, position: Vec2, callb: anytype) void {
+            switch (node.*) {
+                // TODO: Refactor
+                .branch => {},
+                .leaf => |leaf| {
+                    // given position includes position of body
+                    // But we need just position of leaf
+                    var nonBodyPos: Vec2 = position;
+                    nonBodyPos.x -= leaf.position.x;
+                    nonBodyPos.y -= leaf.position.y;
+                    callb(nonBodyPos, leaf.size);
+                },
+            }
         }
 
         pub fn finalizeCB(node: *Node, _: Vec2, _: anytype) bool {
