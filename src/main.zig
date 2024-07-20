@@ -101,6 +101,11 @@ pub fn main() anyerror!void {
         defer ally.free(string);
         rl.drawText(@ptrCast(string), 20, 40, 20, Color.dark_green);
         camera.target = rl.Vector2.init(player.x, player.y);
+
+        if (engine.bodies.items.len > 0) {
+            // const p = engine.bodies.items[0].position;
+            // camera.target = rl.Vector2.init(@floatFromInt(p.x), @floatFromInt(p.y));
+        }
         camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
@@ -138,12 +143,14 @@ fn drawBound(position: Vec2, size: u32) void {
     if (size <= padding * 8) {
         padding = 0;
     }
+
+    const col = if (size == boxSize) Color.dark_green else Color.yellow;
     rl.drawRectangleLines( //
         @intCast(position.x + padding), //
         @intCast(position.y + padding), //
         @intCast(size - padding * 2), //
         @intCast(size - padding * 2), //
-        Color.orange);
+        col);
 }
 
 fn randomPlanet(seed: u64) void {

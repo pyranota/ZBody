@@ -59,14 +59,14 @@ pub fn Engine() type {
                 }
             }
 
-            var maxMass: f32 = 0;
+            // var maxMass: f32 = 0;
 
-            for (self.bodies.items) |body| {
-                if (body.mass > maxMass) {
-                    maxMass = body.mass;
-                }
-            }
-            std.debug.print("Max mass: {d}", .{maxMass});
+            // for (self.bodies.items) |body| {
+            //     if (body.mass > maxMass) {
+            //         maxMass = body.mass;
+            //     }
+            // }
+            // std.debug.print("Max mass: {d}", .{maxMass});
 
             // Iterate from end to beginning. So we dont move nodes from end to wrong position
             if (toRemove.items.len > 0) {

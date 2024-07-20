@@ -357,6 +357,7 @@ pub fn Tree() type {
         }
 
         pub fn showBounds(self: Self, callb: anytype) !void {
+            callb(.{}, self.size);
             try self.traverseArgs(treeBoundsCB, callb);
         }
 
