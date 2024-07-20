@@ -47,21 +47,50 @@ pub fn Engine() type {
             // Store position and index of body
             var positions = std.AutoHashMap(Vec2, usize).init(ally);
             defer positions.deinit();
+            var toRemove = std.ArrayList(usize).init(ally);
+            defer toRemove.deinit();
 
             for (self.bodies.items, 0..) |body, i| {
                 if (positions.get(body.position)) |index| {
                     self.bodies.items[index].mass += body.mass;
-                    _ = self.bodies.swapRemove(i);
-                    _ = self.accels.swapRemove(i);
+                    try toRemove.append(i);
                 } else {
                     try positions.put(body.position, i);
+                }
+            }
+
+            var maxMass: f32 = 0;
+
+            for (self.bodies.items) |body| {
+                if (body.mass > maxMass) {
+                    maxMass = body.mass;
+                }
+            }
+            std.debug.print("Max mass: {d}", .{maxMass});
+
+            // Iterate from end to beginning. So we dont move nodes from end to wrong position
+            if (toRemove.items.len > 0) {
+                var i: usize = toRemove.items.len - 1;
+                std.debug.print("Iintitein: {}\n", .{i});
+                while (i >= 0) {
+                    const idx = toRemove.items[i];
+                    _ = self.bodies.swapRemove(idx);
+                    _ = self.accels.swapRemove(idx);
+
+                    if (i == 0) {
+                        break;
+                    } else {
+                        i -= 1;
+                    }
                 }
             }
         }
 
         pub fn step(self: *Self, delta: f32) !void {
             try self.mergeSamePositions();
+
             self.tree.clean();
+
             for (self.bodies.items) |body| {
                 try self.tree.addBody(@intFromFloat(body.mass), body.position);
             }
