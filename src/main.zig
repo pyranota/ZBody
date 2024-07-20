@@ -32,7 +32,8 @@ pub fn main() anyerror!void {
     rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
-    var player = rl.Rectangle{ .x = 400, .y = 280, .width = 40, .height = 40 };
+    const boxSizeFloat: f32 = @floatFromInt(boxSize);
+    var player = rl.Rectangle{ .x = boxSizeFloat / 2, .y = boxSizeFloat / 2, .width = 40, .height = 40 };
     // const raylib_zig = rl.Color.init(247, 164, 29, 255);
     var camera = rl.Camera2D{
         .target = rl.Vector2.init(1000, 1000),
