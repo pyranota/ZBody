@@ -13,6 +13,7 @@ const Vec2 = core.vec2.Vec2;
 
 var isPause = false;
 var isDebug = false;
+var isMenuShown = false;
 const ally =
     std.heap.page_allocator;
 
@@ -80,18 +81,33 @@ pub fn main() anyerror!void {
         camera.zoom += rl.getMouseWheelMove() * 0.09;
         camera.zoom = rl.math.clamp(camera.zoom, 0.1, 19.0);
 
-        // Player movement
         if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
             player.x += 9;
         } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
             player.x -= 9;
         }
+        if (rl.isKeyDown(rl.KeyboardKey.key_up)) {
+            player.y -= 9;
+        } else if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
+            player.y += 9;
+        }
+
+        // Player movement
+
         if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
             isPause = !isPause;
         }
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_h)) {
+            isMenuShown = !isMenuShown;
+        }
+
         if (rl.isKeyPressed(rl.KeyboardKey.key_d)) {
             isDebug = !isDebug;
-        } // Camera target follows player
+        }
+
+        // Key listeners
+        // Camera target follows player
         const string = try std.fmt.allocPrint(
             ally,
             "Astral bodies in scene: {}",
@@ -100,6 +116,8 @@ pub fn main() anyerror!void {
         defer ally.free(string);
         rl.drawText(@ptrCast(string), 20, 40, 20, Color.dark_green);
         camera.target = rl.Vector2.init(player.x, player.y);
+
+        //HUD
 
         if (engine.bodies.items.len > 0) {
             // const p = engine.bodies.items[0].position;
