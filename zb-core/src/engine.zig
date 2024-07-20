@@ -9,7 +9,7 @@ pub fn Engine() type {
     return struct { //
         tree: tree.Tree(),
         bodies: List(Body),
-        forces: List(Vec2F),
+        accels: List(Vec2F),
 
         const Self = @This();
 
@@ -20,19 +20,19 @@ pub fn Engine() type {
             return .{ //
                 .tree = try tree.Tree().init(size),
                 .bodies = List(Body).init(ally),
-                .forces = List(Vec2F).init(ally),
+                .accels = List(Vec2F).init(ally),
             };
         }
 
         pub fn deinit(self: *Self) void {
             self.bodies.deinit();
             self.tree.deinit();
-            self.forces.deinit();
+            self.accels.deinit();
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
             try self.bodies.append(body);
-            try self.forces.append(.{});
+            try self.accels.append(.{});
         }
 
         pub fn print(self: *Self) !void {
@@ -52,44 +52,48 @@ pub fn Engine() type {
             self.tree.finalize();
             for (self.bodies.items, 0..) |body, i| {
                 self.tree.step(delta, .{ //
-                    .force = &self.forces.items[i],
+                    .force = &self.accels.items[i],
                     .bodyPos = body.position,
                     .bodyMass = @intFromFloat(body.mass),
                 });
             }
             // _ = delta;
 
-            self.applyForces(1);
+            self.applyForces(20);
         }
 
+        const G = 1.5;
         /// Apply forces to velocity
         fn applyForces(self: *Self, delta: f32) void {
             // _ = delta; // autofix
-            for (self.forces.items, 0..) |force, i| {
-                var body = &self.bodies.items[i];
+            for (self.accels.items, self.bodies.items) |*accel, *body| {
 
                 // const mass: f32 = @floatFromInt(body.mass);
 
-                std.debug.print("Force: X: {d}, Y: {d}\n", .{ force.x, force.y });
+                // std.debug.print("Force: X: {d}, Y: {d}\n", .{ force.x, force.y });
 
-                if (force.x != 0) {
-                    const accelerationX: f32 = force.x / body.mass;
-                    body.velocity.x += accelerationX * delta;
+                if (accel.x != 0) {
+                    // const accelerationX: f32 = .x / body.mass;
+                    const accelerationX = accel.x;
+                    body.velocity.x += accelerationX * delta * G;
                     if (body.velocity.x < 0) {
-                        body.position.x -= @intFromFloat(-body.velocity.x);
+                        body.position.x -= @intFromFloat(-body.velocity.x * delta);
                     } else {
-                        body.position.x += @intFromFloat(body.velocity.x);
+                        body.position.x += @intFromFloat(body.velocity.x * delta);
                     }
                 }
-                if (force.y != 0) {
-                    const accelerationY: f32 = force.y / body.mass;
-                    body.velocity.y += accelerationY * delta;
+                if (accel.y != 0) {
+                    // const accelerationY: f32 = force.y / body.mass;
+                    const accelerationY = accel.y;
+                    body.velocity.y += accelerationY * delta * G;
                     if (body.velocity.y < 0) {
-                        body.position.y -= @intFromFloat(-body.velocity.y);
+                        body.position.y -= @intFromFloat(-body.velocity.y * delta);
                     } else {
-                        body.position.y += @intFromFloat(body.velocity.y);
+                        body.position.y += @intFromFloat(body.velocity.y * delta);
                     }
                 }
+
+                accel.* = .{};
             }
         }
 

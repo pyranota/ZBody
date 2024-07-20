@@ -296,11 +296,8 @@ pub fn Tree() type {
 
                     std.debug.print("Distance: {d}\n\n\n", .{distance});
 
-                    if (distance == 0) {
-                        return true;
-                    }
-
                     const bMass: f32 = @floatFromInt(args.bodyMass);
+                    _ = bMass; // autofix
                     const lMass: f32 = @floatFromInt(leaf.mass);
 
                     // std.debug.print("GenForce: {d}\n", .{generalForce});
@@ -313,17 +310,45 @@ pub fn Tree() type {
 
                     const dx = otherPX - selfPX;
                     const dy = otherPY - selfPY;
+                    const magSQ = dx * dx + dy * dy;
+                    const mag = std.math.sqrt(magSQ);
+                    if (mag == 0) {
+                        return true;
+                    }
+                    std.debug.print("Mag: {d}\n", .{mag});
+
+                    // tt.expectEqual(distance, mag) catch |e| std.debug.print("E: {?}\n Dist: {d}, Mag: {d} ", .{ e, distance, mag });
 
                     // TODO: Use power
-                    const forceX: f32 = (bMass * lMass) / dx;
-                    const forceY: f32 = (bMass * lMass) / dy;
+                    // var forceX: f32 = (lMass) / std.math.pow(f32, dx, 2);
+                    // var forceY: f32 = (lMass) / std.math.pow(f32, dy, 2);
+                    const accel: f32 = (lMass) / (mag * magSQ + 10000000.0);
+                    std.debug.print("Acceleration: {d}\n", .{accel});
+                    // forceX = dx;
+                    // forceY = dy;
 
-                    std.debug.print("Forcessss: X: {d}, Y: {d}\n", .{ forceX, forceY });
+                    // if (dx < 0) {
+                    //     forceX = -forceX;
+                    // }
+                    // if (dy < 0) {
+                    //     forceY = -forceY;
+                    // }
+
+                    // if (dx > dy) {
+                    //     dy /= dx;
+                    //     dx = 1;
+                    // } else {
+                    //     dx /= dy;
+                    //     dy = 1;
+                    // }
+
                     std.debug.print("Vectorr: X: {d}, Y: {d}\n", .{ dx, dy });
+                    // std.debug.print("Forcessss: X: {d}, Y: {d}\n", .{ forceX, forceY });
 
-                    const directionalForce: Vec2F = .{ .x = forceX, .y = forceY };
+                    // const directionalForce: Vec2F = .{ .x = accel * dx, .y = accel * dy };
 
-                    args.force.* = directionalForce;
+                    args.force.x += dx * accel;
+                    args.force.y += dy * accel;
                 },
                 .branch => {},
             }

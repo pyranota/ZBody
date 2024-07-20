@@ -63,6 +63,16 @@ pub fn main() anyerror!void {
                 try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
             }
         }
+        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_middle)) {
+            const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+
+            const x = pos.x;
+            const y = pos.y;
+
+            if (x > 0 and y > 0) {
+                try engine.addBody(core.Body{ .mass = 100, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
+            }
+        }
         // Camera zoom controls
         camera.zoom += rl.getMouseWheelMove() * 0.09;
         camera.zoom = rl.math.clamp(camera.zoom, 0.1, 19.0);
@@ -95,7 +105,7 @@ pub fn main() anyerror!void {
                 drawPlanet(body.position.x, body.position.y, 10, Color.gold);
             }
         }
-        try engine.showBounds(drawBound);
+        // try engine.showBounds(drawBound);
 
         for (0..amount) |i| {
             _ = i; // autofix
@@ -107,7 +117,10 @@ pub fn main() anyerror!void {
 
 fn drawBound(position: Vec2, size: u32) void {
     // Also add padding
-    const padding = 4;
+    var padding: u32 = 4;
+    if (size <= padding) {
+        padding = 0;
+    }
     rl.drawRectangleLines( //
         @intCast(position.x + padding), //
         @intCast(position.y + padding), //
