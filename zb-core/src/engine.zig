@@ -43,7 +43,24 @@ pub fn Engine() type {
             try self.tree.showBounds(callb);
         }
 
+        pub fn mergeSamePositions(self: *Self) !void {
+            // Store position and index of body
+            var positions = std.AutoHashMap(Vec2, usize).init(ally);
+            defer positions.deinit();
+
+            for (self.bodies.items, 0..) |body, i| {
+                if (positions.get(body.position)) |index| {
+                    self.bodies.items[index].mass += body.mass;
+                    _ = self.bodies.swapRemove(i);
+                    _ = self.accels.swapRemove(i);
+                } else {
+                    try positions.put(body.position, i);
+                }
+            }
+        }
+
         pub fn step(self: *Self, delta: f32) !void {
+            try self.mergeSamePositions();
             self.tree.clean();
             for (self.bodies.items) |body| {
                 try self.tree.addBody(@intFromFloat(body.mass), body.position);
@@ -77,9 +94,16 @@ pub fn Engine() type {
                     const accelerationX = accel.x;
                     body.velocity.x += accelerationX * delta * G;
                     if (body.velocity.x < 0) {
-                        body.position.x -= @intFromFloat(-body.velocity.x * delta);
+                        const diff: u32 = @intFromFloat(-body.velocity.x * delta);
+                        // u32 should not be less than zero
+                        if (diff < body.position.x) {
+                            body.position.x -= diff;
+                        }
                     } else {
-                        body.position.x += @intFromFloat(body.velocity.x * delta);
+                        const diff: u32 = @intFromFloat(body.velocity.x * delta);
+                        if (diff + body.position.x < self.tree.size) {
+                            body.position.x += diff;
+                        }
                     }
                 }
                 if (accel.y != 0) {
@@ -87,11 +111,20 @@ pub fn Engine() type {
                     const accelerationY = accel.y;
                     body.velocity.y += accelerationY * delta * G;
                     if (body.velocity.y < 0) {
-                        body.position.y -= @intFromFloat(-body.velocity.y * delta);
+                        const diff: u32 = @intFromFloat(-body.velocity.y * delta);
+                        // u32 should not be less than zero
+                        if (diff < body.position.y) {
+                            body.position.y -= diff;
+                        }
                     } else {
-                        body.position.y += @intFromFloat(body.velocity.y * delta);
+                        const diff: u32 = @intFromFloat(body.velocity.y * delta);
+                        if (diff + body.position.y < self.tree.size) {
+                            body.position.y += diff;
+                        }
                     }
                 }
+
+                // body.position.x = std.math.clamp(u32, , )
 
                 accel.* = .{};
             }

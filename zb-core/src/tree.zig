@@ -292,9 +292,9 @@ pub fn Tree() type {
                     // _ = leaf; // autofix
 
                     // TODO: Use float for better accuracy
-                    const distance: f32 = @floatFromInt(args.bodyPos.distance(position));
+                    // const distance: f32 = @floatFromInt(args.bodyPos.distance(position));
 
-                    std.debug.print("Distance: {d}\n\n\n", .{distance});
+                    // std.debug.print("Distance: {d}\n\n\n", .{distance});
 
                     const bMass: f32 = @floatFromInt(args.bodyMass);
                     _ = bMass; // autofix
@@ -315,7 +315,7 @@ pub fn Tree() type {
                     if (mag == 0) {
                         return true;
                     }
-                    std.debug.print("Mag: {d}\n", .{mag});
+                    // std.debug.print("Mag: {d}\n", .{mag});
 
                     // tt.expectEqual(distance, mag) catch |e| std.debug.print("E: {?}\n Dist: {d}, Mag: {d} ", .{ e, distance, mag });
 
@@ -323,7 +323,7 @@ pub fn Tree() type {
                     // var forceX: f32 = (lMass) / std.math.pow(f32, dx, 2);
                     // var forceY: f32 = (lMass) / std.math.pow(f32, dy, 2);
                     const accel: f32 = (lMass) / (mag * magSQ + 10000000.0);
-                    std.debug.print("Acceleration: {d}\n", .{accel});
+                    // std.debug.print("Acceleration: {d}\n", .{accel});
                     // forceX = dx;
                     // forceY = dy;
 
@@ -342,7 +342,7 @@ pub fn Tree() type {
                     //     dy = 1;
                     // }
 
-                    std.debug.print("Vectorr: X: {d}, Y: {d}\n", .{ dx, dy });
+                    // std.debug.print("Vectorr: X: {d}, Y: {d}\n", .{ dx, dy });
                     // std.debug.print("Forcessss: X: {d}, Y: {d}\n", .{ forceX, forceY });
 
                     // const directionalForce: Vec2F = .{ .x = accel * dx, .y = accel * dy };

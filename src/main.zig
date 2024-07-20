@@ -6,12 +6,15 @@ const rl = @import("raylib");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 16;
+const boxSize: u32 = 1024 * 8;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
 
 var isPause = false;
+var isDebug = false;
+const ally =
+    std.heap.page_allocator;
 
 pub fn main() anyerror!void {
     // Initialization
@@ -53,7 +56,8 @@ pub fn main() anyerror!void {
             player.x -= (d.x * sens) / camera.zoom;
             player.y -= (d.y * sens) / camera.zoom;
         }
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right) or rl.isKeyDown(rl.KeyboardKey.key_s)) {
+            player.x += 9;
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
 
             const x = pos.x;
@@ -85,7 +89,17 @@ pub fn main() anyerror!void {
         }
         if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
             isPause = !isPause;
+        }
+        if (rl.isKeyPressed(rl.KeyboardKey.key_d)) {
+            isDebug = !isDebug;
         } // Camera target follows player
+        const string = try std.fmt.allocPrint(
+            ally,
+            "Astral bodies in scene: {}",
+            .{engine.bodies.items.len},
+        );
+        defer ally.free(string);
+        rl.drawText(@ptrCast(string), 20, 40, 20, Color.dark_green);
         camera.target = rl.Vector2.init(player.x, player.y);
         camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
@@ -94,7 +108,7 @@ pub fn main() anyerror!void {
         defer camera.end();
 
         if (!isPause) {
-            std.debug.print("STEEEPPPPEPEPSSPPSPS\n", .{});
+            // std.debug.print("STEEEPPPPEPEPSSPPSPS\n", .{});
             try engine.step(0.05);
         }
 
@@ -105,7 +119,10 @@ pub fn main() anyerror!void {
                 drawPlanet(body.position.x, body.position.y, 10, Color.gold);
             }
         }
-        // try engine.showBounds(drawBound);
+
+        if (isDebug) {
+            try engine.showBounds(drawBound);
+        }
 
         for (0..amount) |i| {
             _ = i; // autofix
@@ -118,7 +135,7 @@ pub fn main() anyerror!void {
 fn drawBound(position: Vec2, size: u32) void {
     // Also add padding
     var padding: u32 = 4;
-    if (size <= padding) {
+    if (size <= padding * 8) {
         padding = 0;
     }
     rl.drawRectangleLines( //
