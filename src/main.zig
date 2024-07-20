@@ -12,7 +12,7 @@ const amount = 5040;
 
 pub fn main() anyerror!void {
     // Initialization
-    var engine = try core.engine.Engine().init(256);
+    var engine = try core.engine.Engine().init(256 * 16);
     defer engine.deinit();
 
     //--------------------------------------------------------------------------------------
@@ -77,6 +77,8 @@ pub fn main() anyerror!void {
         camera.begin();
 
         defer camera.end();
+
+        // try engine.step(1);
 
         for (engine.bodies.items) |body| {
             drawPlanet(body.position.x, body.position.y, 10, Color.gold);

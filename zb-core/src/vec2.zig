@@ -12,6 +12,12 @@ pub const Vec2 = struct {
         };
     }
 
+    pub fn distance(self: @This(), other: Vec2) u32 {
+        _ = self; // autofix
+        _ = other; // autofix
+        return 1;
+    }
+
     pub fn fit(self: @This(), width: u32) @This() {
         return .{ //
             .x = @rem(self.x, width),

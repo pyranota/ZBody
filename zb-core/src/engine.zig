@@ -2,13 +2,14 @@ const tree = @import("tree.zig");
 const Body = @import("body.zig");
 const std = @import("std");
 const Vec2F = @import("./vec2.zig").Vec2F;
+const Vec2 = @import("./vec2.zig").Vec2;
 const List = std.ArrayList;
 
 pub fn Engine() type {
     return struct { //
         tree: tree.Tree(),
         bodies: List(Body),
-        accelerations: List(Vec2F),
+        forces: List(Vec2F),
 
         const Self = @This();
 
@@ -19,18 +20,19 @@ pub fn Engine() type {
             return .{ //
                 .tree = try tree.Tree().init(size),
                 .bodies = List(Body).init(ally),
-                .accelerations = List(Vec2F).init(ally),
+                .forces = List(Vec2F).init(ally),
             };
         }
 
         pub fn deinit(self: *Self) void {
             self.bodies.deinit();
             self.tree.deinit();
-            self.accelerations.deinit();
+            self.forces.deinit();
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
             try self.bodies.append(body);
+            try self.forces.append(.{});
         }
 
         pub fn print(self: *Self) !void {
@@ -40,10 +42,45 @@ pub fn Engine() type {
         pub fn step(self: *Self, delta: f32) !void {
             self.tree.clean();
             for (self.bodies.items) |body| {
-                try self.tree.addBody(body.mass, body.position);
+                try self.tree.addBody(@intFromFloat(body.mass), body.position);
             }
-            _ = delta; // autofix
 
+            self.tree.finalize();
+            for (self.bodies.items, 0..) |body, i| {
+                self.tree.step(delta, .{ //
+                    .force = &self.forces.items[i],
+                    .bodyPos = body.position,
+                    .bodyMass = @intFromFloat(body.mass),
+                });
+            }
+
+            self.applyForces(0.01);
+        }
+
+        /// Apply forces to velocity
+        fn applyForces(self: *Self, delta: f32) void {
+            // _ = delta; // autofix
+            for (self.forces.items, 0..) |force, i| {
+                var body = &self.bodies.items[i];
+
+                // const mass: f32 = @floatFromInt(body.mass);
+
+                std.debug.print("Force: X: {d}, Y: {d}\n", .{ force.x, force.y });
+
+                const accelerationX: f32 = body.mass / force.x;
+                const accelerationY: f32 = body.mass / force.y;
+
+                body.velocity.x += accelerationX * delta;
+                body.velocity.y += accelerationY * delta;
+
+                body.position.x += @intFromFloat(body.velocity.x);
+                body.position.y += @intFromFloat(body.velocity.y);
+            }
+        }
+
+        /// Apply velocity to position
+        fn applyVelocities() void {
+            // TODO
         }
     };
 }

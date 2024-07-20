@@ -1,5 +1,8 @@
 const std = @import("std");
-const Vec2 = @import("vec2.zig").Vec2;
+const vec2 = @import("vec2.zig");
+const Vec2 = vec2.Vec2;
+const Vec2F = vec2.Vec2F;
+
 const alloc = std.heap.page_allocator;
 
 pub fn Tree() type {
@@ -263,24 +266,55 @@ pub fn Tree() type {
         /// Make a step in simulation
         /// Delta needed to make it smooth
         /// For example if program runs at 60 fps, than delta will be 16ms
-        pub fn step(self: Self, delta: f32) void {
+        pub fn step(
+            self: Self,
+            delta: f32,
+            args: struct { //
+                force: *Vec2F,
+                bodyPos: Vec2,
+                bodyMass: u32,
+            },
+        ) void {
             _ = delta; // autofix
-            self.traverse(a);
-        }
-
-        fn a(e: i32) i32 {
-            const b = 1;
-            std.debug.print("{}", .{e});
-            return e + b;
+            // self.traverse(a);
+            self.traverseArgs(calcForces, args) catch unreachable;
         }
 
         pub fn finalize(self: *Self) void {
             self.final = true;
-            Self.visitNodeTraverse(@constCast(&self.root), .{}, finalizeCB);
+            // Self.visitNodeTraverse(@constCast(&self.root), .{}, finalizeCB, .{});
+            self.traverseArgs(finalizeCB, .{}) catch unreachable;
         }
 
-        pub fn finalizeCB(node: *Node, _: Vec2) bool {
-            std.debug.print("HOWOO", .{});
+        fn calcForces(node: *Node, position: Vec2, args: anytype) bool {
+            switch (node.*) {
+                // TODO: Refactor
+                .leaf => |leaf| {
+                    _ = leaf; // autofix
+                    // TODO: Implement distance()
+                    const distance = args.bodyPos.distance(position);
+
+                    if (distance == 0) {
+                        return true;
+                    }
+
+                    // const generalForce = (args.bodyMass * leaf.mass) / std.math.pow(distance, 2);
+                    const generalForce = 9;
+
+                    // TODO: Implement generalForce to directionalForce
+                    const directionalForce: Vec2F = .{ .x = generalForce * 0.5, .y = generalForce * 0.5 };
+
+                    args.force.* = directionalForce;
+                },
+                .branch => {},
+            }
+
+            return true;
+        }
+
+        pub fn finalizeCB(node: *Node, _: Vec2, _: anytype) bool {
+            // std.Thread.spawn(, , )
+            // std.debug.print("HOWOO", .{});
             switch (node.*) {
                 // TODO: Refactor
                 .leaf => {},
@@ -294,14 +328,70 @@ pub fn Tree() type {
             return true;
         }
 
-        pub fn traverse(self: Self) !void {
-            if (!self.final) {
-                return ErrorError.NotFinalized;
-            }
-            Self.visitNodeTraverse(@constCast(&self.root), .{}, cb);
-        }
+        fn visitNodeTraverse(node: *?*Node, position: Vec2, comptime callback: anytype, args: anytype) void {
+            // const CBType = @TypeOf(callback);
+            // const info = @typeInfo(CBType);
+            const CBType = @TypeOf(callback);
+            const info = @typeInfo(CBType);
 
-        fn cb(node: *Node, position: Vec2) bool {
+            // if
+
+            if (node.*) |n| {
+                switch (n.*) {
+                    .leaf => |leaf| {
+                        // TODO: Move to Vec2
+                        var p = position;
+                        p.x += leaf.position.x;
+                        p.y += leaf.position.y;
+                        // TODO: Refactor callback invokation
+
+                        if (info.Fn.return_type == void) {
+                            callback(n, p, args);
+                        } else {
+                            if (!callback(n, p, args)) {
+                                return;
+                            }
+                        }
+
+                        // callback(n);
+                        // comptime var isFn: bool = false;
+                        // switch (info) {
+                        //     .Fn => |f| {
+                        //         for (f.params) |param| {
+                        //             if (param.type.? == *Node) {
+                        //                 callback(n);
+                        //             }
+                        //         }
+                        //     },
+                        //     else => @compileError("Callback should be a function or a null."),
+                        // }
+                    },
+                    .branch => |branch| {
+                        var p = position;
+                        p.x += branch.centerOfMass.x;
+                        p.y += branch.centerOfMass.y;
+
+                        if (info.Fn.return_type == void) {
+                            callback(n, p, args);
+                        } else {
+                            if (!callback(n, p, args)) {
+                                return;
+                            }
+                        }
+
+                        for (branch.children, 0..) |child, quadrant| {
+                            var qPosition = n.where(@intCast(quadrant));
+                            // std.debug.print("qPos: {?}", .{qPosition});
+                            qPosition.x += position.x;
+                            qPosition.y += position.y;
+
+                            Self.visitNodeTraverse(@constCast(&child), qPosition, callback, args);
+                        }
+                    },
+                }
+            } else {}
+        }
+        fn cb(node: *Node, position: Vec2, _: anytype) void {
             switch (node.*) {
                 .leaf => |leaf| {
                     _ = leaf; // autofix
@@ -314,43 +404,24 @@ pub fn Tree() type {
                 },
             }
 
-            return true;
+            return;
         }
 
-        fn visitNodeTraverse(node: *?*Node, position: Vec2, callback: fn (*Node, Vec2) bool) void {
-            if (node.*) |n| {
-                switch (n.*) {
-                    .leaf => |leaf| {
-                        // TODO: Move to Vec2
-                        var p = position;
-                        p.x += leaf.position.x;
-                        p.y += leaf.position.y;
-                        // TODO: Refactor callback invokation
-                        if (!callback(n, p)) {
-                            return;
-                        }
-                    },
-                    .branch => |branch| {
-                        var p = position;
-                        p.x += branch.centerOfMass.x;
-                        p.y += branch.centerOfMass.y;
-
-                        if (!callback(n, p)) {
-                            return;
-                        }
-
-                        for (branch.children, 0..) |child, quadrant| {
-                            var qPosition = n.where(@intCast(quadrant));
-                            // std.debug.print("qPos: {?}", .{qPosition});
-                            qPosition.x += position.x;
-                            qPosition.y += position.y;
-
-                            Self.visitNodeTraverse(@constCast(&child), qPosition, callback);
-                        }
-                    },
-                }
-            } else {}
+        pub fn traverse(self: Self) !void {
+            if (!self.final) {
+                return ErrorError.NotFinalized;
+            }
+            Self.visitNodeTraverse(@constCast(&self.root), .{}, cb, .{});
         }
+        /// Takes callback which optionally returns boolean.
+        pub fn traverseArgs(self: Self, comptime callback: anytype, args: anytype) !void {
+            if (!self.final) {
+                return ErrorError.NotFinalized;
+            }
+            Self.visitNodeTraverse(@constCast(&self.root), .{}, callback, args);
+        }
+
+        // TODO: Remove pointer to node from callback
     };
 }
 // TODO: Move in other module

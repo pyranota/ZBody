@@ -1,5 +1,7 @@
-const Vec2 = @import("vec2.zig").Vec2;
+const vec2 = @import("vec2.zig");
+const Vec2 = vec2.Vec2;
+const Vec2F = vec2.Vec2F;
 
-mass: u32 = 0,
+mass: f32 = 0,
 position: Vec2 = .{},
-velocity: Vec2 = .{}
+velocity: Vec2F = .{}
