@@ -80,11 +80,11 @@ pub fn main() anyerror!void {
         defer camera.end();
 
         try engine.step(1);
-        try engine.showBounds(drawBound);
 
         for (engine.bodies.items) |body| {
             drawPlanet(body.position.x, body.position.y, 10, Color.gold);
         }
+        try engine.showBounds(drawBound);
 
         for (0..amount) |i| {
             _ = i; // autofix

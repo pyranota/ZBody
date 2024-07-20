@@ -162,7 +162,7 @@ pub fn Tree() type {
         /// Add Astronomical Body to the System
         pub fn addBody(self: *@This(), mass: u32, position: Vec2) !void {
             if (position.max() >= self.size) {
-                return ErrorError.Abc;
+                return ErrorError.PositionOutOfBound;
             }
             try Tree().visitNode(&self.root, mass, position, self.size);
         }
@@ -177,7 +177,7 @@ pub fn Tree() type {
                     // Cuz if it is, than there is more than one leaf and we cannot determine if position is actually the same
                     .leaf => |leaf| {
                         if (position.x == leaf.position.x and position.y == leaf.position.y) {
-                            return ErrorError.Abc;
+                            return ErrorError.BodyAtGivenPositionAlreadyExist;
                         }
                     },
                     else => {},
@@ -445,7 +445,7 @@ pub fn Tree() type {
     };
 }
 // TODO: Move in other module
-const ErrorError = error{ Abc, NotFinalized };
+const ErrorError = error{ Abc, NotFinalized, BodyAtGivenPositionAlreadyExist, PositionOutOfBound };
 
 const tt = std.testing;
 
@@ -517,7 +517,7 @@ test "add body with same position" {
     try tr2.addBody(13, .{ .x = 10, .y = 0 });
     try tr2.addBody(14, .{ .x = 0, .y = 10 });
     // Add the same body
-    try tt.expectError(ErrorError.Abc, tr2.addBody(14, .{ .x = 0, .y = 10 }));
+    try tt.expectError(ErrorError.BodyAtGivenPositionAlreadyExist, tr2.addBody(14, .{ .x = 0, .y = 10 }));
 
     try tt.expectEqualDeep(tr, tr2);
 }
