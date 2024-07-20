@@ -294,7 +294,7 @@ pub fn Tree() type {
                     // TODO: Use float for better accuracy
                     const distance: f32 = @floatFromInt(args.bodyPos.distance(position));
 
-                    std.debug.print("Distance: {d}\n", .{distance});
+                    std.debug.print("Distance: {d}\n\n\n", .{distance});
 
                     if (distance == 0) {
                         return true;
@@ -314,13 +314,13 @@ pub fn Tree() type {
                     const dx = otherPX - selfPX;
                     const dy = otherPY - selfPY;
 
+                    // TODO: Use power
                     const forceX: f32 = (bMass * lMass) / dx;
                     const forceY: f32 = (bMass * lMass) / dy;
 
-                    // const genForceFloat: f32 = @floatFromInt(generalForce);
-                    // const generalForce = 9;
+                    std.debug.print("Forcessss: X: {d}, Y: {d}\n", .{ forceX, forceY });
+                    std.debug.print("Vectorr: X: {d}, Y: {d}\n", .{ dx, dy });
 
-                    // TODO: Implement generalForce to directionalForce
                     const directionalForce: Vec2F = .{ .x = forceX, .y = forceY };
 
                     args.force.* = directionalForce;

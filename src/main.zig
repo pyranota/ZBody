@@ -11,6 +11,8 @@ const boxSize: u32 = 1024 * 16;
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
 
+var isPause = false;
+
 pub fn main() anyerror!void {
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
@@ -71,7 +73,9 @@ pub fn main() anyerror!void {
         } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
             player.x -= 9;
         }
-        // Camera target follows player
+        if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
+            isPause = !isPause;
+        } // Camera target follows player
         camera.target = rl.Vector2.init(player.x, player.y);
         camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
@@ -79,10 +83,17 @@ pub fn main() anyerror!void {
 
         defer camera.end();
 
-        try engine.step(0.05);
+        if (!isPause) {
+            std.debug.print("STEEEPPPPEPEPSSPPSPS\n", .{});
+            try engine.step(0.05);
+        }
 
-        for (engine.bodies.items) |body| {
-            drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+        for (engine.bodies.items, 0..) |body, i| {
+            if (i == 0) {
+                drawPlanet(body.position.x, body.position.y, 10, Color.red);
+            } else {
+                drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+            }
         }
         try engine.showBounds(drawBound);
 
