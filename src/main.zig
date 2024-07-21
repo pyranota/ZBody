@@ -17,6 +17,7 @@ var isDebug = false;
 var isMenuShown = false;
 
 const ally = std.heap.page_allocator;
+var zoom: f32 = 1;
 
 pub fn main() anyerror!void {
     // rg.guiColorPicker(, , )
@@ -90,9 +91,11 @@ pub fn main() anyerror!void {
             }
         }
         // Camera zoom controls
-        camera.zoom += rl.getMouseWheelMove() * 0.09;
-        camera.zoom = rl.math.clamp(camera.zoom, 0.002, 19.0);
+        zoom += rl.getMouseWheelMove() * 0.19 * zoom;
+        zoom = rl.math.clamp(zoom, 0.002, 19.0);
 
+        camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
+        // camera.zoom = zoom;
         // Player movement arrow keys
 
         if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
