@@ -62,7 +62,16 @@ pub fn Engine() type {
 
             for (self.bodies.items, 0..) |body, i| {
                 if (positions.get(body.position.toVec2())) |index| {
-                    self.bodies.items[index].mass += body.mass;
+                    // self.bodies.items[index].mass += body.mass;
+                    var oldB = &self.bodies.items[index];
+
+                    const vFinalX = (oldB.velocity.x * oldB.mass + body.velocity.x * body.mass) / (oldB.mass + body.mass);
+                    const vFinalY = (oldB.velocity.y * oldB.mass + body.velocity.y * body.mass) / (oldB.mass + body.mass);
+                    oldB.mass += body.mass;
+
+                    oldB.velocity.x = vFinalX;
+                    oldB.velocity.y = vFinalY;
+
                     try toRemove.append(i);
                 } else {
                     try positions.put(body.position.toVec2(), i);

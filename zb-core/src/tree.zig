@@ -325,7 +325,7 @@ pub fn Tree() type {
                     const d = std.math.sqrt(dQ);
 
                     if (@floor(d) == 0) {
-                        std.debug.print("Leaf self", .{});
+                        // std.debug.print("Leaf self", .{});
                         return true;
                     }
                     const accel: f32 = (mass2) / (d * dQ + safety);
