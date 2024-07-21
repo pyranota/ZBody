@@ -35,7 +35,7 @@ pub fn Tree() type {
                 mass: u32 = 0,
                 /// Represents position of the body within this Leaf
                 /// It's coordinates are relative to the leaf
-                position: Vec2 = .{},
+                position: Vec2F = .{},
                 /// Quadrant size
                 size: u32,
             };
@@ -61,7 +61,7 @@ pub fn Tree() type {
                     .children = .{null} ** 4,
                     // Center of mass does not change, since we have only one leaf at the moment
                     // Only the next iteration should modify center of mass
-                    .centerOfMass = leaf.position.toVec2F(),
+                    .centerOfMass = leaf.position,
                     .mass = leaf.mass,
                     .size = leaf.size,
                 };
@@ -75,7 +75,7 @@ pub fn Tree() type {
                 leaf.size /= 2;
 
                 // Ask a new branch where to put leaf
-                const quadrant = branch.which(leaf.position);
+                const quadrant = branch.which(leaf.position.toVec2());
 
                 // TODO: Move into leaf struct itself
                 // Fit leaf's position to new quadrant which is 2 times smaller
@@ -136,7 +136,7 @@ pub fn Tree() type {
         // TODO: Find better allocator
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         const ally = arena.allocator();
-        const threshhold: f32 = 1.4;
+        const threshhold: f32 = 0;
 
         root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
@@ -164,14 +164,14 @@ pub fn Tree() type {
         }
 
         /// Add Astronomical Body to the System
-        pub fn addBody(self: *@This(), mass: u32, position: Vec2) !void {
-            if (position.max() >= self.size) {
+        pub fn addBody(self: *@This(), mass: u32, position: Vec2F) !void {
+            if (position.toVec2().max() >= self.size) {
                 return ErrorError.PositionOutOfBound;
             }
             try Tree().visitNode(&self.root, mass, position, self.size);
         }
 
-        fn visitNode(node: *?*Node, mass: u32, position: Vec2, size: u32) !void {
+        fn visitNode(node: *?*Node, mass: u32, position: Vec2F, size: u32) !void {
             if (node.*) |n| {
                 // There is already node on the given spot
                 // TODO: Throw runtime error or warning
@@ -180,7 +180,9 @@ pub fn Tree() type {
                     // We dont care if its branch,
                     // Cuz if it is, than there is more than one leaf and we cannot determine if position is actually the same
                     .leaf => |leaf| {
-                        if (position.x == leaf.position.x and position.y == leaf.position.y) {
+                        const roundedP = leaf.position.toVec2();
+                        const newP = position.toVec2();
+                        if (newP.x == roundedP.x and newP.y == roundedP.y) {
                             return ErrorError.BodyAtGivenPositionAlreadyExist;
                         }
                     },
@@ -188,7 +190,7 @@ pub fn Tree() type {
                 }
 
                 // In *which* *quadrant* do we want to put this node
-                const quadrant = n.which(position);
+                const quadrant = n.which(position.toVec2());
 
                 // If we have our node being something (not a null) we always need it to be a branch.
                 // But it can be a Branch or a Leaf.
@@ -224,8 +226,8 @@ pub fn Tree() type {
                 // But if it works correctly we use stacked values to modify needed values in inverted order (from bottom to up).
                 br.mass += mass;
                 var cm = &br.centerOfMass;
-                const px: f32 = @floatFromInt(position.x);
-                const py: f32 = @floatFromInt(position.y);
+                const px: f32 = position.x;
+                const py: f32 = position.y;
                 const m: f32 = @floatFromInt(mass);
                 cm.x += px * m;
                 cm.y += py * m;
@@ -276,7 +278,7 @@ pub fn Tree() type {
         /// For example if program runs at 60 fps, than delta will be 16ms
         const stepArgs = struct {
             force: *Vec2F,
-            bodyPos: Vec2,
+            bodyPos: Vec2F,
             bodyMass: u32,
         };
         pub fn step(self: Self, delta: f32, args: stepArgs) void {
@@ -297,15 +299,16 @@ pub fn Tree() type {
                 .leaf => |leaf| {
                     const mass2: f32 = @floatFromInt(leaf.mass);
 
+                    const np = nodePosition.toVec2F();
                     // Global position
-                    const g2x = nodePosition.x + leaf.position.x;
-                    const g2y = nodePosition.y + leaf.position.y;
+                    const g2x = np.x + leaf.position.x;
+                    const g2y = np.y + leaf.position.y;
 
-                    const x2: f32 = @floatFromInt(g2x);
-                    const y2: f32 = @floatFromInt(g2y);
+                    const x2: f32 = g2x;
+                    const y2: f32 = g2y;
 
-                    const x1: f32 = @floatFromInt(args.bodyPos.x);
-                    const y1: f32 = @floatFromInt(args.bodyPos.y);
+                    const x1: f32 = args.bodyPos.x;
+                    const y1: f32 = args.bodyPos.y;
 
                     const dx = x2 - x1;
                     const dy = y2 - y1;
@@ -328,7 +331,7 @@ pub fn Tree() type {
                     g.x = p.x + br.centerOfMass.x;
                     g.y = p.y + br.centerOfMass.y;
 
-                    const d: f32 = g.distance(args.bodyPos.toVec2F());
+                    const d: f32 = g.distance(args.bodyPos);
                     const s: f32 = @floatFromInt(br.size);
 
                     // return true;
@@ -340,8 +343,8 @@ pub fn Tree() type {
                         const g2x = p.x + br.centerOfMass.x;
                         const g2y = p.y + br.centerOfMass.y;
 
-                        const x1: f32 = @floatFromInt(args.bodyPos.x);
-                        const y1: f32 = @floatFromInt(args.bodyPos.y);
+                        const x1: f32 = args.bodyPos.x;
+                        const y1: f32 = args.bodyPos.y;
 
                         const dx = g2x - x1;
                         const dy = g2y - y1;
@@ -350,10 +353,13 @@ pub fn Tree() type {
                         const dQ = dx * dx + dy * dy;
                         const d1 = std.math.sqrt(dQ);
 
-                        if (d == 0) {
-                            return true;
-                        }
-                        const accel: f32 = (mass2) / (d1 * dQ + 10000000.0);
+                        tt.expectEqual(d, d1) catch std.debug.print("D: {d}, D1: {d}", .{ d, d1 });
+
+                        // if (d1 == 0) {
+                        //     std.debug.print("JLKFJLDSKJFLSKDJFLSKDJFLSDKFJ", .{});
+                        //     return true;
+                        // }
+                        const accel: f32 = (mass2) / (d1 * dQ + 1000000.0);
 
                         args.force.x += dx * accel;
                         args.force.y += dy * accel;

@@ -7,7 +7,7 @@ const rg = @import("raygui");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 1024;
+const boxSize: u32 = 1024 * 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
@@ -19,6 +19,7 @@ var isMenuShown = false;
 const ally = std.heap.page_allocator;
 
 pub fn main() anyerror!void {
+    // rg.guiColorPicker(, , )
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
@@ -75,7 +76,7 @@ pub fn main() anyerror!void {
             const y = pos.y;
 
             if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
+                try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = x, .y = y }, .velocity = .{} });
             }
         }
         if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_middle)) {
@@ -85,12 +86,12 @@ pub fn main() anyerror!void {
             const y = pos.y;
 
             if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 100, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
+                try engine.addBody(core.Body{ .mass = 100, .position = .{ .x = x, .y = y }, .velocity = .{} });
             }
         }
         // Camera zoom controls
         camera.zoom += rl.getMouseWheelMove() * 0.09;
-        camera.zoom = rl.math.clamp(camera.zoom, 0.01, 19.0);
+        camera.zoom = rl.math.clamp(camera.zoom, 0.002, 19.0);
 
         // Player movement arrow keys
 
@@ -126,6 +127,8 @@ pub fn main() anyerror!void {
         );
         defer ally.free(string);
         rl.drawText(@ptrCast(string), 3, 40, 20, Color.dark_green);
+        // var val: i32 = 15;
+        // _ = rg.guiSpinner(rl.Rectangle{ .x = 0, .y = 0, .width = 100, .height = 100 }, "Spinner", &val, 0, 50, true);
 
         // Camera target follows player
         camera.target = rl.Vector2.init(player.x, player.y);
@@ -142,8 +145,13 @@ pub fn main() anyerror!void {
         // }
         // // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
-        camera.begin();
+        // camera.begin();
         defer camera.end();
+        if (engine.bodies.items.len > 2) {
+            const com = engine.tree.root.?.branch.centerOfMass;
+            std.debug.print("Center of mass: X: {d}, Y: {d}\n\n", .{ com.x, com.y });
+            rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 5000, Color.pink);
+        }
 
         if (!isPause) {
             try engine.step(0.05);
@@ -207,8 +215,8 @@ fn randomPlanet(seed: u64) void {
     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
 }
 
-fn drawPlanet(x: u32, y: u32, r: f32, col: Color) void {
-    rl.drawCircle(@intCast(x), @intCast(y), r, col);
+fn drawPlanet(x: f32, y: f32, r: f32, col: Color) void {
+    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, col);
 }
 
 fn drawMenu(rec: rl.Rectangle) void {

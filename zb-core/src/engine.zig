@@ -55,11 +55,11 @@ pub fn Engine() type {
             defer toRemove.deinit();
 
             for (self.bodies.items, 0..) |body, i| {
-                if (positions.get(body.position)) |index| {
+                if (positions.get(body.position.toVec2())) |index| {
                     self.bodies.items[index].mass += body.mass;
                     try toRemove.append(i);
                 } else {
-                    try positions.put(body.position, i);
+                    try positions.put(body.position.toVec2(), i);
                 }
             }
 
@@ -126,34 +126,36 @@ pub fn Engine() type {
                     // const accelerationX: f32 = .x / body.mass;
                     const accelerationX = accel.x;
                     body.velocity.x += accelerationX * delta * G;
-                    if (body.velocity.x < 0) {
-                        const diff: u32 = @intFromFloat(-body.velocity.x * delta);
-                        // u32 should not be less than zero
-                        if (diff < body.position.x) {
-                            body.position.x -= diff;
-                        }
-                    } else {
-                        const diff: u32 = @intFromFloat(body.velocity.x * delta);
-                        if (diff + body.position.x < self.tree.size) {
-                            body.position.x += diff;
-                        }
-                    }
                 }
                 if (accel.y != 0) {
                     // const accelerationY: f32 = force.y / body.mass;
                     const accelerationY = accel.y;
                     body.velocity.y += accelerationY * delta * G;
-                    if (body.velocity.y < 0) {
-                        const diff: u32 = @intFromFloat(-body.velocity.y * delta);
-                        // u32 should not be less than zero
-                        if (diff < body.position.y) {
-                            body.position.y -= diff;
-                        }
-                    } else {
-                        const diff: u32 = @intFromFloat(body.velocity.y * delta);
-                        if (diff + body.position.y < self.tree.size) {
-                            body.position.y += diff;
-                        }
+                }
+                if (body.velocity.x < 0) {
+                    const diff = -body.velocity.x * delta;
+                    // u32 should not be less than zero
+                    if (diff < body.position.x) {
+                        body.position.x -= diff;
+                    }
+                } else {
+                    const diff = body.velocity.x * delta;
+                    const s: f32 = @floatFromInt(self.tree.size);
+                    if (diff + body.position.x < s) {
+                        body.position.x += diff;
+                    }
+                }
+                if (body.velocity.y < 0) {
+                    const diff = -body.velocity.y * delta;
+                    // u32 should not be less than zero
+                    if (diff < body.position.y) {
+                        body.position.y -= diff;
+                    }
+                } else {
+                    const diff = body.velocity.y * delta;
+                    const s: f32 = @floatFromInt(self.tree.size);
+                    if (diff + body.position.y < s) {
+                        body.position.y += diff;
                     }
                 }
 
