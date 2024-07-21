@@ -42,6 +42,10 @@ pub fn Engine() type {
         pub fn showBounds(self: Self, comptime callb: anytype) !void {
             try self.tree.showBounds(callb);
         }
+        pub fn showForceBounds(self: Self, targetPosition: Vec2, comptime callb: anytype) !void {
+            _ = targetPosition; // autofix
+            try self.tree.showForceBounds(tree.Tree().showForcesArgs{ .targetPosition = .{ .x = 1024 * 4, .y = 1024 * 4 }, .callb = callb });
+        }
 
         pub fn mergeSamePositions(self: *Self) !void {
             // Store position and index of body
