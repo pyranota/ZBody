@@ -1,8 +1,10 @@
 const tree = @import("tree.zig");
 const Body = @import("body.zig");
 const std = @import("std");
-const Vec2F = @import("./vec2.zig").Vec2F;
-const Vec2 = @import("./vec2.zig").Vec2;
+const vec2 = @import("vec2.zig");
+const Vec2F = vec2.Vec2F;
+const Vec2 = vec2.Vec2;
+
 const List = std.ArrayList;
 
 pub fn Engine() type {
@@ -32,7 +34,7 @@ pub fn Engine() type {
 
         pub fn addBody(self: *Self, body: Body) !void {
             try self.bodies.append(body);
-            try self.accels.append(.{});
+            try self.accels.append(@splat(0));
         }
 
         pub fn print(self: *Self) !void {
@@ -61,20 +63,20 @@ pub fn Engine() type {
             defer toRemove.deinit();
 
             for (self.bodies.items, 0..) |body, i| {
-                if (positions.get(body.position.toVec2())) |index| {
+                if (positions.get(vec2.convert(u32, body.position))) |index| {
                     // self.bodies.items[index].mass += body.mass;
                     var oldB = &self.bodies.items[index];
 
-                    const vFinalX = (oldB.velocity.x * oldB.mass + body.velocity.x * body.mass) / (oldB.mass + body.mass);
-                    const vFinalY = (oldB.velocity.y * oldB.mass + body.velocity.y * body.mass) / (oldB.mass + body.mass);
+                    const vFinalX = (oldB.velocity[0] * oldB.mass + body.velocity[0] * body.mass) / (oldB.mass + body.mass);
+                    const vFinalY = (oldB.velocity[1] * oldB.mass + body.velocity[1] * body.mass) / (oldB.mass + body.mass);
                     oldB.mass += body.mass;
 
-                    oldB.velocity.x = vFinalX;
-                    oldB.velocity.y = vFinalY;
+                    oldB.velocity[0] = vFinalX;
+                    oldB.velocity[1] = vFinalY;
 
                     try toRemove.append(i);
                 } else {
-                    try positions.put(body.position.toVec2(), i);
+                    try positions.put(vec2.convert(u32, body.position), i);
                 }
             }
 
@@ -137,46 +139,44 @@ pub fn Engine() type {
 
                 // std.debug.print("Force: X: {d}, Y: {d}\n", .{ force.x, force.y });
 
-                if (accel.x != 0) {
+                if (accel[0] != 0) {
                     // const accelerationX: f32 = .x / body.mass;
-                    const accelerationX = accel.x;
-                    body.velocity.x += accelerationX * delta * G;
+                    const accelerationX = accel[0];
+                    body.velocity[0] += accelerationX * delta * G;
                 }
-                if (accel.y != 0) {
-                    // const accelerationY: f32 = force.y / body.mass;
-                    const accelerationY = accel.y;
-                    body.velocity.y += accelerationY * delta * G;
+                if (accel[1] != 0) {
+                    // const accelerationY: f32 = force[1] / body.mass;
+                    const accelerationY = accel[1];
+                    body.velocity[1] += accelerationY * delta * G;
                 }
-                if (body.velocity.x < 0) {
-                    const diff = -body.velocity.x * delta;
+                if (body.velocity[0] < 0) {
+                    const diff = -body.velocity[0] * delta;
                     // u32 should not be less than zero
-                    if (diff < body.position.x) {
-                        body.position.x -= diff;
+                    if (diff < body.position[0]) {
+                        body.position[0] -= diff;
                     }
                 } else {
-                    const diff = body.velocity.x * delta;
+                    const diff = body.velocity[0] * delta;
                     const s: f32 = @floatFromInt(self.tree.size);
-                    if (diff + body.position.x < s) {
-                        body.position.x += diff;
+                    if (diff + body.position[0] < s) {
+                        body.position[0] += diff;
                     }
                 }
-                if (body.velocity.y < 0) {
-                    const diff = -body.velocity.y * delta;
+                if (body.velocity[1] < 0) {
+                    const diff = -body.velocity[1] * delta;
                     // u32 should not be less than zero
-                    if (diff < body.position.y) {
-                        body.position.y -= diff;
+                    if (diff < body.position[1]) {
+                        body.position[1] -= diff;
                     }
                 } else {
-                    const diff = body.velocity.y * delta;
+                    const diff = body.velocity[1] * delta;
                     const s: f32 = @floatFromInt(self.tree.size);
-                    if (diff + body.position.y < s) {
-                        body.position.y += diff;
+                    if (diff + body.position[1] < s) {
+                        body.position[1] += diff;
                     }
                 }
 
-                // body.position.x = std.math.clamp(u32, , )
-
-                accel.* = .{};
+                accel.* = @splat(0);
             }
         }
 

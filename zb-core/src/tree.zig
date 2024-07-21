@@ -35,7 +35,7 @@ pub fn Tree() type {
                 mass: u32 = 0,
                 /// Represents position of the body within this Leaf
                 /// It's coordinates are relative to the leaf
-                position: Vec2F = .{},
+                position: Vec2F = @splat(0),
                 /// Quadrant size
                 size: u32,
             };
@@ -56,11 +56,9 @@ pub fn Tree() type {
 
                 leaf.* = self.leaf;
 
-                const m: f32 = @floatFromInt(leaf.mass);
+                const m: Vec2F = @splat(@floatFromInt(leaf.mass));
 
-                var cm = leaf.position;
-                cm.x *= m;
-                cm.y *= m;
+                const cm = leaf.position * m;
 
                 var branch = Branch{
                     // We will push leaf to corresponding child later
@@ -81,11 +79,11 @@ pub fn Tree() type {
                 leaf.size /= 2;
 
                 // Ask a new branch where to put leaf
-                const quadrant = branch.which(leaf.position.toVec2());
+                const quadrant = branch.which(vec2.convert(u32, leaf.position));
 
                 // TODO: Move into leaf struct itself
                 // Fit leaf's position to new quadrant which is 2 times smaller
-                leaf.position = leaf.position.fit(leaf.size);
+                leaf.position = vec2.fit(f32, leaf.position, leaf.size);
                 // var newNode = ally.alloc(Node, 1);
 
                 // self.position.fit();
@@ -114,8 +112,9 @@ pub fn Tree() type {
             /// Can return error if position is out of bound
             fn which(self: @This(), position: Vec2) u2 {
                 const half = self.size() / 2;
-                const x: u2 = if (position.x < half) 0 else 1;
-                const y: u2 = if (position.y < half) 0 else 1;
+                // TODO: May be can be done in SIMD
+                const x: u2 = if (position[0] < half) 0 else 1;
+                const y: u2 = if (position[1] < half) 0 else 1;
                 return (x + y * 2);
             }
 
@@ -128,11 +127,11 @@ pub fn Tree() type {
                 // Reference implementation from Venx:
                 // UVec3::new(i & 1, (i >> 1) & 1,
                 var v = Vec2{ //
-                    .x = i & 1,
-                    .y = (i >> 1) & 1,
+                    i & 1,
+                    (i >> 1) & 1,
                 };
-                v.x *= s;
-                v.y *= s;
+                v[0] *= s;
+                v[1] *= s;
                 return v;
             }
         };
@@ -174,32 +173,29 @@ pub fn Tree() type {
 
         /// Add Astronomical Body to the System
         pub fn addBody(self: *@This(), mass: u32, position: Vec2F) !void {
-            if (position.toVec2().max() >= self.size) {
+            const positionF = vec2.convert(u32, position);
+            if (@max(positionF[0], positionF[1]) >= self.size)
                 return ErrorError.PositionOutOfBound;
-            }
+
             try Tree().visitNode(&self.root, mass, position, self.size);
         }
 
         fn visitNode(node: *?*Node, mass: u32, position: Vec2F, size: u32) !void {
             if (node.*) |n| {
                 // There is already node on the given spot
-                // TODO: Throw runtime error or warning
                 // TODO: refactor
                 switch (n.*) {
                     // We dont care if its branch,
                     // Cuz if it is, than there is more than one leaf and we cannot determine if position is actually the same
                     .leaf => |leaf| {
-                        const roundedP = leaf.position.toVec2();
-                        const newP = position.toVec2();
-                        if (newP.x == roundedP.x and newP.y == roundedP.y) {
+                        if (vec2.isEq(u32, leaf.position, position))
                             return ErrorError.BodyAtGivenPositionAlreadyExist;
-                        }
                     },
                     else => {},
                 }
 
                 // In *which* *quadrant* do we want to put this node
-                const quadrant = n.which(position.toVec2());
+                const quadrant = n.which(vec2.convert(u32, position));
 
                 // If we have our node being something (not a null) we always need it to be a branch.
                 // But it can be a Branch or a Leaf.
@@ -221,7 +217,7 @@ pub fn Tree() type {
                     // Why are you
                     mass,
                     // Not working correctly??
-                    position.fit(size / 2),
+                    vec2.fit(f32, position, size / 2),
                     //
                     size / 2,
                 );
@@ -235,11 +231,11 @@ pub fn Tree() type {
                 // But if it works correctly we use stacked values to modify needed values in inverted order (from bottom to up).
                 br.mass += mass;
                 var cm = &br.centerOfMass;
-                const px: f32 = position.x;
-                const py: f32 = position.y;
+                const px: f32 = position[0];
+                const py: f32 = position[1];
                 const m: f32 = @floatFromInt(mass);
-                cm.x += px * m;
-                cm.y += py * m;
+                cm[0] += px * m;
+                cm[1] += py * m;
             }
             // Here our journey ends. We found a null node and can use it.
             else {
@@ -259,8 +255,8 @@ pub fn Tree() type {
         /// Convert position and node full size
         fn which(position: Vec2, size: u32) u2 {
             const half = size / 2;
-            const x: u2 = if (position.x < half) 0 else 1;
-            const y: u2 = if (position.y < half) 0 else 1;
+            const x: u2 = if (position[0] < half) 0 else 1;
+            const y: u2 = if (position[1] < half) 0 else 1;
             return (x + y * 2);
         }
         /// Internal index of node converted to normalized vector
@@ -270,8 +266,8 @@ pub fn Tree() type {
         // /// Convert position of node in 3d space coordinate to internal child branch index
         // pub fn get_child_index(pos: UVec3, level: usize) -> usize {
         //     let child_size = 1 << level;
-        //     let x = if pos.x < child_size { 0 } else { 1 };
-        //     let y = if pos.y < child_size { 0 } else { 1 };
+        //     let x = if pos[0] < child_size { 0 } else { 1 };
+        //     let y = if pos[1] < child_size { 0 } else { 1 };
         //     let z = if pos.z < child_size { 0 } else { 1 };
         //     (x + y * 2 + z * 4) as usize
         // }
@@ -308,16 +304,16 @@ pub fn Tree() type {
                 .leaf => |leaf| {
                     const mass2: f32 = @floatFromInt(leaf.mass);
 
-                    const np = nodePosition.toVec2F();
+                    const np = vec2.convert(f32, nodePosition);
                     // Global position
-                    const g2x = np.x + leaf.position.x;
-                    const g2y = np.y + leaf.position.y;
+                    const g2x = np[0] + leaf.position[0];
+                    const g2y = np[1] + leaf.position[1];
 
                     const x2: f32 = g2x;
                     const y2: f32 = g2y;
 
-                    const x1: f32 = args.bodyPos.x;
-                    const y1: f32 = args.bodyPos.y;
+                    const x1: f32 = args.bodyPos[0];
+                    const y1: f32 = args.bodyPos[1];
 
                     const dx = x2 - x1;
                     const dy = y2 - y1;
@@ -332,16 +328,17 @@ pub fn Tree() type {
                     }
                     const accel: f32 = (mass2) / (d * dQ + safety);
 
-                    args.force.x += dx * accel;
-                    args.force.y += dy * accel;
+                    args.force[0] += dx * accel;
+                    args.force[1] += dy * accel;
                 },
                 .branch => |br| {
-                    var g: Vec2F = .{};
-                    const p = nodePosition.toVec2F();
-                    g.x = p.x + br.centerOfMass.x;
-                    g.y = p.y + br.centerOfMass.y;
+                    var g: Vec2F = @splat(0);
+                    // const p = nodePosition.toVec2F();
+                    const p = vec2.convert(f32, nodePosition);
+                    g[0] = p[0] + br.centerOfMass[0];
+                    g[1] = p[1] + br.centerOfMass[1];
 
-                    const d: f32 = g.distance(args.bodyPos);
+                    const d = vec2.distance(f32, g, args.bodyPos);
                     const s: f32 = @floatFromInt(br.size);
 
                     // return true;
@@ -350,11 +347,11 @@ pub fn Tree() type {
                         const mass2: f32 = @floatFromInt(br.mass);
 
                         // Global position
-                        const g2x = p.x + br.centerOfMass.x;
-                        const g2y = p.y + br.centerOfMass.y;
+                        const g2x = p[0] + br.centerOfMass[0];
+                        const g2y = p[1] + br.centerOfMass[1];
 
-                        const x1: f32 = args.bodyPos.x;
-                        const y1: f32 = args.bodyPos.y;
+                        const x1: f32 = args.bodyPos[0];
+                        const y1: f32 = args.bodyPos[1];
 
                         const dx = g2x - x1;
                         const dy = g2y - y1;
@@ -371,8 +368,8 @@ pub fn Tree() type {
                         // }
                         const accel: f32 = (mass2) / (d1 * dQ + safety);
 
-                        args.force.x += dx * accel;
-                        args.force.y += dy * accel;
+                        args.force[0] += dx * accel;
+                        args.force[1] += dy * accel;
                         return false;
                     } else {
                         return true;
@@ -386,7 +383,8 @@ pub fn Tree() type {
         // pub const showForcesArgs = struct { targetPosition: Vec2F, callb: fn (Vec2, u32) void };
 
         pub fn showForceBounds(self: Self, args: anytype) !void {
-            args.@"1"(.{}, self.size, if (self.root) |root| root.branch.centerOfMass else null);
+            // TODO: Fix. its crashing if there is just one node
+            args.@"1"(@splat(0), self.size, if (self.root) |root| root.branch.centerOfMass else null);
             try self.traverseArgs(forceBoundsCB, args);
         }
 
@@ -397,11 +395,11 @@ pub fn Tree() type {
             switch (node.*) {
                 // TODO: Refactor
                 .branch => |br| {
-                    var g: Vec2F = nodePosition.toVec2F();
-                    g.x += br.centerOfMass.x;
-                    g.y += br.centerOfMass.y;
+                    var g = vec2.convert(f32, nodePosition);
+                    g[0] += br.centerOfMass[0];
+                    g[1] += br.centerOfMass[1];
 
-                    const d: f32 = g.distance(targetPos);
+                    const d: f32 = vec2.distance(f32, g, targetPos);
                     const s: f32 = @floatFromInt(br.size);
 
                     // std.debug.print("Branch\n", .{});
@@ -438,8 +436,8 @@ pub fn Tree() type {
                     // given position includes position of body
                     // But we need just position of leaf
                     // var nonBodyPos: Vec2 = nodePosition;
-                    // nonBodyPos.x -= leaf.position.x;
-                    // nonBodyPos.y -= leaf.position.y;
+                    // nonBodyPos[0] -= leaf.position[0];
+                    // nonBodyPos[1] -= leaf.position[1];
                     callb(nodePosition, leaf.size);
                 },
             }
@@ -454,8 +452,8 @@ pub fn Tree() type {
                 .branch => {
                     var cm = &node.branch.centerOfMass;
                     const m: f32 = @floatFromInt(node.branch.mass);
-                    cm.x /= m;
-                    cm.y /= m;
+                    cm[0] /= m;
+                    cm[1] /= m;
                 },
             }
 
@@ -476,8 +474,8 @@ pub fn Tree() type {
                         // TODO: Move to Vec2
                         // TODO: Dont do that?
                         // To find position or center of mass add to base
-                        // p.x += leaf.position.x;
-                        // p.y += leaf.position.y;
+                        // p[0] += leaf.position[0];
+                        // p[1] += leaf.position[1];
                         // TODO: Refactor callback invokation
 
                         if (info.Fn.return_type == void) {
@@ -503,8 +501,8 @@ pub fn Tree() type {
                     },
                     .branch => |branch| {
                         // var p = position;
-                        // p.x += branch.centerOfMass.x;
-                        // p.y += branch.centerOfMass.y;
+                        // p[0] += branch.centerOfMass[0];
+                        // p[1] += branch.centerOfMass[1];
 
                         if (info.Fn.return_type == void) {
                             callback(n, position, args);
@@ -517,8 +515,8 @@ pub fn Tree() type {
                         for (branch.children, 0..) |child, quadrant| {
                             var qPosition = n.where(@intCast(quadrant));
                             // std.debug.print("qPos: {?}", .{qPosition});
-                            qPosition.x += position.x;
-                            qPosition.y += position.y;
+                            qPosition[0] += position[0];
+                            qPosition[1] += position[1];
 
                             Self.visitNodeTraverse(@constCast(&child), qPosition, callback, args);
                         }
@@ -550,10 +548,10 @@ pub fn Tree() type {
         }
         /// Takes callback which optionally returns boolean.
         pub fn traverseArgs(self: Self, callback: anytype, args: anytype) !void {
-            if (!self.final) {
+            if (!self.final)
                 return ErrorError.NotFinalized;
-            }
-            Self.visitNodeTraverse(@constCast(&self.root), .{}, callback, args);
+
+            Self.visitNodeTraverse(@constCast(&self.root), @splat(0), callback, args);
         }
 
         // TODO: Remove pointer to node from callback
@@ -569,9 +567,9 @@ test "mass" {
     // TODO
     var tr = try Tree().init(64);
 
-    try tr.addBody(10, .{ .x = 0, .y = 0 });
-    try tr.addBody(20, .{ .x = 9, .y = 9 });
-    try tr.addBody(50, .{ .x = 19, .y = 12 });
+    try tr.addBody(10, .{ 0, 0 });
+    try tr.addBody(20, .{ 9, 9 });
+    try tr.addBody(50, .{ 19, 12 });
     // try tr.print();
     try tt.expectEqual((10 + 20 + 50), tr.root.?.branch.mass);
     std.debug.print("Actual mass: {?}", .{tr.root.?.branch.mass});
@@ -582,9 +580,9 @@ test "center of mass" {
     // TODO
     var tr = try Tree().init(64);
 
-    try tr.addBody(10, .{ .x = 0, .y = 7 });
-    try tr.addBody(20, .{ .x = 9, .y = 15 });
-    try tr.addBody(50, .{ .x = 19, .y = 12 });
+    try tr.addBody(10, .{ 0, 7 });
+    try tr.addBody(20, .{ 9, 15 });
+    try tr.addBody(50, .{ 19, 12 });
 
     tr.finalize();
 
@@ -620,19 +618,19 @@ test "init tree with wrong size" {
 test "add body with same position" {
     var tr = try Tree().init(64);
 
-    try tr.addBody(11, .{ .x = 0, .y = 1 });
-    try tr.addBody(12, .{ .x = 8, .y = 8 });
-    try tr.addBody(13, .{ .x = 10, .y = 0 });
-    try tr.addBody(14, .{ .x = 0, .y = 10 });
+    try tr.addBody(11, .{ 0, 1 });
+    try tr.addBody(12, .{ 8, 8 });
+    try tr.addBody(13, .{ 10, 0 });
+    try tr.addBody(14, .{ 0, 10 });
 
     var tr2 = try Tree().init(64);
 
-    try tr2.addBody(11, .{ .x = 0, .y = 1 });
-    try tr2.addBody(12, .{ .x = 8, .y = 8 });
-    try tr2.addBody(13, .{ .x = 10, .y = 0 });
-    try tr2.addBody(14, .{ .x = 0, .y = 10 });
+    try tr2.addBody(11, .{ 0, 1 });
+    try tr2.addBody(12, .{ 8, 8 });
+    try tr2.addBody(13, .{ 10, 0 });
+    try tr2.addBody(14, .{ 0, 10 });
     // Add the same body
-    try tt.expectError(ErrorError.BodyAtGivenPositionAlreadyExist, tr2.addBody(14, .{ .x = 0, .y = 10 }));
+    try tt.expectError(ErrorError.BodyAtGivenPositionAlreadyExist, tr2.addBody(14, .{ 0, 10 }));
 
     try tt.expectEqualDeep(tr, tr2);
 }
@@ -640,10 +638,10 @@ test "add body with same position" {
 test "traverse leafs and check positions" {
     var tr = try Tree().init(64);
 
-    try tr.addBody(11, .{ .x = 0, .y = 1 });
-    try tr.addBody(12, .{ .x = 8, .y = 8 });
-    try tr.addBody(13, .{ .x = 10, .y = 0 });
-    try tr.addBody(14, .{ .x = 0, .y = 10 });
+    try tr.addBody(11, .{ 0, 1 });
+    try tr.addBody(12, .{ 8, 8 });
+    try tr.addBody(13, .{ 10, 0 });
+    try tr.addBody(14, .{ 0, 10 });
 
     tr.finalize();
     // TODO: Do actual testing
@@ -660,5 +658,5 @@ test "Add node outside the bound" {
     var tr = try Tree().init(16);
 
     // Outside of 16
-    try tt.expectError(ErrorError.Abc, tr.addBody(11, .{ .x = 0, .y = 22 }));
+    try tt.expectError(ErrorError.Abc, tr.addBody(11, .{ 0, 22 }));
 }

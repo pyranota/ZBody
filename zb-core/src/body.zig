@@ -3,6 +3,6 @@ const Vec2 = vec2.Vec2;
 const Vec2F = vec2.Vec2F;
 
 mass: f32 = 0,
-position: Vec2F = .{},
+position: Vec2F = @splat(0),
 //
-velocity: Vec2F = .{}
+velocity: Vec2F = @splat(0)

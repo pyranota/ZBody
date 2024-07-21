@@ -17,9 +17,9 @@ pub fn main() !void {
     // try tr.addBody(81, .{ .x = 9, .y = 11 });
     // try tr.print();
     var e = try engine.Engine().init(256);
-    try e.addBody(Body{ .mass = 99, .position = .{ .x = 199, .y = 18 }, .velocity = .{} });
-    try e.addBody(Body{ .mass = 9, .position = .{ .x = 99, .y = 8 }, .velocity = .{} });
-    try e.addBody(Body{ .mass = 16, .position = .{ .x = 99, .y = 99 }, .velocity = .{} });
+    try e.addBody(Body{ .mass = 99, .position = .{ 199, 18 }, .velocity = @splat(0) });
+    try e.addBody(Body{ .mass = 9, .position = .{ 99, 8 }, .velocity = @splat(0) });
+    try e.addBody(Body{ .mass = 16, .position = .{ 99, 99 }, .velocity = @splat(0) });
     try e.step(0.1);
     // try e.print();
     // e.tree.traverse();

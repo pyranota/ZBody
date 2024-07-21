@@ -21,11 +21,8 @@
         },
         .@"zb-core" = .{
             .url = "./zb-core",
-            .hash = "1220160260fe78fcf1d5ee4c07cc8bd05f08502734c9a51a54df6ebe452a507d327d",
+            .hash = "122080dfa66d9295650456234474721fca4240047b5626f336acc9b905e2b1f44c07",
         },
-        // .@"raygui" = .{
-
-        // }
     },
     .paths = .{
         "build.zig",

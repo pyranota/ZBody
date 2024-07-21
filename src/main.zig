@@ -87,7 +87,7 @@ pub fn main() anyerror!void {
             const y = pos.y;
 
             if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = x, .y = y }, .velocity = .{} });
+                try engine.addBody(core.Body{ .mass = 10, .position = .{ x, y }, .velocity = @splat(0) });
             }
         }
         // Camera zoom controls
@@ -160,14 +160,14 @@ pub fn main() anyerror!void {
         const gColor = rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = 255 };
 
         for (engine.bodies.items) |body| {
-            drawPlanet(body.position.x, body.position.y, 10, gColor);
+            drawPlanet(body.position[0], body.position[1], 10, gColor);
         }
 
         if (isDebug) {
             // try engine.showBounds(drawBound);
             if (engine.bodies.items.len > 0) {
                 const p = engine.bodies.items[0].position;
-                try engine.showForceBounds(.{ .x = p.x, .y = p.y }, drawBoundForceAndCoM);
+                try engine.showForceBounds(p, drawBoundForceAndCoM);
             }
         }
 
@@ -205,8 +205,8 @@ fn drawBound(position: Vec2, size: u32) void {
     }
     const col = if (size == boxSize) Color.dark_green else Color.yellow;
     rl.drawRectangleLines( //
-        @intCast(position.x + padding), //
-        @intCast(position.y + padding), //
+        @intCast(position[0] + padding), //
+        @intCast(position[1] + padding), //
         @intCast(size - padding * 2), //
         @intCast(size - padding * 2), //
         col);
@@ -221,16 +221,16 @@ fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
     const col = if (centerOfMass != null) Color.brown else Color.dark_green;
     // std.debug.print("Is null? {?} \n", .{centerOfMass});
     rl.drawRectangleLines( //
-        @intCast(position.x + padding), //
-        @intCast(position.y + padding), //
+        @intCast(position[0] + padding), //
+        @intCast(position[1] + padding), //
         @intCast(size - padding * 2), //
         @intCast(size - padding * 2), //
         col);
 
     if (centerOfMass) |p| {
         rl.drawCircle( //
-            @intFromFloat(p.x), //
-            @intFromFloat(p.y), //
+            @intFromFloat(p[0]), //
+            @intFromFloat(p[1]), //
             15, Color.pink);
     }
 }
