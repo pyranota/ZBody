@@ -33,6 +33,8 @@ pub fn Tree() type {
             const Leaf = struct {
                 //
                 mass: u32 = 0,
+                /// Represents position of the body within this Leaf
+                /// It's coordinates are relative to the leaf
                 position: Vec2 = .{},
                 /// Quadrant size
                 size: u32,
@@ -134,6 +136,7 @@ pub fn Tree() type {
         // TODO: Find better allocator
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         const ally = arena.allocator();
+        const threshhold: f32 = 1.2;
 
         root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
@@ -285,67 +288,33 @@ pub fn Tree() type {
             self.traverseArgs(finalizeCB, .{}) catch unreachable;
         }
 
-        fn calcForces(node: *Node, position: Vec2, args: stepArgs) bool {
+        fn calcForces(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
             switch (node.*) {
                 // TODO: Refactor
                 .leaf => |leaf| {
-                    // _ = leaf; // autofix
+                    const mass2: f32 = @floatFromInt(leaf.mass);
 
-                    // TODO: Use float for better accuracy
-                    // const distance: f32 = @floatFromInt(args.bodyPos.distance(position));
+                    // Global position
+                    const g2x = nodePosition.x + leaf.position.x;
+                    const g2y = nodePosition.y + leaf.position.y;
 
-                    // std.debug.print("Distance: {d}\n\n\n", .{distance});
+                    const x2: f32 = @floatFromInt(g2x);
+                    const y2: f32 = @floatFromInt(g2y);
 
-                    const bMass: f32 = @floatFromInt(args.bodyMass);
-                    _ = bMass; // autofix
-                    const lMass: f32 = @floatFromInt(leaf.mass);
+                    const x1: f32 = @floatFromInt(args.bodyPos.x);
+                    const y1: f32 = @floatFromInt(args.bodyPos.y);
 
-                    // std.debug.print("GenForce: {d}\n", .{generalForce});
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
 
-                    const otherPX: f32 = @floatFromInt(position.x);
-                    const otherPY: f32 = @floatFromInt(position.y);
+                    // Distance Quadrat
+                    const dQ = dx * dx + dy * dy;
+                    const d = std.math.sqrt(dQ);
 
-                    const selfPX: f32 = @floatFromInt(args.bodyPos.x);
-                    const selfPY: f32 = @floatFromInt(args.bodyPos.y);
-
-                    const dx = otherPX - selfPX;
-                    const dy = otherPY - selfPY;
-                    const magSQ = dx * dx + dy * dy;
-                    const mag = std.math.sqrt(magSQ);
-                    if (mag == 0) {
+                    if (d == 0) {
                         return true;
                     }
-                    // std.debug.print("Mag: {d}\n", .{mag});
-
-                    // tt.expectEqual(distance, mag) catch |e| std.debug.print("E: {?}\n Dist: {d}, Mag: {d} ", .{ e, distance, mag });
-
-                    // TODO: Use power
-                    // var forceX: f32 = (lMass) / std.math.pow(f32, dx, 2);
-                    // var forceY: f32 = (lMass) / std.math.pow(f32, dy, 2);
-                    const accel: f32 = (lMass) / (mag * magSQ + 10000000.0);
-                    // std.debug.print("Acceleration: {d}\n", .{accel});
-                    // forceX = dx;
-                    // forceY = dy;
-
-                    // if (dx < 0) {
-                    //     forceX = -forceX;
-                    // }
-                    // if (dy < 0) {
-                    //     forceY = -forceY;
-                    // }
-
-                    // if (dx > dy) {
-                    //     dy /= dx;
-                    //     dx = 1;
-                    // } else {
-                    //     dx /= dy;
-                    //     dy = 1;
-                    // }
-
-                    // std.debug.print("Vectorr: X: {d}, Y: {d}\n", .{ dx, dy });
-                    // std.debug.print("Forcessss: X: {d}, Y: {d}\n", .{ forceX, forceY });
-
-                    // const directionalForce: Vec2F = .{ .x = accel * dx, .y = accel * dy };
+                    const accel: f32 = (mass2) / (d * dQ + 10000000.0);
 
                     args.force.x += dx * accel;
                     args.force.y += dy * accel;
@@ -356,22 +325,60 @@ pub fn Tree() type {
             return true;
         }
 
+        pub const showForcesArgs = struct { targetPosition: Vec2, callb: fn (Vec2, u32) void };
+
+        pub fn showForceBounds(self: Self, args: showForcesArgs) !void {
+            args.callb(.{}, self.size);
+            try self.traverseArgs(forceBoundsCB, args);
+        }
+
+        fn forceBoundsCB(node: *Node, nodePosition: Vec2, args: showForcesArgs) bool {
+            // std.debug.print("Target: {?}\n\n\n\n", .{args.targetPosition});
+            switch (node.*) {
+                // TODO: Refactor
+                .branch => |br| {
+                    var g: Vec2 = .{};
+                    g.x = nodePosition.x + br.centerOfMass.x;
+                    g.y = nodePosition.y + br.centerOfMass.y;
+
+                    const d: f32 = @floatFromInt(g.distance(args.targetPosition));
+                    const s: f32 = @floatFromInt(br.size);
+
+                    // return true;
+                    if (s / d < threshhold) {
+                        std.debug.print("CoM: {?}, Distance: {d}, Size: {d}, Value: {d}\n", .{ g, d, s, s / d });
+                        args.callb(nodePosition, br.size);
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
+                .leaf => |leaf| {
+                    // given position includes position of body
+                    // But we need just position of leaf
+                    args.callb(nodePosition, leaf.size);
+                    return true;
+                },
+            }
+        }
+
         pub fn showBounds(self: Self, callb: anytype) !void {
             callb(.{}, self.size);
             try self.traverseArgs(treeBoundsCB, callb);
         }
 
-        fn treeBoundsCB(node: *Node, position: Vec2, callb: anytype) void {
+        // TODO: Rename to Leaf bounds
+        fn treeBoundsCB(node: *Node, nodePosition: Vec2, callb: anytype) void {
             switch (node.*) {
                 // TODO: Refactor
                 .branch => {},
                 .leaf => |leaf| {
                     // given position includes position of body
                     // But we need just position of leaf
-                    var nonBodyPos: Vec2 = position;
-                    nonBodyPos.x -= leaf.position.x;
-                    nonBodyPos.y -= leaf.position.y;
-                    callb(nonBodyPos, leaf.size);
+                    // var nonBodyPos: Vec2 = nodePosition;
+                    // nonBodyPos.x -= leaf.position.x;
+                    // nonBodyPos.y -= leaf.position.y;
+                    callb(nodePosition, leaf.size);
                 },
             }
         }
@@ -402,17 +409,18 @@ pub fn Tree() type {
 
             if (node.*) |n| {
                 switch (n.*) {
-                    .leaf => |leaf| {
+                    .leaf => {
                         // TODO: Move to Vec2
-                        var p = position;
-                        p.x += leaf.position.x;
-                        p.y += leaf.position.y;
+                        // TODO: Dont do that?
+                        // To find position or center of mass add to base
+                        // p.x += leaf.position.x;
+                        // p.y += leaf.position.y;
                         // TODO: Refactor callback invokation
 
                         if (info.Fn.return_type == void) {
-                            callback(n, p, args);
+                            callback(n, position, args);
                         } else {
-                            if (!callback(n, p, args)) {
+                            if (!callback(n, position, args)) {
                                 return;
                             }
                         }
@@ -431,14 +439,14 @@ pub fn Tree() type {
                         // }
                     },
                     .branch => |branch| {
-                        var p = position;
-                        p.x += branch.centerOfMass.x;
-                        p.y += branch.centerOfMass.y;
+                        // var p = position;
+                        // p.x += branch.centerOfMass.x;
+                        // p.y += branch.centerOfMass.y;
 
                         if (info.Fn.return_type == void) {
-                            callback(n, p, args);
+                            callback(n, position, args);
                         } else {
-                            if (!callback(n, p, args)) {
+                            if (!callback(n, position, args)) {
                                 return;
                             }
                         }

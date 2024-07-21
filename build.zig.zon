@@ -21,7 +21,7 @@
         },
         .@"zb-core" = .{
             .url = "./zb-core",
-            .hash = "1220ac90630787d13b1d7fabcd00f5ba808af90c83d540c4a1477f78f99678d98ad2",
+            .hash = "122088d380b8778aa5b948dc846a3ccf77cb56d2ef43ea21006516c2004f217b2249",
         },
     },
     .paths = .{

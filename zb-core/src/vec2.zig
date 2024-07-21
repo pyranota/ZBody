@@ -18,14 +18,17 @@ pub const Vec2 = struct {
 
     pub fn distance(self: @This(), other: Vec2) u32 {
         const sx: i32 = @intCast(self.x);
-        const sy: i32 = @intCast(self.x);
+        const sy: i32 = @intCast(self.y);
 
         const ox: i32 = @intCast(other.x);
-        const oy: i32 = @intCast(other.x);
-        const noSqrt: u32 = @intCast(math.pow(i32, ox - sx, 2) + math.pow(i32, oy - sy, 2));
+        const oy: i32 = @intCast(other.y);
 
-        const res = math.sqrt(noSqrt);
-        return @intCast(res);
+        const dx = ox - sx;
+        const dy = oy - sy;
+        const dQ: u32 = @intCast(dx * dx + dy * dy);
+
+        const d = math.sqrt(dQ);
+        return d;
     }
 
     pub fn fit(self: @This(), width: u32) @This() {

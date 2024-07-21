@@ -109,7 +109,6 @@ pub fn main() anyerror!void {
         camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
-
         defer camera.end();
 
         if (!isPause) {
@@ -126,7 +125,7 @@ pub fn main() anyerror!void {
         }
 
         if (isDebug) {
-            try engine.showBounds(drawBound);
+            try engine.showForceBounds(.{ .x = 500, .y = 500 }, drawBound);
         }
 
         for (0..amount) |i| {
