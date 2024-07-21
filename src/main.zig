@@ -7,7 +7,7 @@ const rg = @import("raygui");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 32;
+const boxSize: u32 = 1024 * 1024;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
@@ -129,8 +129,8 @@ pub fn main() anyerror!void {
 
         // Camera target follows player
         camera.target = rl.Vector2.init(player.x, player.y);
-        camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
-        camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
+        // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
+        // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
 
         camera.begin();
 
