@@ -46,63 +46,43 @@ pub fn Engine() type {
         }
 
         pub fn showForceBounds(self: Self, targetPosition: Vec2F, callb: anytype) !void {
-            std.debug.print("\n \n \n Iteration \n", .{});
-            // _ = callb; // autofix
-            // _ = targetPosition; // autofix
-            // _ = self; // autofix
-            // comptime var args = tree.Tree().showForcesArgs{ .targetPosition = .{}, .callb = callb };
-            // args.targetPosition = targetPosition;
             try self.tree.showForceBounds(.{ targetPosition, callb });
         }
 
         pub fn mergeSamePositions(self: *Self) !void {
             // Store position and index of body
             var positions = std.AutoHashMap(Vec2, usize).init(ally);
-            defer positions.deinit();
             var toRemove = std.ArrayList(usize).init(ally);
+
+            defer positions.deinit();
             defer toRemove.deinit();
 
-            for (self.bodies.items, 0..) |body, i| {
+            for (self.bodies.items, 0..) |body, i|
                 if (positions.get(vec2.convert(u32, body.position))) |index| {
-                    // self.bodies.items[index].mass += body.mass;
-                    var oldB = &self.bodies.items[index];
+                    var existing = &self.bodies.items[index];
 
-                    const vFinalX = (oldB.velocity[0] * oldB.mass + body.velocity[0] * body.mass) / (oldB.mass + body.mass);
-                    const vFinalY = (oldB.velocity[1] * oldB.mass + body.velocity[1] * body.mass) / (oldB.mass + body.mass);
-                    oldB.mass += body.mass;
+                    const existing_mass: Vec2F = @splat(existing.mass);
+                    const to_remove_mass: Vec2F = @splat(body.mass);
 
-                    oldB.velocity[0] = vFinalX;
-                    oldB.velocity[1] = vFinalY;
+                    // Keep it balanced :)
+                    existing.velocity = (existing.velocity * existing_mass + body.velocity * to_remove_mass) / (existing_mass + to_remove_mass);
+                    existing.mass += body.mass;
 
                     try toRemove.append(i);
-                } else {
-                    try positions.put(vec2.convert(u32, body.position), i);
-                }
-            }
-
-            // var maxMass: f32 = 0;
-
-            // for (self.bodies.items) |body| {
-            //     if (body.mass > maxMass) {
-            //         maxMass = body.mass;
-            //     }
-            // }
-            // std.debug.print("Max mass: {d}", .{maxMass});
+                } else try positions.put(vec2.convert(u32, body.position), i);
 
             // Iterate from end to beginning. So we dont move nodes from end to wrong position
             if (toRemove.items.len > 0) {
                 var i: usize = toRemove.items.len - 1;
-                std.debug.print("Iintitein: {}\n", .{i});
                 while (i >= 0) {
                     const idx = toRemove.items[i];
                     _ = self.bodies.swapRemove(idx);
                     _ = self.accels.swapRemove(idx);
 
-                    if (i == 0) {
-                        break;
-                    } else {
+                    if (i == 0)
+                        break
+                    else
                         i -= 1;
-                    }
                 }
             }
         }
@@ -112,77 +92,30 @@ pub fn Engine() type {
 
             self.tree.clean();
 
-            for (self.bodies.items) |body| {
+            for (self.bodies.items) |body|
                 try self.tree.addBody(@intFromFloat(body.mass), body.position);
-            }
 
             self.tree.finalize();
-            for (self.bodies.items, 0..) |body, i| {
+            for (self.bodies.items, 0..) |body, i|
                 self.tree.step(delta, .{ //
-                    .force = &self.accels.items[i],
+                    .accel = &self.accels.items[i],
                     .bodyPos = body.position,
                     .bodyMass = @intFromFloat(body.mass),
                 });
-            }
-            // _ = delta;
 
-            self.applyForces(20);
+            self.applyAcceleration(20);
         }
 
-        const G = 1.5;
-        /// Apply forces to velocity
-        fn applyForces(self: *Self, delta: f32) void {
-            // _ = delta; // autofix
+        /// Apply accelerations to velocity
+        fn applyAcceleration(self: *Self, delta: f32) void {
             for (self.accels.items, self.bodies.items) |*accel, *body| {
+                const sd: Vec2F = @splat(delta);
 
-                // const mass: f32 = @floatFromInt(body.mass);
-
-                // std.debug.print("Force: X: {d}, Y: {d}\n", .{ force.x, force.y });
-
-                if (accel[0] != 0) {
-                    // const accelerationX: f32 = .x / body.mass;
-                    const accelerationX = accel[0];
-                    body.velocity[0] += accelerationX * delta * G;
-                }
-                if (accel[1] != 0) {
-                    // const accelerationY: f32 = force[1] / body.mass;
-                    const accelerationY = accel[1];
-                    body.velocity[1] += accelerationY * delta * G;
-                }
-                if (body.velocity[0] < 0) {
-                    const diff = -body.velocity[0] * delta;
-                    // u32 should not be less than zero
-                    if (diff < body.position[0]) {
-                        body.position[0] -= diff;
-                    }
-                } else {
-                    const diff = body.velocity[0] * delta;
-                    const s: f32 = @floatFromInt(self.tree.size);
-                    if (diff + body.position[0] < s) {
-                        body.position[0] += diff;
-                    }
-                }
-                if (body.velocity[1] < 0) {
-                    const diff = -body.velocity[1] * delta;
-                    // u32 should not be less than zero
-                    if (diff < body.position[1]) {
-                        body.position[1] -= diff;
-                    }
-                } else {
-                    const diff = body.velocity[1] * delta;
-                    const s: f32 = @floatFromInt(self.tree.size);
-                    if (diff + body.position[1] < s) {
-                        body.position[1] += diff;
-                    }
-                }
+                body.velocity += accel.* * sd;
+                body.position += body.velocity * sd;
 
                 accel.* = @splat(0);
             }
-        }
-
-        /// Apply velocity to position
-        fn applyVelocities() void {
-            // TODO
         }
     };
 }
