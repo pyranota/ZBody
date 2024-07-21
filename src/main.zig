@@ -6,7 +6,7 @@ const rl = @import("raylib");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 8;
+const boxSize: u32 = 1024 * 32;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
@@ -63,6 +63,7 @@ pub fn main() anyerror!void {
             const x = pos.x;
             const y = pos.y;
 
+            //
             if (x > 0 and y > 0) {
                 try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
             }
@@ -79,7 +80,7 @@ pub fn main() anyerror!void {
         }
         // Camera zoom controls
         camera.zoom += rl.getMouseWheelMove() * 0.09;
-        camera.zoom = rl.math.clamp(camera.zoom, 0.1, 19.0);
+        camera.zoom = rl.math.clamp(camera.zoom, 0.01, 19.0);
 
         // Player movement
         if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
@@ -102,12 +103,14 @@ pub fn main() anyerror!void {
         rl.drawText(@ptrCast(string), 20, 40, 20, Color.dark_green);
         camera.target = rl.Vector2.init(player.x, player.y);
 
-        if (engine.bodies.items.len > 0) {
+        if (engine.bodies.items.len > 2) {
             // const p = engine.bodies.items[0].position;
             // camera.target = rl.Vector2.init(@floatFromInt(p.x), @floatFromInt(p.y));
+            const com = engine.tree.root.?.branch.centerOfMass;
+            std.debug.print("Center of mass: X: {d}, Y: {d}\n\n", .{ com.x, com.y });
         }
-        camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
-        camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
+        // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
+        // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
         defer camera.end();
 
@@ -118,9 +121,9 @@ pub fn main() anyerror!void {
 
         for (engine.bodies.items, 0..) |body, i| {
             if (i == 0) {
-                drawPlanet(body.position.x, body.position.y, 10, Color.red);
+                drawPlanet(body.position.x, body.position.y, 100, Color.red);
             } else {
-                drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+                drawPlanet(body.position.x, body.position.y, 100, Color.gold);
             }
         }
 

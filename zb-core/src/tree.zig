@@ -19,7 +19,7 @@ pub fn Tree() type {
                 /// sum of positions multiplied by their mass each.
                 /// In order to get actual center of mass we need to devide it by total mass
                 /// We dont do this until tree is structured, because we need to add bodies.
-                centerOfMass: Vec2,
+                centerOfMass: Vec2F,
                 // Total mass
                 mass: u32,
                 /// Width and Height occupied by this branch
@@ -61,7 +61,7 @@ pub fn Tree() type {
                     .children = .{null} ** 4,
                     // Center of mass does not change, since we have only one leaf at the moment
                     // Only the next iteration should modify center of mass
-                    .centerOfMass = leaf.position,
+                    .centerOfMass = leaf.position.toVec2F(),
                     .mass = leaf.mass,
                     .size = leaf.size,
                 };
@@ -136,7 +136,7 @@ pub fn Tree() type {
         // TODO: Find better allocator
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         const ally = arena.allocator();
-        const threshhold: f32 = 1.2;
+        const threshhold: f32 = 1.4;
 
         root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
@@ -224,8 +224,11 @@ pub fn Tree() type {
                 // But if it works correctly we use stacked values to modify needed values in inverted order (from bottom to up).
                 br.mass += mass;
                 var cm = &br.centerOfMass;
-                cm.x += position.x * mass;
-                cm.y += position.y * mass;
+                const px: f32 = @floatFromInt(position.x);
+                const py: f32 = @floatFromInt(position.y);
+                const m: f32 = @floatFromInt(mass);
+                cm.x += px * m;
+                cm.y += py * m;
             }
             // Here our journey ends. We found a null node and can use it.
             else {
@@ -319,7 +322,46 @@ pub fn Tree() type {
                     args.force.x += dx * accel;
                     args.force.y += dy * accel;
                 },
-                .branch => {},
+                .branch => |br| {
+                    var g: Vec2F = .{};
+                    const p = nodePosition.toVec2F();
+                    g.x = p.x + br.centerOfMass.x;
+                    g.y = p.y + br.centerOfMass.y;
+
+                    const d: f32 = g.distance(args.bodyPos.toVec2F());
+                    const s: f32 = @floatFromInt(br.size);
+
+                    // return true;
+                    if (s / d < threshhold) {
+                        // std.debug.print("CoM: {?}, Distance: {d}, Size: {d}, Value: {d}\n", .{ g, d, s, s / d });
+                        const mass2: f32 = @floatFromInt(br.mass);
+
+                        // Global position
+                        const g2x = p.x + br.centerOfMass.x;
+                        const g2y = p.y + br.centerOfMass.y;
+
+                        const x1: f32 = @floatFromInt(args.bodyPos.x);
+                        const y1: f32 = @floatFromInt(args.bodyPos.y);
+
+                        const dx = g2x - x1;
+                        const dy = g2y - y1;
+
+                        // Distance Quadrat
+                        const dQ = dx * dx + dy * dy;
+                        const d1 = std.math.sqrt(dQ);
+
+                        if (d == 0) {
+                            return true;
+                        }
+                        const accel: f32 = (mass2) / (d1 * dQ + 10000000.0);
+
+                        args.force.x += dx * accel;
+                        args.force.y += dy * accel;
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
             }
 
             return true;
@@ -333,33 +375,37 @@ pub fn Tree() type {
         }
 
         fn forceBoundsCB(node: *Node, nodePosition: Vec2, args: showForcesArgs) bool {
-            // std.debug.print("Target: {?}\n\n\n\n", .{args.targetPosition});
-            switch (node.*) {
-                // TODO: Refactor
-                .branch => |br| {
-                    var g: Vec2 = .{};
-                    g.x = nodePosition.x + br.centerOfMass.x;
-                    g.y = nodePosition.y + br.centerOfMass.y;
+            _ = args; // autofix
+            _ = nodePosition; // autofix
+            _ = node; // autofix
+            return false;
+            // // std.debug.print("Target: {?}\n\n\n\n", .{args.targetPosition});
+            // switch (node.*) {
+            //     // TODO: Refactor
+            //     .branch => |br| {
+            //         var g: Vec2 = .{};
+            //         g.x = nodePosition.x + br.centerOfMass.x;
+            //         g.y = nodePosition.y + br.centerOfMass.y;
 
-                    const d: f32 = @floatFromInt(g.distance(args.targetPosition));
-                    const s: f32 = @floatFromInt(br.size);
+            //         const d: f32 = @floatFromInt(g.distance(args.targetPosition));
+            //         const s: f32 = @floatFromInt(br.size);
 
-                    // return true;
-                    if (s / d < threshhold) {
-                        std.debug.print("CoM: {?}, Distance: {d}, Size: {d}, Value: {d}\n", .{ g, d, s, s / d });
-                        args.callb(nodePosition, br.size);
-                        return false;
-                    } else {
-                        return true;
-                    }
-                },
-                .leaf => |leaf| {
-                    // given position includes position of body
-                    // But we need just position of leaf
-                    args.callb(nodePosition, leaf.size);
-                    return true;
-                },
-            }
+            //         // return true;
+            //         if (s / d < threshhold) {
+            //             // std.debug.print("CoM: {?}, Distance: {d}, Size: {d}, Value: {d}\n", .{ g, d, s, s / d });
+            //             args.callb(nodePosition, br.size);
+            //             return false;
+            //         } else {
+            //             return true;
+            //         }
+            //     },
+            //     .leaf => |leaf| {
+            //         // given position includes position of body
+            //         // But we need just position of leaf
+            //         args.callb(nodePosition, leaf.size);
+            //         return true;
+            //     },
+            // }
         }
 
         pub fn showBounds(self: Self, callb: anytype) !void {
@@ -391,8 +437,9 @@ pub fn Tree() type {
                 .leaf => {},
                 .branch => {
                     var cm = &node.branch.centerOfMass;
-                    cm.x /= node.branch.mass;
-                    cm.y /= node.branch.mass;
+                    const m: f32 = @floatFromInt(node.branch.mass);
+                    cm.x /= m;
+                    cm.y /= m;
                 },
             }
 

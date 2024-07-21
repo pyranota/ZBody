@@ -16,6 +16,11 @@ pub const Vec2 = struct {
         };
     }
 
+    pub fn toVec2F(self: @This()) Vec2F {
+        return .{ .x = @floatFromInt(self.x), .y = @floatFromInt(self.y) };
+    }
+
+    // TODO: Return f32
     pub fn distance(self: @This(), other: Vec2) u32 {
         const sx: i32 = @intCast(self.x);
         const sy: i32 = @intCast(self.y);
@@ -59,6 +64,14 @@ pub const Vec2F = struct {
             .x = self.x / div,
             .y = self.y / div,
         };
+    }
+    pub fn distance(self: @This(), other: Vec2F) f32 {
+        const dx = other.x - self.x;
+        const dy = other.y - self.y;
+        const dQ = dx * dx + dy * dy;
+
+        const d = math.sqrt(dQ);
+        return d;
     }
 
     pub fn fit(self: @This(), width: f32) @This() {
