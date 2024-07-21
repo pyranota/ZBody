@@ -198,7 +198,6 @@ test "mass" {
 }
 
 test "center of mass" {
-    // TODO
     var tr = try Tree().init(64);
 
     try tr.addBody(10, .{ 0, 7 });
@@ -208,14 +207,6 @@ test "center of mass" {
     tr.finalize();
 
     try tr.print();
-}
-
-test "size" {
-    // TODO
-}
-
-test "init tree, 2 bodies test" {
-    // TODO
 }
 
 test "init tree with wrong size" {
@@ -269,6 +260,7 @@ test "traverse leafs and check positions" {
     // Rn just watch the output and compare with values above
     try tr.traverse();
 }
+
 test "traverse without finalizing" {
     var tr = try Tree().init(64);
     try tt.expectError(TreeError.NotFinalized, tr.traverse());

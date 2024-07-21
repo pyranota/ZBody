@@ -72,6 +72,7 @@ pub fn Engine() type {
                 } else try positions.put(vec2.convert(u32, body.position), i);
 
             // Iterate from end to beginning. So we dont move nodes from end to wrong position
+            // TODO: Refactor
             if (toRemove.items.len > 0) {
                 var i: usize = toRemove.items.len - 1;
                 while (i >= 0) {
