@@ -169,13 +169,13 @@ pub fn Tree() type {
                 else if (!callback(n, position, args))
                     return;
 
-                switch (n.*) {
-                    .leaf => {},
-                    .branch => |branch| for (branch.children, 0..) |child, quadrant| {
-                        const qPosition = n.where(@intCast(quadrant)) + position;
-                        Self.visitNodeTraverse(@constCast(&child), qPosition, callback, args);
-                    },
-                }
+                if (n.* == Node.branch)
+                    for (n.branch.children, 0..) |child, quadrant|
+                        Self.visitNodeTraverse(@constCast(&child),
+                        //
+                        n.which(@intCast(quadrant)) + position,
+                        //
+                        callback, args);
             }
         }
     };
