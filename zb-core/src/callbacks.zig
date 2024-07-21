@@ -42,7 +42,7 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
     // Dont calculate force if target is the same as node
     if (@floor(d) == 0)
         return true;
-    if (size / d < Threshold) {
+    if (node.* == Node.leaf or size / d < Threshold) {
         const accel: Vec2F = @splat((mass) / (d * d * d + Safety));
         args.accel.* += accel * d_vec;
         return false;
