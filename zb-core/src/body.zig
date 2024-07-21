@@ -4,4 +4,5 @@ const Vec2F = vec2.Vec2F;
 
 mass: f32 = 0,
 position: Vec2F = .{},
+//
 velocity: Vec2F = .{}

@@ -42,9 +42,15 @@ pub fn Engine() type {
         pub fn showBounds(self: Self, comptime callb: anytype) !void {
             try self.tree.showBounds(callb);
         }
-        pub fn showForceBounds(self: Self, targetPosition: Vec2, comptime callb: anytype) !void {
-            _ = targetPosition; // autofix
-            try self.tree.showForceBounds(tree.Tree().showForcesArgs{ .targetPosition = .{ .x = 1024 * 4, .y = 1024 * 4 }, .callb = callb });
+
+        pub fn showForceBounds(self: Self, targetPosition: Vec2F, callb: anytype) !void {
+            std.debug.print("\n \n \n Iteration \n", .{});
+            // _ = callb; // autofix
+            // _ = targetPosition; // autofix
+            // _ = self; // autofix
+            // comptime var args = tree.Tree().showForcesArgs{ .targetPosition = .{}, .callb = callb };
+            // args.targetPosition = targetPosition;
+            try self.tree.showForceBounds(.{ targetPosition, callb });
         }
 
         pub fn mergeSamePositions(self: *Self) !void {

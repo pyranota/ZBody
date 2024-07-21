@@ -11,6 +11,7 @@ const boxSize: u32 = 1024 * 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
+const Vec2F = core.vec2.Vec2F;
 
 var isPause = false;
 var isDebug = false;
@@ -150,23 +151,30 @@ pub fn main() anyerror!void {
         // // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         // camera.begin();
         defer camera.end();
-        if (engine.bodies.items.len > 2) {
-            const com = engine.tree.root.?.branch.centerOfMass;
-            std.debug.print("Center of mass: X: {d}, Y: {d}\n\n", .{ com.x, com.y });
-            rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 50, Color.pink);
-        }
+        // if (engine.bodies.items.len > 2) {
+        //     const com = engine.tree.root.?.branch.centerOfMass;
+        //     std.debug.print("Center of mass: X: {d}, Y: {d}\n\n", .{ com.x, com.y });
+        //     rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 50, Color.pink);
+        // }
 
         if (!isPause) {
             try engine.step(0.05);
         }
 
-        for (engine.bodies.items) |body| {
-            drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+        for (engine.bodies.items, 0..) |body, i| {
+            if (i == 0) {
+                drawPlanet(body.position.x, body.position.y, 40, Color.red);
+            } else {
+                drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+            }
         }
 
         if (isDebug) {
-            try engine.showBounds(drawBound);
-            // try engine.showForceBounds(.{ .x = 500, .y = 500 }, drawBound);
+            // try engine.showBounds(drawBound);
+            if (engine.bodies.items.len > 0) {
+                const p = engine.bodies.items[0].position;
+                try engine.showForceBounds(.{ .x = p.x, .y = p.y }, drawBoundForceAndCoM);
+            }
         }
 
         for (0..amount) |i| {
@@ -206,6 +214,28 @@ fn drawBound(position: Vec2, size: u32) void {
         @intCast(size - padding * 2), //
         @intCast(size - padding * 2), //
         col);
+}
+fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
+    // Also add padding
+    var padding: u32 = 4;
+    if (size <= padding * 8) {
+        padding = 0;
+    }
+    const col = if (centerOfMass != null) Color.brown else Color.dark_green;
+    // std.debug.print("Is null? {?} \n", .{centerOfMass});
+    rl.drawRectangleLines( //
+        @intCast(position.x + padding), //
+        @intCast(position.y + padding), //
+        @intCast(size - padding * 2), //
+        @intCast(size - padding * 2), //
+        col);
+
+    if (centerOfMass) |p| {
+        rl.drawCircle( //
+            @intFromFloat(p.x), //
+            @intFromFloat(p.y), //
+            15, Color.pink);
+    }
 }
 
 fn randomPlanet(seed: u64) void {

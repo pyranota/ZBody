@@ -56,19 +56,19 @@ pub fn Tree() type {
 
                 leaf.* = self.leaf;
 
-                const s: f32 = @floatFromInt(leaf.size);
+                const m: f32 = @floatFromInt(leaf.mass);
 
                 var cm = leaf.position;
-                cm.x *= s;
-                cm.y *= s;
+                cm.x *= m;
+                cm.y *= m;
 
                 var branch = Branch{
                     // We will push leaf to corresponding child later
                     .children = .{null} ** 4,
                     // Center of mass does not change, since we have only one leaf at the moment
                     // Only the next iteration should modify center of mass
-                    .centerOfMass = .{},
-                    .mass = 0,
+                    .centerOfMass = cm,
+                    .mass = leaf.mass,
                     .size = leaf.size,
                 };
 
@@ -142,7 +142,8 @@ pub fn Tree() type {
         // TODO: Find better allocator
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         const ally = arena.allocator();
-        const threshhold: f32 = 0.5;
+        const threshhold: f32 = 0;
+        const safety: f32 = 1000000;
 
         root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
@@ -323,10 +324,11 @@ pub fn Tree() type {
                     const dQ = dx * dx + dy * dy;
                     const d = std.math.sqrt(dQ);
 
-                    if (d == 0) {
+                    if (@floor(d) == 0) {
+                        std.debug.print("Leaf self", .{});
                         return true;
                     }
-                    const accel: f32 = (mass2) / (d * dQ + 10000000.0);
+                    const accel: f32 = (mass2) / (d * dQ + safety);
 
                     args.force.x += dx * accel;
                     args.force.y += dy * accel;
@@ -365,7 +367,7 @@ pub fn Tree() type {
                         //     std.debug.print("JLKFJLDSKJFLSKDJFLSKDJFLSDKFJ", .{});
                         //     return true;
                         // }
-                        const accel: f32 = (mass2) / (d1 * dQ + 1000000.0);
+                        const accel: f32 = (mass2) / (d1 * dQ + safety);
 
                         args.force.x += dx * accel;
                         args.force.y += dy * accel;
@@ -379,45 +381,45 @@ pub fn Tree() type {
             return true;
         }
 
-        pub const showForcesArgs = struct { targetPosition: Vec2, callb: fn (Vec2, u32) void };
+        // pub const showForcesArgs = struct { targetPosition: Vec2F, callb: fn (Vec2, u32) void };
 
-        pub fn showForceBounds(self: Self, args: showForcesArgs) !void {
-            args.callb(.{}, self.size);
+        pub fn showForceBounds(self: Self, args: anytype) !void {
+            args.@"1"(.{}, self.size, if (self.root) |root| root.branch.centerOfMass else null);
             try self.traverseArgs(forceBoundsCB, args);
         }
 
-        fn forceBoundsCB(node: *Node, nodePosition: Vec2, args: showForcesArgs) bool {
-            _ = args; // autofix
-            _ = nodePosition; // autofix
-            _ = node; // autofix
-            return false;
+        fn forceBoundsCB(node: *Node, nodePosition: Vec2, args: anytype) bool {
             // // std.debug.print("Target: {?}\n\n\n\n", .{args.targetPosition});
-            // switch (node.*) {
-            //     // TODO: Refactor
-            //     .branch => |br| {
-            //         var g: Vec2 = .{};
-            //         g.x = nodePosition.x + br.centerOfMass.x;
-            //         g.y = nodePosition.y + br.centerOfMass.y;
+            const targetPos = args.@"0";
+            const callb = args.@"1";
+            switch (node.*) {
+                // TODO: Refactor
+                .branch => |br| {
+                    var g: Vec2F = nodePosition.toVec2F();
+                    g.x += br.centerOfMass.x;
+                    g.y += br.centerOfMass.y;
 
-            //         const d: f32 = @floatFromInt(g.distance(args.targetPosition));
-            //         const s: f32 = @floatFromInt(br.size);
+                    const d: f32 = g.distance(targetPos);
+                    const s: f32 = @floatFromInt(br.size);
 
-            //         // return true;
-            //         if (s / d < threshhold) {
-            //             // std.debug.print("CoM: {?}, Distance: {d}, Size: {d}, Value: {d}\n", .{ g, d, s, s / d });
-            //             args.callb(nodePosition, br.size);
-            //             return false;
-            //         } else {
-            //             return true;
-            //         }
-            //     },
-            //     .leaf => |leaf| {
-            //         // given position includes position of body
-            //         // But we need just position of leaf
-            //         args.callb(nodePosition, leaf.size);
-            //         return true;
-            //     },
-            // }
+                    // std.debug.print("Branch\n", .{});
+                    // return true;
+                    if (s / d < threshhold) {
+                        // std.debug.print("CoM: {?}, Distance: {d}, Size: {d}, Value: {d}\n", .{ g, d, s, s / d });
+                        callb(nodePosition, br.size, g);
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
+                .leaf => |leaf| {
+                    // std.debug.print("Leaf \n", .{});
+                    // given position includes position of body
+                    // But we need just position of leaf
+                    callb(nodePosition, leaf.size, null);
+                    return true;
+                },
+            }
         }
 
         pub fn showBounds(self: Self, callb: anytype) !void {
@@ -545,7 +547,7 @@ pub fn Tree() type {
             Self.visitNodeTraverse(@constCast(&self.root), .{}, cb, .{});
         }
         /// Takes callback which optionally returns boolean.
-        pub fn traverseArgs(self: Self, comptime callback: anytype, args: anytype) !void {
+        pub fn traverseArgs(self: Self, callback: anytype, args: anytype) !void {
             if (!self.final) {
                 return ErrorError.NotFinalized;
             }
