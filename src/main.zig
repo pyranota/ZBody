@@ -16,6 +16,15 @@ var isPause = false;
 var isDebug = false;
 var isMenuShown = false;
 
+//RGB
+
+var color = rl.Color{
+    .r = 255,
+    .g = 0,
+    .b = 0,
+    .a = 0,
+};
+
 const ally = std.heap.page_allocator;
 
 pub fn main() anyerror!void {
@@ -62,13 +71,13 @@ pub fn main() anyerror!void {
         rl.drawFPS(10, 10);
 
         //Mouse contrlos
-        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left)) {
+        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown) {
             const d = rl.getMouseDelta();
             const sens = 1;
             player.x -= (d.x * sens) / camera.zoom;
             player.y -= (d.y * sens) / camera.zoom;
         }
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right) or rl.isKeyDown(rl.KeyboardKey.key_s)) {
+        if ((rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right) or rl.isKeyDown(rl.KeyboardKey.key_s)) and !isMenuShown) {
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
 
             const x = pos.x;
@@ -76,16 +85,6 @@ pub fn main() anyerror!void {
 
             if (x > 0 and y > 0) {
                 try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
-            }
-        }
-        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_middle)) {
-            const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-
-            const x = pos.x;
-            const y = pos.y;
-
-            if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 100, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
             }
         }
         // Camera zoom controls
@@ -143,14 +142,14 @@ pub fn main() anyerror!void {
         // // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
-        defer camera.end();
 
         if (!isPause) {
             try engine.step(0.05);
         }
+        const gColor = rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = 255 };
 
         for (engine.bodies.items) |body| {
-            drawPlanet(body.position.x, body.position.y, 10, Color.gold);
+            drawPlanet(body.position.x, body.position.y, 10, gColor);
         }
 
         if (isDebug) {
@@ -176,8 +175,10 @@ pub fn main() anyerror!void {
             // std.debug.print("Yes", .{});
             drawMenu(menu);
             drawMenuText(menu);
+            drawColorPicker(menu, 20, 20);
+            std.debug.print("\n{}", .{color});
         }
-        //HUD
+        //HUD End
     }
 }
 
@@ -211,6 +212,7 @@ fn drawPlanet(x: u32, y: u32, r: f32, col: Color) void {
     rl.drawCircle(@intCast(x), @intCast(y), r, col);
 }
 
+//HUD DRAW
 fn drawMenu(rec: rl.Rectangle) void {
     rl.drawRectangleRec( //
         rec, Color.black);
@@ -218,7 +220,21 @@ fn drawMenu(rec: rl.Rectangle) void {
     rl.drawRectangleLinesEx( //
         rec, 4, Color.dark_green);
 }
+//SLIDERS
+fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
+    const PcikerRec = rl.Rectangle{
+        .x = (rec.x) + x,
+        .y = (rec.y) + y,
+        .width = 240,
+        .height = 240,
+    };
+    _ = rg.guiColorPicker(
+        PcikerRec,
+        "",
+        &color,
+    );
+}
 
 fn drawMenuText(rec: rl.Rectangle) void {
-    rl.drawText(@ptrCast("h - hide/show hud"), @intFromFloat((rec.x)), @intFromFloat(rec.y), 20, Color.dark_green);
+    rl.drawText(@ptrCast(""), @intFromFloat((rec.x)), @intFromFloat(rec.y), 20, Color.dark_green);
 }
