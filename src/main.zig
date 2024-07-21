@@ -150,7 +150,7 @@ pub fn main() anyerror!void {
         if (engine.bodies.items.len > 2) {
             const com = engine.tree.root.?.branch.centerOfMass;
             std.debug.print("Center of mass: X: {d}, Y: {d}\n\n", .{ com.x, com.y });
-            rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 5000, Color.pink);
+            rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 50, Color.pink);
         }
 
         if (!isPause) {
@@ -162,7 +162,8 @@ pub fn main() anyerror!void {
         }
 
         if (isDebug) {
-            try engine.showForceBounds(.{ .x = 500, .y = 500 }, drawBound);
+            try engine.showBounds(drawBound);
+            // try engine.showForceBounds(.{ .x = 500, .y = 500 }, drawBound);
         }
 
         for (0..amount) |i| {

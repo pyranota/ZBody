@@ -56,13 +56,19 @@ pub fn Tree() type {
 
                 leaf.* = self.leaf;
 
+                const s: f32 = @floatFromInt(leaf.size);
+
+                var cm = leaf.position;
+                cm.x *= s;
+                cm.y *= s;
+
                 var branch = Branch{
                     // We will push leaf to corresponding child later
                     .children = .{null} ** 4,
                     // Center of mass does not change, since we have only one leaf at the moment
                     // Only the next iteration should modify center of mass
-                    .centerOfMass = leaf.position,
-                    .mass = leaf.mass,
+                    .centerOfMass = .{},
+                    .mass = 0,
                     .size = leaf.size,
                 };
 
@@ -136,7 +142,7 @@ pub fn Tree() type {
         // TODO: Find better allocator
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         const ally = arena.allocator();
-        const threshhold: f32 = 0;
+        const threshhold: f32 = 0.5;
 
         root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
