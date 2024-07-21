@@ -3,6 +3,7 @@
 const std = @import("std");
 const RndGen = std.rand.DefaultPrng;
 const rl = @import("raylib");
+const rg = @import("raygui");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
@@ -14,8 +15,8 @@ const Vec2 = core.vec2.Vec2;
 var isPause = false;
 var isDebug = false;
 var isMenuShown = false;
-const ally =
-    std.heap.page_allocator;
+
+const ally = std.heap.page_allocator;
 
 pub fn main() anyerror!void {
     // Initialization
@@ -41,6 +42,13 @@ pub fn main() anyerror!void {
         .rotation = 0,
         .zoom = 1,
     };
+    //HUD initialization
+    const menu = rl.Rectangle{
+        .x = ((screenWidth / 4) * 2.2),
+        .y = (screenHeight / 3), //
+        .width = (screenWidth / 2), //
+        .height = ((screenHeight / 2.5) * 1.5),
+    };
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
 
@@ -52,6 +60,8 @@ pub fn main() anyerror!void {
         rl.clearBackground(rl.Color.black);
 
         rl.drawFPS(10, 10);
+
+        //Mouse contrlos
         if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left)) {
             const d = rl.getMouseDelta();
             const sens = 1;
@@ -82,6 +92,8 @@ pub fn main() anyerror!void {
         camera.zoom += rl.getMouseWheelMove() * 0.09;
         camera.zoom = rl.math.clamp(camera.zoom, 0.1, 19.0);
 
+        // Player movement arrow keys
+
         if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
             player.x += 9;
         } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
@@ -93,8 +105,7 @@ pub fn main() anyerror!void {
             player.y += 9;
         }
 
-        // Player movement
-
+        // Key listeners
         if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
             isPause = !isPause;
         }
@@ -107,40 +118,28 @@ pub fn main() anyerror!void {
             isDebug = !isDebug;
         }
 
-        // Key listeners
-        // Camera target follows player
+        //Body count
         const string = try std.fmt.allocPrint(
             ally,
             "Astral bodies in scene: {}",
             .{engine.bodies.items.len},
         );
         defer ally.free(string);
-        rl.drawText(@ptrCast(string), 20, 40, 20, Color.dark_green);
+        rl.drawText(@ptrCast(string), 3, 40, 20, Color.dark_green);
+
+        // Camera target follows player
         camera.target = rl.Vector2.init(player.x, player.y);
-
-        //HUD
-
-        if (engine.bodies.items.len > 0) {
-            // const p = engine.bodies.items[0].position;
-            // camera.target = rl.Vector2.init(@floatFromInt(p.x), @floatFromInt(p.y));
-        }
         camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
+
         camera.begin();
 
-        defer camera.end();
-
         if (!isPause) {
-            // std.debug.print("STEEEPPPPEPEPSSPPSPS\n", .{});
             try engine.step(0.05);
         }
 
-        for (engine.bodies.items, 0..) |body, i| {
-            if (i == 0) {
-                drawPlanet(body.position.x, body.position.y, 10, Color.red);
-            } else {
-                drawPlanet(body.position.x, body.position.y, 10, Color.gold);
-            }
+        for (engine.bodies.items) |body| {
+            drawPlanet(body.position.x, body.position.y, 10, Color.gold);
         }
 
         if (isDebug) {
@@ -152,6 +151,22 @@ pub fn main() anyerror!void {
             // randomPlanet(i);
             // rl.drawCircle(@intCast(i), 100, 100, Color.white);
         }
+
+        camera.end();
+
+        //HUD
+        rl.drawText(@ptrCast("h - hide/show hud"), 3, @intFromFloat((screenHeight) - 20), 20, Color.dark_green);
+
+        rl.drawText(@ptrCast("space - pause "), 3, @intFromFloat((screenHeight) - 40), 20, Color.dark_green);
+
+        rl.drawText(@ptrCast("d - debug "), 3, @intFromFloat((screenHeight) - 60), 20, Color.dark_green);
+
+        if (isMenuShown) {
+            // std.debug.print("Yes", .{});
+            drawMenu(menu);
+            drawMenuText(menu);
+        }
+        //HUD
     }
 }
 
@@ -161,7 +176,6 @@ fn drawBound(position: Vec2, size: u32) void {
     if (size <= padding * 8) {
         padding = 0;
     }
-
     const col = if (size == boxSize) Color.dark_green else Color.yellow;
     rl.drawRectangleLines( //
         @intCast(position.x + padding), //
@@ -184,4 +198,16 @@ fn randomPlanet(seed: u64) void {
 
 fn drawPlanet(x: u32, y: u32, r: f32, col: Color) void {
     rl.drawCircle(@intCast(x), @intCast(y), r, col);
+}
+
+fn drawMenu(rec: rl.Rectangle) void {
+    rl.drawRectangleRec( //
+        rec, Color.black);
+
+    rl.drawRectangleLinesEx( //
+        rec, 4, Color.dark_green);
+}
+
+fn drawMenuText(rec: rl.Rectangle) void {
+    rl.drawText(@ptrCast("h - hide/show hud"), @intFromFloat((rec.x)), @intFromFloat(rec.y), 20, Color.dark_green);
 }
