@@ -74,10 +74,22 @@ pub const Vec2F = struct {
         return d;
     }
 
-    pub fn fit(self: @This(), width: f32) @This() {
+    pub fn fit(self: @This(), width: u32) @This() {
+        const w: f32 = @floatFromInt(width);
         return .{ //
-            .x = @rem(self.x, width),
-            .y = @rem(self.y, width),
+            .x = @rem(self.x, w),
+            .y = @rem(self.y, w),
         };
+    }
+    /// Return largest value.
+    pub fn max(self: @This()) f32 {
+        if (self.x > self.y) {
+            return self.x;
+        } else {
+            return self.y;
+        }
+    }
+    pub fn toVec2(self: @This()) Vec2 {
+        return .{ .x = @intFromFloat(self.x), .y = @intFromFloat(self.y) };
     }
 };

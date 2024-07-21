@@ -21,7 +21,7 @@
         },
         .@"zb-core" = .{
             .url = "./zb-core",
-            .hash = "122073ab41c27369a39f0675bb9994aa92b772ec4fa1f01177f61b68c442fa23a3bb",
+            .hash = "1220160260fe78fcf1d5ee4c07cc8bd05f08502734c9a51a54df6ebe452a507d327d",
         },
         // .@"raygui" = .{
 

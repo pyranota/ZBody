@@ -7,10 +7,11 @@ const rg = @import("raygui");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 1024;
+const boxSize: u32 = 1024 * 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
+const Vec2F = core.vec2.Vec2F;
 
 var isPause = false;
 var isDebug = false;
@@ -26,8 +27,10 @@ var color = rl.Color{
 };
 
 const ally = std.heap.page_allocator;
+var zoom: f32 = 1;
 
 pub fn main() anyerror!void {
+    // rg.guiColorPicker(, , )
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
@@ -84,13 +87,15 @@ pub fn main() anyerror!void {
             const y = pos.y;
 
             if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = @intFromFloat(x), .y = @intFromFloat(y) }, .velocity = .{} });
+                try engine.addBody(core.Body{ .mass = 10, .position = .{ .x = x, .y = y }, .velocity = .{} });
             }
         }
         // Camera zoom controls
-        camera.zoom += rl.getMouseWheelMove() * 0.09;
-        camera.zoom = rl.math.clamp(camera.zoom, 0.01, 19.0);
+        zoom += rl.getMouseWheelMove() * 0.19 * zoom;
+        zoom = rl.math.clamp(zoom, 0.002, 19.0);
 
+        camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
+        // camera.zoom = zoom;
         // Player movement arrow keys
 
         if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
@@ -125,6 +130,8 @@ pub fn main() anyerror!void {
         );
         defer ally.free(string);
         rl.drawText(@ptrCast(string), 3, 40, 20, Color.dark_green);
+        // var val: i32 = 15;
+        // _ = rg.guiSpinner(rl.Rectangle{ .x = 0, .y = 0, .width = 100, .height = 100 }, "Spinner", &val, 0, 50, true);
 
         // Camera target follows player
         camera.target = rl.Vector2.init(player.x, player.y);
@@ -141,7 +148,11 @@ pub fn main() anyerror!void {
         // }
         // // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
-        camera.begin();
+        // if (engine.bodies.items.len > 2) {
+        //     const com = engine.tree.root.?.branch.centerOfMass;
+        //     std.debug.print("Center of mass: X: {d}, Y: {d}\n\n", .{ com.x, com.y });
+        //     rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 50, Color.pink);
+        // }
 
         if (!isPause) {
             try engine.step(0.05);
@@ -153,7 +164,11 @@ pub fn main() anyerror!void {
         }
 
         if (isDebug) {
-            try engine.showForceBounds(.{ .x = 500, .y = 500 }, drawBound);
+            // try engine.showBounds(drawBound);
+            if (engine.bodies.items.len > 0) {
+                const p = engine.bodies.items[0].position;
+                try engine.showForceBounds(.{ .x = p.x, .y = p.y }, drawBoundForceAndCoM);
+            }
         }
 
         for (0..amount) |i| {
@@ -197,6 +212,29 @@ fn drawBound(position: Vec2, size: u32) void {
         col);
 }
 
+fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
+    // Also add padding
+    var padding: u32 = 4;
+    if (size <= padding * 8) {
+        padding = 0;
+    }
+    const col = if (centerOfMass != null) Color.brown else Color.dark_green;
+    // std.debug.print("Is null? {?} \n", .{centerOfMass});
+    rl.drawRectangleLines( //
+        @intCast(position.x + padding), //
+        @intCast(position.y + padding), //
+        @intCast(size - padding * 2), //
+        @intCast(size - padding * 2), //
+        col);
+
+    if (centerOfMass) |p| {
+        rl.drawCircle( //
+            @intFromFloat(p.x), //
+            @intFromFloat(p.y), //
+            15, Color.pink);
+    }
+}
+
 fn randomPlanet(seed: u64) void {
     var rnd = RndGen.init(seed);
     // var some_random_num = rnd.random().int(i32);
@@ -208,8 +246,8 @@ fn randomPlanet(seed: u64) void {
     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
 }
 
-fn drawPlanet(x: u32, y: u32, r: f32, col: Color) void {
-    rl.drawCircle(@intCast(x), @intCast(y), r, col);
+fn drawPlanet(x: f32, y: f32, r: f32, col: Color) void {
+    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, col);
 }
 
 //HUD DRAW
