@@ -142,8 +142,10 @@ pub fn Tree() type {
         // TODO: Find better allocator
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         const ally = arena.allocator();
-        const threshhold: f32 = 0;
-        const safety: f32 = 1000000;
+        // TODO: Make dynamic
+        // TODO: Prevent from being 0 or 1
+        const threshhold: f32 = 0.9;
+        const safety: f32 = 1000000000;
 
         root: ?*Node = null,
         /// Must be fraction of 2. e.g.:
