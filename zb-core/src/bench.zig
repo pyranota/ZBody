@@ -4,6 +4,8 @@ const engine = @import("engine.zig");
 pub fn main() !void {
     std.debug.print("Hello benchmark!", .{});
 
+    // TODO: Make it fully customizable
+    // Also with threshold
     const size = 1024 * 256;
 
     var e = try engine.Engine().init(size);
