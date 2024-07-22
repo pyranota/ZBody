@@ -25,9 +25,16 @@ release-osx:
 build:
     zig build
 
+profile: build-core
+     nixGL tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
+
+build-core: 
+    cd zb-core; zig build
+
+build-core-release: 
+    cd zb-core; zig build --release=fast
 # Benchmark zb-core
-bench: 
-    zig build
+bench: build-core-release
     hyperfine zb-core/zig-out/bin/zb-bench
 
 # Clean cache

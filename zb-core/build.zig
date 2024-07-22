@@ -34,10 +34,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+
     const ztracy = b.dependency("ztracy", .{
         .enable_ztracy = false,
         .enable_fibers = false,
     });
+
     l.addImport("ztracy", ztracy.module("root"));
 
     l.linkLibrary(ztracy.artifact("tracy"));
