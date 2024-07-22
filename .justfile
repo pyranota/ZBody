@@ -3,12 +3,8 @@
 default: run
 
 # Compile and run
-run: pull
-    zig build run
-
-# Pull dependencies to latest version
-pull:
-    zig fetch --save ./zb-core
+run: 
+    nixGL zig build run
 
 # -target x86_64-linux
 # Compile in release mode

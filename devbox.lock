@@ -132,6 +132,54 @@
           "store_path": "/nix/store/gf69ic01d1bjj38ywlc6fsybk4zgh64r-onefetch-2.20.0"
         }
       }
+    },
+    "raylib@latest": {
+      "last_modified": "2024-07-18T22:08:26Z",
+      "resolved": "github:NixOS/nixpkgs/cfa5366588c940ab6ee3bee399b337175545c664#raylib",
+      "source": "devbox-search",
+      "version": "5.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/pd0yb8k297fa8hb7278cbyp3rrj6nk2a-raylib-5.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/pd0yb8k297fa8hb7278cbyp3rrj6nk2a-raylib-5.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/fdj2lbxgiakphf9i4s50yy67wvrk004v-raylib-5.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/fdj2lbxgiakphf9i4s50yy67wvrk004v-raylib-5.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/0h8h5kpl78xqbz8mn1baww18hsaxfpr5-raylib-5.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/0h8h5kpl78xqbz8mn1baww18hsaxfpr5-raylib-5.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/bdbvrjp629wb8awxxbdbjqan00kx2za7-raylib-5.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/bdbvrjp629wb8awxxbdbjqan00kx2za7-raylib-5.0"
+        }
+      }
     }
   }
 }
