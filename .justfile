@@ -25,6 +25,11 @@ release-osx:
 build:
     zig build
 
+# Benchmark zb-core
+bench: 
+    zig build
+    hyperfine zb-core/zig-out/bin/zb-bench
+
 # Clean cache
 clean:
     rm -rf zig-out

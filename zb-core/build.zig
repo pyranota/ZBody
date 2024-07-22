@@ -42,6 +42,25 @@ pub fn build(b: *std.Build) void {
 
     l.linkLibrary(ztracy.artifact("tracy"));
 
+    // TODO: Add release optimizations
+    const bench = b.addExecutable(.{
+        .name = "zb-bench",
+        .root_source_file = b.path("src/bench.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    bench.root_module.addImport("ztracy", ztracy.module("root"));
+
+    bench.linkLibrary(ztracy.artifact("tracy"));
+    // add the following:
+    const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
+    bench.root_module.addImport("pretty", pretty.module("pretty"));
+
+    b.installArtifact(bench);
+    // This declares intent for the executable to be installed into the
+    // standard location when the user invokes the "install" step (the default
+    // step when running `zig build`).
     const exe = b.addExecutable(.{
         .name = "zb-core",
         .root_source_file = b.path("src/main.zig"),
@@ -56,7 +75,7 @@ pub fn build(b: *std.Build) void {
 
     exe.linkLibrary(ztracy.artifact("tracy"));
     // add the following:
-    const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
+    // const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
     exe.root_module.addImport("pretty", pretty.module("pretty"));
 
     // This declares intent for the executable to be installed into the
