@@ -1,5 +1,6 @@
 // raylib-zig (c) Nikolas Wipper 2023
 
+// const ztracy = @import("ztracy");
 const std = @import("std");
 const RndGen = std.rand.DefaultPrng;
 const rl = @import("raylib");
@@ -30,6 +31,8 @@ const ally = std.heap.page_allocator;
 var zoom: f32 = 1;
 
 pub fn main() anyerror!void {
+    // const tracy_zone = ztracy.ZoneNC(@src(), "Compute Magic", 0x00_ff_00_00);
+    // defer tracy_zone.End();
     // rg.guiColorPicker(, , )
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
@@ -154,14 +157,16 @@ pub fn main() anyerror!void {
         //     rl.drawCircle(@intFromFloat(com.x), @intFromFloat(com.y), 50, Color.pink);
         // }
 
-        if (!isPause) {
+        if (!isPause)
             try engine.step(0.05);
-        }
+
         const gColor = rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = 255 };
 
-        for (engine.bodies.items) |body| {
+        // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);
+        for (engine.bodies.items) |body|
             drawPlanet(body.position[0], body.position[1], 10, gColor);
-        }
+
+        // drawZone.End();
 
         if (isDebug) {
             // try engine.showBounds(drawBound);

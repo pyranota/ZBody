@@ -5,7 +5,7 @@ const Vec2F = vec2.Vec2F;
 const TreeError = @import("error.zig").TreeError;
 const callbacks = @import("callbacks.zig");
 const Node = @import("node.zig").Node;
-
+const ztracy = @import("ztracy");
 const alloc = std.heap.page_allocator;
 
 pub fn Tree() type {
@@ -49,6 +49,8 @@ pub fn Tree() type {
 
         /// Add Astronomical Body to the System
         pub fn addBody(self: *@This(), mass: u32, position: Vec2F) !void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             const positionF = vec2.convert(u32, position);
             if (@max(positionF[0], positionF[1]) >= self.size)
                 return TreeError.PositionOutOfBound;
@@ -131,11 +133,16 @@ pub fn Tree() type {
 
         // TODO: Remove delta
         pub fn step(self: Self, delta: f32, args: callbacks.stepArgs) void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             _ = delta; // autofix
             self.traverse(callbacks.calcForcesCB, args) catch unreachable;
         }
 
         pub fn finalize(self: *Self) void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
+
             self.final = true;
             self.traverse(callbacks.finalizeCB, .{}) catch unreachable;
         }
@@ -153,6 +160,8 @@ pub fn Tree() type {
 
         /// Takes callback which optionally returns boolean.
         pub fn traverse(self: Self, callback: anytype, args: anytype) !void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             if (!self.final)
                 return TreeError.NotFinalized;
 
@@ -160,6 +169,8 @@ pub fn Tree() type {
         }
 
         fn visitNodeTraverse(node: *?*Node, position: Vec2, comptime callback: anytype, args: anytype) void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             const info = @typeInfo(@TypeOf(callback));
 
             if (node.*) |n| {

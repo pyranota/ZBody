@@ -4,6 +4,7 @@ const std = @import("std");
 const vec2 = @import("vec2.zig");
 const Vec2F = vec2.Vec2F;
 const Vec2 = vec2.Vec2;
+const ztracy = @import("ztracy");
 
 const List = std.ArrayList;
 
@@ -50,6 +51,8 @@ pub fn Engine() type {
         }
 
         pub fn mergeSamePositions(self: *Self) !void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             // Store position and index of body
             var positions = std.AutoHashMap(Vec2, usize).init(ally);
             var toRemove = std.ArrayList(usize).init(ally);
@@ -89,26 +92,43 @@ pub fn Engine() type {
         }
 
         pub fn step(self: *Self, delta: f32) !void {
-            try self.mergeSamePositions();
+            _ = delta; // autofix
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
 
+            try self.mergeSamePositions();
+            try self.addBodiesToTree();
+            self.stepEachTreeBody();
+
+            self.applyAcceleration(20);
+        }
+
+        fn addBodiesToTree(self: *Self) !void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             self.tree.clean();
 
             for (self.bodies.items) |body|
                 try self.tree.addBody(@intFromFloat(body.mass), body.position);
 
             self.tree.finalize();
+        }
+
+        fn stepEachTreeBody(self: *Self) void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             for (self.bodies.items, 0..) |body, i|
-                self.tree.step(delta, .{ //
+                self.tree.step(0, .{ //
                     .accel = &self.accels.items[i],
                     .bodyPos = body.position,
                     .bodyMass = @intFromFloat(body.mass),
                 });
-
-            self.applyAcceleration(20);
         }
 
         /// Apply accelerations to velocity
         fn applyAcceleration(self: *Self, delta: f32) void {
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
             for (self.accels.items, self.bodies.items) |*accel, *body| {
                 const sd: Vec2F = @splat(delta);
 

@@ -50,8 +50,15 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    // const ztracy = b.dependency("ztracy", .{
+    //     .enable_ztracy = true,
+    //     .enable_fibers = true,
+    // });
+    // exe.root_module.addImport("ztracy", ztracy.module("root"));
 
+    // exe.linkLibrary(ztracy.artifact("tracy"));
     exe.linkLibrary(raylib_artifact);
+
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("raygui", raygui);
     exe.root_module.addImport("zb-core", zb_core_module);

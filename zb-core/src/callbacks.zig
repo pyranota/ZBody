@@ -4,6 +4,7 @@ const Vec2F = vec2.Vec2F;
 const TreeError = @import("error.zig").TreeError;
 const tree = @import("tree.zig");
 const Node = @import("node.zig").Node;
+const ztracy = @import("ztracy");
 
 const Threshold = tree.Tree().threshhold;
 const Safety = tree.Tree().safety;
@@ -15,6 +16,9 @@ pub const stepArgs = struct {
 };
 
 pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
+    const zone = ztracy.Zone(@src());
+    defer zone.End();
+
     const mass: f32 = switch (node.*) {
         inline else => |case| @floatFromInt(case.mass),
     };
@@ -27,6 +31,7 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
         .leaf => |leaf| leaf.position,
         .branch => |branch| branch.centerOfMass,
     };
+    const accelerationCalcZone = ztracy.ZoneN(@src(), "vector calculation zone");
 
     const np = vec2.convert(f32, nodePosition);
     // Global position
@@ -39,12 +44,16 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
     const vec_zero: Vec2F = @splat(0);
     const d = vec2.distance(f32, vec_zero, d_vec);
 
+    accelerationCalcZone.End();
+
     // Dont calculate force if target is the same as node
     if (@floor(d) == 0)
         return true;
     if (node.* == Node.leaf or size / d < Threshold) {
+        const applyAccel = ztracy.ZoneN(@src(), "Apply accleration zone");
         const accel: Vec2F = @splat((mass) / (d * d * d + Safety));
         args.accel.* += accel * d_vec;
+        applyAccel.End();
         return false;
     }
     return true;
@@ -54,6 +63,7 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
 pub fn forceBoundsCB(node: *Node, nodePosition: Vec2, args: anytype) bool {
     const targetPos = args.@"0";
     const callb = args.@"1";
+
     switch (node.*) {
         .branch => |br| {
             // Global position

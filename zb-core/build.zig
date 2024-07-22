@@ -29,11 +29,18 @@ pub fn build(b: *std.Build) void {
     // running `zig build`).
     b.installArtifact(lib);
 
-    _ = b.addModule("zb-core", .{
+    const l = b.addModule("zb-core", .{
         .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
     });
+    const ztracy = b.dependency("ztracy", .{
+        .enable_ztracy = false,
+        .enable_fibers = false,
+    });
+    l.addImport("ztracy", ztracy.module("root"));
+
+    l.linkLibrary(ztracy.artifact("tracy"));
 
     const exe = b.addExecutable(.{
         .name = "zb-core",
@@ -41,6 +48,13 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    // const ztracy = b.dependency("ztracy", .{
+    //     .enable_ztracy = true,
+    //     .enable_fibers = true,
+    // });
+    exe.root_module.addImport("ztracy", ztracy.module("root"));
+
+    exe.linkLibrary(ztracy.artifact("tracy"));
     // add the following:
     const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
     exe.root_module.addImport("pretty", pretty.module("pretty"));

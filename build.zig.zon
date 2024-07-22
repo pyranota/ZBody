@@ -17,11 +17,11 @@
     .dependencies = .{
         .@"raylib-zig" = .{
             .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
-            .hash = "122064a960fff658211413c4b3b56e1699719126c3d099d3ed43f9eaff17a936ad91",
+            .hash = "1220361ce363a465c3f52e7e35ca5f1d9c2f5ed8a9207b79c2edb4396cdf31009c48",
         },
         .@"zb-core" = .{
             .url = "./zb-core",
-            .hash = "1220c1b6da6d9a0f66cd9e00bcff28e2cb65cc7d6fb82267270ef1aae4759163a776",
+            .hash = "1220751e23849861990e48ab6bd1916ef7c3f083c825b32bd4d3bdcecb8f567417a2",
         },
     },
     .paths = .{

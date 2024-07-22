@@ -19,6 +19,10 @@
             .url = "https://github.com/timfayz/pretty/archive/main.tar.gz",
             .hash = "1220309f083656d3e9b487a4c0f79f514b0fbc682dba717c294fb02ec2bfd7080850",
         },
+        .ztracy = .{
+            .url = "https://github.com/7R35C0/ztracy/archive/main.tar.gz",
+            .hash = "1220d02ebfd349a43c7ddf450bc0f548339b502aa4d77dc37e8bf5d6fc8f1b7f871e",
+        },
     },
     .paths = .{
         "build.zig",
