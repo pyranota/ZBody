@@ -18,7 +18,7 @@ pub fn Tree() type {
 
         // TODO: Make dynamic and smart
         // TODO: Prevent from being 0 or 1
-        pub const threshhold: f32 = 0.5;
+        pub const threshhold: f32 = 0.8;
         pub const safety: f32 = 1000000000;
 
         root: ?*Node = null,
@@ -33,9 +33,9 @@ pub fn Tree() type {
         /// Create new QuadTree
         pub fn init(comptime size: u32) !Self {
             // TODO: Use math.isPowOfTwo
-            if (!((size & (size - 1)) == 0)) {
+            if (!((size & (size - 1)) == 0))
                 @compileError("Bad value, size should be a power of two.");
-            }
+
             return .{ .size = size };
         }
         /// Deinit QuadTree

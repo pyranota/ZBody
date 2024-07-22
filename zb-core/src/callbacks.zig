@@ -79,19 +79,9 @@ pub fn treeBoundsCB(node: *Node, nodePosition: Vec2, callb: anytype) void {
         callb(nodePosition, node.size());
 }
 
-pub fn finalizeCB(node: *Node, _: Vec2, _: anytype) bool {
-    // std.Thread.spawn(, , )
-    // std.debug.print("HOWOO", .{});
-    switch (node.*) {
-        // TODO: Refactor
-        .leaf => {},
-        .branch => {
-            var cm = &node.branch.centerOfMass;
-            const m: f32 = @floatFromInt(node.branch.mass);
-            cm[0] /= m;
-            cm[1] /= m;
-        },
+pub fn finalizeCB(node: *Node, _: Vec2, _: anytype) void {
+    if (node.* == Node.branch) {
+        const m: Vec2F = @splat(@floatFromInt(node.branch.mass));
+        node.branch.centerOfMass /= m;
     }
-
-    return true;
 }
