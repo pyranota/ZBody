@@ -129,42 +129,10 @@ pub fn Engine() type {
                 try self.tree.addBody(@intFromFloat(body.mass), body.position);
             }
 
-            // if (self.bodies.items.len < num_threads) {
-            //     self.tree.finalize();
-            //     return;
-            // }
-
-            // const num_elements = self.bodies.items.len; // adjust this to your liking
-
-            // std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
-            // // Create threads
-            // var threads: [num_threads]std.Thread = undefined;
-            // for (&threads, 0..) |*thread, i| {
-            //     // _ = thread; // autofix
-            //     thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
-            //         self,
-            //         i,
-            //         num_elements,
-            //         num_threads,
-            //     });
-            //     // try self.parallelLoop(i, num_elements, num_threads);
-            // }
-
-            // // // Wait for all threads to finish
-            // for (threads) |thread|
-            //     thread.join();
-
             self.tree.finalize();
         }
 
         fn parallelLoop(self: *Self, thread_id: usize, num_elements: usize, num_threads: usize) !void {
-            // const start = thread_id * (num_elements / num_threads);
-            // // const end = if (thread_id == num_threads - 1) num_elements else (thread_id + 1) * (num_elements / num_threads);
-            // const end = start + (num_elements / num_threads);
-            // Dont ask...
-            // const ONE: usize = 1;
-            // const ZERO: usize = 0;
-
             const chunk_size: usize = num_elements / num_threads;
             const remainder: usize = num_elements % num_threads;
 
@@ -172,7 +140,6 @@ pub fn Engine() type {
 
             const start: usize = thread_id * chunk_size;
             // std.debug.print("Start: {}\n", .{start});
-            // const re = thread_id < remainder;
 
             const end: usize = start + chunk_size + if (num_threads - 1 == thread_id) remainder else 0;
             // std.debug.print("End: {}\n", .{end});
@@ -208,27 +175,17 @@ pub fn Engine() type {
 
             // Create threads
             var threads: [num_threads]std.Thread = undefined;
-            for (&threads, 0..) |*thread, i| {
-                // _ = thread; // autofix
+            for (&threads, 0..) |*thread, i|
                 thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
                     self,
                     i,
                     num_elements,
                     num_threads,
                 });
-                // try self.parallelLoop(i, num_elements, num_threads);
-            }
 
-            // // Wait for all threads to finish
             for (threads) |thread|
                 thread.join();
 
-            // for (self.bodies.items, 0..) |body, i|
-            //     self.tree.step(0, .{ //
-            //         .accel = &self.accels.items[i],
-            //         .bodyPos = body.position,
-            //         .bodyMass = @intFromFloat(body.mass),
-            //     });
             const end = try Instant.now();
             const elapsed1: f64 = @floatFromInt(end.since(start));
             std.debug.print("Time elapsed is: {d:.3}ms\n", .{
