@@ -6,6 +6,10 @@ default: run
 run: 
     nixGL zig build run
 
+# Compile and run in release mode
+run-fast: 
+    nixGL zig build run --release=fast
+
 # -target x86_64-linux
 # Compile in release mode
 release:
