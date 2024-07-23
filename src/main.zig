@@ -37,12 +37,12 @@ pub fn main() anyerror!void {
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
-    for (0..50) |x| {
-        for (0..50) |y| {
-            const p: Vec2F = .{ @floatFromInt(boxSize / 2 + x * 150), @floatFromInt(boxSize / 2 + y * 150) };
-            try engine.addBody(.{ .mass = 40, .position = p, .velocity = @splat(0) });
-        }
-    }
+    // for (0..50) |x| {
+    //     for (0..50) |y| {
+    //         const p: Vec2F = .{ @floatFromInt(boxSize / 2 + x * 150), @floatFromInt(boxSize / 2 + y * 150) };
+    //         try engine.addBody(.{ .mass = 40, .position = p, .velocity = @splat(0) });
+    //     }
+    // }
 
     //--------------------------------------------------------------------------------------
     const screenWidth = 1000;

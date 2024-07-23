@@ -5,6 +5,8 @@ const vec2 = @import("vec2.zig");
 const Vec2F = vec2.Vec2F;
 const Vec2 = vec2.Vec2;
 const ztracy = @import("ztracy");
+const time = std.time;
+const Instant = time.Instant;
 
 const List = std.ArrayList;
 
@@ -13,6 +15,12 @@ pub fn Engine() type {
         tree: tree.Tree(),
         bodies: List(Body),
         accels: List(Vec2F),
+
+        /// Amount of thread being used in execution
+        /// Its dynamic value and changes on runtime
+        /// Call `fixThreadAmount` to specify fixed amount
+        thread_amount: usize = 32,
+        is_fixed: bool = false,
 
         const Self = @This();
 
@@ -31,6 +39,15 @@ pub fn Engine() type {
             self.bodies.deinit();
             self.tree.deinit();
             self.accels.deinit();
+        }
+
+        pub fn fixThreadAmount(self: *Self, amount: usize) void {
+            self.is_fixed = true;
+            self.thread_amount = amount;
+        }
+
+        pub fn unfixThreadAmount(self: *Self) void {
+            self.is_fixed = false;
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
@@ -98,7 +115,7 @@ pub fn Engine() type {
 
             try self.mergeSamePositions();
             try self.addBodiesToTree();
-            self.stepEachTreeBody();
+            try self.stepEachTreeBody();
 
             self.applyAcceleration(20);
         }
@@ -107,22 +124,130 @@ pub fn Engine() type {
             const zone = ztracy.Zone(@src());
             defer zone.End();
             self.tree.clean();
-
-            for (self.bodies.items) |body|
+            // const num_threads: usize = 3; // adjust this to your liking
+            for (self.bodies.items) |body| {
                 try self.tree.addBody(@intFromFloat(body.mass), body.position);
+            }
+
+            // if (self.bodies.items.len < num_threads) {
+            //     self.tree.finalize();
+            //     return;
+            // }
+
+            // const num_elements = self.bodies.items.len; // adjust this to your liking
+
+            // std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
+            // // Create threads
+            // var threads: [num_threads]std.Thread = undefined;
+            // for (&threads, 0..) |*thread, i| {
+            //     // _ = thread; // autofix
+            //     thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
+            //         self,
+            //         i,
+            //         num_elements,
+            //         num_threads,
+            //     });
+            //     // try self.parallelLoop(i, num_elements, num_threads);
+            // }
+
+            // // // Wait for all threads to finish
+            // for (threads) |thread|
+            //     thread.join();
 
             self.tree.finalize();
         }
 
-        fn stepEachTreeBody(self: *Self) void {
-            const zone = ztracy.Zone(@src());
-            defer zone.End();
-            for (self.bodies.items, 0..) |body, i|
+        fn parallelLoop(self: *Self, thread_id: usize, num_elements: usize, num_threads: usize) !void {
+            // const start = thread_id * (num_elements / num_threads);
+            // // const end = if (thread_id == num_threads - 1) num_elements else (thread_id + 1) * (num_elements / num_threads);
+            // const end = start + (num_elements / num_threads);
+            // Dont ask...
+            // const ONE: usize = 1;
+            // const ZERO: usize = 0;
+
+            const chunk_size: usize = num_elements / num_threads;
+            const remainder: usize = num_elements % num_threads;
+
+            std.debug.print("Remainder: {}\n", .{remainder});
+
+            const start: usize = thread_id * chunk_size + if (thread_id == 0) 0 else remainder;
+            std.debug.print("Start: {}\n", .{start});
+            // const re = thread_id < remainder;
+
+            const end: usize = start + chunk_size - 1 + if (thread_id == 0) remainder else 0;
+            std.debug.print("End: {}\n", .{end});
+
+            // const end = start;
+            // std.debug.print("ThreadID: {}, Chunk size: {}, Start: {}, End: {}\n", .{ thread_id, chunk_size, start, end });
+
+            // for (array[start..end]) |*item| {
+            //     item.* += 1; // do some work here
+            // }
+
+            // for (self.bodies.items[start..end]) |body| {
+            //     // _ = body; // autofix
+
+            //     try self.tree.addBody(@intFromFloat(body.mass), body.position);
+            // }
+            for (self.bodies.items[start..end], start..) |body, i|
                 self.tree.step(0, .{ //
                     .accel = &self.accels.items[i],
                     .bodyPos = body.position,
                     .bodyMass = @intFromFloat(body.mass),
                 });
+        }
+
+        fn stepEachTreeBody(self: *Self) !void {
+            const start = try Instant.now();
+            const zone = ztracy.Zone(@src());
+            defer zone.End();
+            const num_threads: usize = 8; // adjust this to your liking
+            // const num_threads: usize = if (self.bodies.items.len < self.thread_amount) 1 else 4; // adjust this to your liking
+            if (self.bodies.items.len == 0) {
+                self.tree.finalize();
+                return;
+            } else if (self.bodies.items.len <= num_threads) {
+                for (self.bodies.items, 0..) |body, i|
+                    self.tree.step(0, .{ //
+                        .accel = &self.accels.items[i],
+                        .bodyPos = body.position,
+                        .bodyMass = @intFromFloat(body.mass),
+                    });
+                self.tree.finalize();
+                return;
+            }
+
+            const num_elements = self.bodies.items.len; // adjust this to your liking
+            std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
+
+            // Create threads
+            var threads: [num_threads]std.Thread = undefined;
+            for (&threads, 0..) |*thread, i| {
+                // _ = thread; // autofix
+                thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
+                    self,
+                    i,
+                    num_elements,
+                    num_threads,
+                });
+                // try self.parallelLoop(i, num_elements, num_threads);
+            }
+
+            // // Wait for all threads to finish
+            for (threads) |thread|
+                thread.join();
+
+            // for (self.bodies.items, 0..) |body, i|
+            //     self.tree.step(0, .{ //
+            //         .accel = &self.accels.items[i],
+            //         .bodyPos = body.position,
+            //         .bodyMass = @intFromFloat(body.mass),
+            //     });
+            const end = try Instant.now();
+            const elapsed1: f64 = @floatFromInt(end.since(start));
+            std.debug.print("Time elapsed is: {d:.3}ms\n", .{
+                elapsed1 / time.ns_per_ms,
+            });
         }
 
         /// Apply accelerations to velocity
