@@ -25,6 +25,20 @@ pub fn fit(comptime To: type, self: anytype, width: u32) @Vector(2, To) {
     };
 }
 
+pub fn max(comptime T: type, self: anytype) T {
+    if (self[0] > self[1])
+        return self[0]
+    else
+        return self[1];
+}
+
+pub fn min(comptime T: type, self: anytype) T {
+    if (self[0] < self[1])
+        return self[0]
+    else
+        return self[1];
+}
+
 /// Converts vectors to given type and compares if new types the same
 pub fn isEq(comptime T: type, self: anytype, other: anytype) bool {
     // Convert types if needed
