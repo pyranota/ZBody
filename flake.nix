@@ -15,54 +15,27 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        nativeBuildInputs = with pkgs; [
+        buildInputs = with pkgs; [
           zig
           onefetch
-        ];
-        buildInputs = with pkgs; [
           raylib
-          # libxcursor-dev
-          xorg.libXcursor
-          xorg.libX11
-          xorg.libXrandr
-          xorg.libXinerama
-          xorg.libXi
-          # xorg.libX11
-          # mesa
-          # alsa-lib
-          # xorg.libX11.dev # adding the dev doesn't make a difference as far as I can tell
-          # xorg.libXft
-          # xorg.libXinerama
-          # xorg.xorgproto
-          # libGL
-          # libGLU
-          # binutils
-          # stdenv
-          # wget
-          # stdenv.cc
-          # raylib
-          # glfw
-          # xorg.libX11.dev
-          # openssl
-          # pkg-config
-          # pkg-config
-          # libGL
-          # xorg.libXft
-          # libatomic_ops
-          # mesa
-          # alsa-lib
-          # glibc
-          # wayland
-          # wayland-protocols
-          # libxkbcommon
-          # glfw-wayland
-          # glfw
-        ];
+          zsh
+          hyperfine
+          just
+        ] ++ (with xorg;[
+          libXcursor
+          libX11
+          libXrandr
+          libXinerama
+          libXi
+        ]);
+
       in
       {
         devShells.default = pkgs.mkShell {
-          inherit nativeBuildInputs buildInputs;
-          shellHook = ''onefetch; echo "Type Just to Run"'';
+          inherit buildInputs;
+          shellHook = ''onefetch; echo "Type Just to Run"; zsh'';
+          packages = with pkgs; [tracy];
 
           LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [
             xorg.libX11
