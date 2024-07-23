@@ -21,8 +21,9 @@ release-osx:
 build:
     zig build
 
-profile: build-core
-     nixGL tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
+profile: 
+    cd zb-core; zig build -DenableTracy
+    nixGL tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
 
 build-core: 
     cd zb-core; zig build
