@@ -119,6 +119,15 @@ pub const Node = union(enum) {
         return (x + y * 2);
     }
 
+    /// Type agnostic method.
+    /// Returns `position` or `centerOfMass`
+    pub fn coordinates(self: @This()) Vec2F {
+        return switch (self) {
+            .leaf => |leaf| leaf.position,
+            .branch => |branch| branch.centerOfMass,
+        };
+    }
+
     /// Show what are spatial coordinates of child
     pub fn where(self: @This(), quadrant: u2) Vec2 {
         //
