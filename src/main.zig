@@ -144,10 +144,20 @@ pub fn main() anyerror!void {
 
         const move_amount = try engine.fitBodies();
 
-        player.x += @floatFromInt(move_amount);
-        player.y += @floatFromInt(move_amount);
+        if (move_amount != 0) {
+            const x: f32 = @floatFromInt(move_amount);
+            const y: f32 = @floatFromInt(move_amount);
+
+            player.x += x;
+            player.y += y;
+            camera.target.x += x;
+            camera.target.y += y;
+        }
+
         // Camera target follows player
-        camera.target = rl.Vector2.init(player.x, player.y);
+        const final_cam_pos = rl.Vector2.init(player.x, player.y);
+        camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.2);
+        camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.2);
         // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
 
