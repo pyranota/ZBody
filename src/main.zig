@@ -8,7 +8,7 @@ const rg = @import("raygui");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 256;
+const boxSize: u32 = 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
@@ -95,9 +95,9 @@ pub fn main() anyerror!void {
             const x = pos.x;
             const y = pos.y;
 
-            if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 10, .position = .{ x, y }, .velocity = @splat(0) });
-            }
+            // if (x > 0 and y > 0) {
+            try engine.addBody(core.Body{ .mass = 10, .position = .{ x, y }, .velocity = @splat(0) });
+            // }
         }
         // Camera zoom controls
         zoom += rl.getMouseWheelMove() * 0.19 * zoom;
@@ -142,6 +142,10 @@ pub fn main() anyerror!void {
         // var val: i32 = 15;
         // _ = rg.guiSpinner(rl.Rectangle{ .x = 0, .y = 0, .width = 100, .height = 100 }, "Spinner", &val, 0, 50, true);
 
+        const move_amount = try engine.fitBodies();
+
+        player.x += @floatFromInt(move_amount);
+        player.y += @floatFromInt(move_amount);
         // Camera target follows player
         camera.target = rl.Vector2.init(player.x, player.y);
         // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);

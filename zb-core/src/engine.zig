@@ -67,6 +67,78 @@ pub fn Engine() type {
             try self.tree.showForceBounds(.{ targetPosition, callb });
         }
 
+        /// Returns the smallest power of two that is greater than or equal to the input `x`.
+        ///
+        /// Parameters:
+        /// * `x`: A `u32` value.
+        ///
+        /// Return Value:
+        /// A `u32` value representing the smallest power of two that is greater than or equal to `x`.
+        ///
+        /// Example:
+        /// ```zig
+        /// const x: u32 = 17;
+        /// const next_pow2 = nextPowerOfTwo(x);
+        /// std.debug.print("Next power of two: {}\n", .{next_pow2}); // Output: 32
+        /// ```
+        ///
+        /// Notes:
+        /// This function uses a bitwise trick to find the next power of two. It works by setting all the bits to the right of the most significant set bit in `x` to 1, and then adding 1 to the result. This effectively "rounds up" `x` to the next power of two.
+        ///
+        /// Performance:
+        /// This function has a constant time complexity of O(1), making it very efficient for finding the next power of two.
+        ///
+        /// Limitations:
+        /// This function only works for `u32` values. If you need to support larger integers, you'll need to modify the function accordingly.
+        fn nextPowerOfTwo(x: i32) u32 {
+            const abs_x = if (x < 0) -x else x;
+            var u_x: u32 = @intCast(abs_x);
+            u_x |= u_x >> 1;
+            u_x |= u_x >> 2;
+            u_x |= u_x >> 4;
+            u_x |= u_x >> 8;
+            u_x |= u_x >> 16;
+            return u_x + 1;
+        }
+
+        /// Run through all nodes and find out if we need to extend the tree
+        /// Returns amount in pixels to offset object in order to make size change smooth and sound
+        pub fn fitBodies(self: *Self) !u32 {
+            var is_move = false;
+            var move_amount: u32 = 0;
+
+            for (self.bodies.items) |body| {
+                const size: f32 = @floatFromInt(self.tree.size);
+                const max = vec2.max(f32, body.position);
+                const min = vec2.min(f32, body.position);
+
+                if (max > size)
+                    self.tree.size = nextPowerOfTwo(@intFromFloat(max))
+                else if (min < 0) {
+                    is_move = true;
+                    move_amount = ((nextPowerOfTwo(@intFromFloat(min)) / self.tree.size) + 1) * self.tree.size;
+                }
+            }
+
+            if (is_move) {
+                self.moveBodies(move_amount);
+
+                // Could happen that after moving to new position there is something out of bound again
+                // We can ignore output, since we know we wont need to move it again
+                _ = try self.fitBodies();
+            }
+
+            return move_amount;
+        }
+
+        /// Move all bodies to right and bottom by given amount
+        ///
+        /// It is usefull when you need to extend your space, but since we are using only positive coordinates, we need to extend the zone
+        fn moveBodies(self: *Self, amount: u32) void {
+            for (self.bodies.items) |*body|
+                body.position += @splat(@floatFromInt(amount));
+        }
+
         pub fn mergeSamePositions(self: *Self) !void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
