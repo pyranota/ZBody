@@ -132,7 +132,6 @@ pub fn Engine() type {
         }
 
         /// Move all bodies to right and bottom by given amount
-        ///
         /// It is usefull when you need to extend your space, but since we are using only positive coordinates, we need to extend the zone
         fn moveBodies(self: *Self, amount: u32) void {
             for (self.bodies.items) |*body|
@@ -140,19 +139,24 @@ pub fn Engine() type {
         }
 
         pub fn mergeSamePositions(self: *Self) !void {
+            // Create a tracing zone to measure the performance of this function
             const zone = ztracy.Zone(@src());
             defer zone.End();
-            // Store position and index of body
+            // Create a hashmap to store the positions and indices of the bodies
             var positions = std.AutoHashMap(Vec2, usize).init(ally);
             var toRemove = std.ArrayList(usize).init(ally);
 
+            // Create an array list to store the indices of the bodies to be removed
             defer positions.deinit();
             defer toRemove.deinit();
 
             for (self.bodies.items, 0..) |body, i|
+                // Check if there is already a body at the same position
                 if (positions.get(vec2.convert(u32, body.position))) |index| {
+                    // Get the existing body
                     var existing = &self.bodies.items[index];
 
+                    // Calculate the masses of the existing and new bodies
                     const existing_mass: Vec2F = @splat(existing.mass);
                     const to_remove_mass: Vec2F = @splat(body.mass);
 
@@ -160,11 +164,15 @@ pub fn Engine() type {
                     existing.velocity = (existing.velocity * existing_mass + body.velocity * to_remove_mass) / (existing_mass + to_remove_mass);
                     existing.mass += body.mass;
 
+                    // Add the index of the new body to the list of bodies to be removed
                     try toRemove.append(i);
-                } else try positions.put(vec2.convert(u32, body.position), i);
+                } else
 
-            // Iterate from end to beginning. So we dont move nodes from end to wrong position
+                // If there is no body at the same position, add the new body to the hashmap
+                try positions.put(vec2.convert(u32, body.position), i);
+
             // TODO: Refactor
+            // Iterate over the list of bodies to be removed in reverse order
             if (toRemove.items.len > 0) {
                 var i: usize = toRemove.items.len - 1;
                 while (i >= 0) {
