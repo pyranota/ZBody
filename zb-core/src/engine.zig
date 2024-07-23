@@ -168,27 +168,15 @@ pub fn Engine() type {
             const chunk_size: usize = num_elements / num_threads;
             const remainder: usize = num_elements % num_threads;
 
-            std.debug.print("Remainder: {}\n", .{remainder});
+            // std.debug.print("Remainder: {}\n", .{remainder});
 
-            const start: usize = thread_id * chunk_size + if (thread_id == 0) 0 else remainder;
-            std.debug.print("Start: {}\n", .{start});
+            const start: usize = thread_id * chunk_size;
+            // std.debug.print("Start: {}\n", .{start});
             // const re = thread_id < remainder;
 
-            const end: usize = start + chunk_size - 1 + if (thread_id == 0) remainder else 0;
-            std.debug.print("End: {}\n", .{end});
+            const end: usize = start + chunk_size + if (num_threads - 1 == thread_id) remainder else 0;
+            // std.debug.print("End: {}\n", .{end});
 
-            // const end = start;
-            // std.debug.print("ThreadID: {}, Chunk size: {}, Start: {}, End: {}\n", .{ thread_id, chunk_size, start, end });
-
-            // for (array[start..end]) |*item| {
-            //     item.* += 1; // do some work here
-            // }
-
-            // for (self.bodies.items[start..end]) |body| {
-            //     // _ = body; // autofix
-
-            //     try self.tree.addBody(@intFromFloat(body.mass), body.position);
-            // }
             for (self.bodies.items[start..end], start..) |body, i|
                 self.tree.step(0, .{ //
                     .accel = &self.accels.items[i],
@@ -204,16 +192,14 @@ pub fn Engine() type {
             const num_threads: usize = 8; // adjust this to your liking
             // const num_threads: usize = if (self.bodies.items.len < self.thread_amount) 1 else 4; // adjust this to your liking
             if (self.bodies.items.len == 0) {
-                self.tree.finalize();
                 return;
-            } else if (self.bodies.items.len <= num_threads) {
+            } else if (self.bodies.items.len <= num_threads or num_threads == 1) {
                 for (self.bodies.items, 0..) |body, i|
                     self.tree.step(0, .{ //
                         .accel = &self.accels.items[i],
                         .bodyPos = body.position,
                         .bodyMass = @intFromFloat(body.mass),
                     });
-                self.tree.finalize();
                 return;
             }
 
