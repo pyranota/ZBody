@@ -22,12 +22,32 @@
           zsh
           hyperfine
           just
+          #
+          mesa
+          alsa-lib
+          libGL
+          libGLU
+          binutils
+          stdenv
+          stdenv.cc
+          glfw
+          openssl
+          pkg-config
+          libatomic_ops
+          mesa
+          glibc
+          wayland
+          wayland-protocols
+          libxkbcommon
+          glfw-wayland
         ] ++ (with xorg;[
           libXcursor
           libX11
           libXrandr
           libXinerama
           libXi
+          # Not needed???
+          libXft
         ]);
 
       in
@@ -35,7 +55,7 @@
         devShells.default = pkgs.mkShell {
           inherit buildInputs;
           shellHook = ''onefetch; echo "Type Just to Run"; zsh'';
-          packages = with pkgs; [tracy];
+          packages = with pkgs; [ tracy ];
 
           LD_LIBRARY_PATH = with pkgs; lib.makeLibraryPath [
             xorg.libX11
@@ -108,7 +128,7 @@
             # wrapProgram $out/bin/Z-body --set LD_LIBRARY_PATH ${pkgs.lib.makeLibraryPath [ pkgs.xorg.libX11 pkgs.xorg.libXi ]}:$LD_LIBRARY_PATH
             wrapProgram $out/bin/Z-body --prefix \
             'exec ${pkgs.nix}/bin/nix shell -c "LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath [ pkgs.xorg.libX11 pkgs.xorg.libXi ]}:$LD_LIBRARY_PATH exec $0 $@"'
-            '';
+          '';
         };
       }
     );
