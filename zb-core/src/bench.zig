@@ -18,7 +18,7 @@ pub fn main() !void {
         }
     }
 
-    for (0..5) |_| {
+    for (0..10) |_| {
         try e.step(0.05);
     }
 }
