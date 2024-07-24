@@ -24,7 +24,7 @@ var isTargetModeOn: bool = false;
 var isLocked = false;
 var isPlanetBeingCreated: bool = false;
 //Player input
-var isDebugThreads = true;
+var isDebugThreads = false;
 var isMultiThreaded = true;
 
 var playerColor = rl.Color{
@@ -36,7 +36,7 @@ var playerColor = rl.Color{
 var targetBodyId: u32 = undefined;
 var targetBody: core.Body = undefined;
 var playerMass: i32 = 10;
-var playerRadius: f32 = 100;
+var playerRadius: f32 = 10;
 var planetStartPoint = rl.Vector2{
     .x = 0,
     .y = 0,
@@ -287,16 +287,15 @@ pub fn main() anyerror!void {
         // if (!isPause) {
         // try engine.showBounds(drawBound);
         // =======
-        const gColor = rl.Color{ .r = playerColor.r, .g = playerColor.g, .b = playerColor.b, .a = 255 };
+        // const gColor = rl.Color{ .r = playerColor.r, .g = playerColor.g, .b = playerColor.b, .a = 255 };
 
         const start = try Instant.now();
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);
         for (engine.bodies.items) |body| {
-            var col = gColor;
+            var col = body.color;
             if (isDebugThreads) {
                 var rnd = RndGen.init(body.assigned_thread);
-                const some_random_num = rnd.random().int(u32) | 0xff;
-                col = rl.Color.fromInt(some_random_num);
+                col = rnd.random().int(u32) | 0xff;
             }
 
             const body_p = rl.Vector2.init(body.position[0], body.position[1]);
@@ -305,7 +304,7 @@ pub fn main() anyerror!void {
             if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
                 continue;
             // col.a = 255;
-            drawPlanet(body.position[0], body.position[1], 10, @bitCast(col.toInt()));
+            drawPlanet(body.position[0], body.position[1], 10, col);
         }
 
         const end = try Instant.now();
