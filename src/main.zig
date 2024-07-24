@@ -51,6 +51,8 @@ pub fn main() anyerror!void {
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
+
+    try engine.generateGalaxy();
     // for (0..50) |x| {
     //     for (0..50) |y| {
     //         const p: Vec2F = .{ @floatFromInt(boxSize / 2 + x * 150), @floatFromInt(boxSize / 2 + y * 150) };

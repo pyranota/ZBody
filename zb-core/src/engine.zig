@@ -7,6 +7,8 @@ const Vec2 = vec2.Vec2;
 const ztracy = @import("ztracy");
 const time = std.time;
 const Instant = time.Instant;
+/// Galaxy Generator
+const gxg = @import("galaxy-gen.zig");
 
 const List = std.ArrayList;
 
@@ -67,6 +69,13 @@ pub fn Engine() type {
 
         pub fn showForceBounds(self: Self, targetPosition: Vec2F, callb: anytype) !void {
             try self.tree.showForceBounds(.{ targetPosition, callb });
+        }
+
+        pub fn generateGalaxy(self: *Self) !void {
+            const objects = try gxg.generateGalaxy();
+            defer objects.deinit();
+            for (objects.items) |obj|
+                try self.addBody(obj);
         }
 
         /// Returns the smallest power of two that is greater than or equal to the input `x`.
@@ -213,7 +222,7 @@ pub fn Engine() type {
             try self.stepEachTreeBody();
             const endStep = try Instant.now();
 
-            self.applyAcceleration(20);
+            self.applyAcceleration(1);
             const endApplyAccel = try Instant.now();
 
             const elapsed1: f64 = @floatFromInt(endMerge.since(start));
