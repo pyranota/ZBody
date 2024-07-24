@@ -17,16 +17,25 @@ const Vec2F = core.vec2.Vec2F;
 var isPause = false;
 var isDebug = false;
 var isMenuShown = false;
+var isTargetModeOn: bool = false;
+var isLocked = false;
+var isPlanetBeingCreated: bool = false;
+//Player input
 
-//RGB
-
-var color = rl.Color{
+var playerColor = rl.Color{
     .r = 255,
     .g = 0,
     .b = 0,
-    .a = 0,
+    .a = 255,
 };
-
+var targetBodyId: u32 = undefined;
+var targetBody: core.Body = undefined;
+var playerMass: f32 = 10;
+var playerRadius: f32 = 100;
+var planetStartPoint = rl.Vector2{
+    .x = 0,
+    .y = 0,
+};
 const ally = std.heap.page_allocator;
 var zoom: f32 = 1;
 
@@ -37,12 +46,12 @@ pub fn main() anyerror!void {
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
-    for (0..50) |x| {
-        for (0..50) |y| {
-            const p: Vec2F = .{ @floatFromInt(boxSize / 2 + x * 150), @floatFromInt(boxSize / 2 + y * 150) };
-            try engine.addBody(.{ .mass = 40, .position = p, .velocity = @splat(0) });
-        }
-    }
+    // for (0..50) |x| {
+    //     for (0..50) |y| {
+    //         const p: Vec2F = .{ @floatFromInt(boxSize / 2 + x * 150), @floatFromInt(boxSize / 2 + y * 150) };
+    //         try engine.addBody(.{ .mass = 40, .position = p, .velocity = @splat(0) });
+    //     }
+    // }
 
     //--------------------------------------------------------------------------------------
     const screenWidth = 1000;
@@ -83,22 +92,33 @@ pub fn main() anyerror!void {
         rl.drawFPS(10, 10);
 
         //Mouse contrlos
-        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown) {
+        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown and !isLocked) {
             const d = rl.getMouseDelta();
             const sens = 1;
             player.x -= (d.x * sens) / camera.zoom;
             player.y -= (d.y * sens) / camera.zoom;
         }
-        if ((rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right) or rl.isKeyDown(rl.KeyboardKey.key_s)) and !isMenuShown) {
+        if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
+            const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+            planetStartPoint.x = pos.x;
+            planetStartPoint.y = pos.y;
+            isPlanetBeingCreated = true;
+        }
+        if (rl.isMouseButtonReleased(rl.MouseButton.mouse_button_right)) {
+            isPlanetBeingCreated = false;
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
 
+            const c: u32 = @bitCast(rl.colorToInt(playerColor));
             const x = pos.x;
             const y = pos.y;
-
+            // std.debug.print("\n{}", .{c});
             if (x > 0 and y > 0) {
-                try engine.addBody(core.Body{ .mass = 10, .position = .{ x, y }, .velocity = @splat(0) });
+                if (x == planetStartPoint.x and y == planetStartPoint.y) {
+                    try engine.addBody(core.Body{ .mass = playerMass, .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = playerRadius, .color = c });
+                } else try engine.addBody(core.Body{ .mass = playerMass, .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = playerRadius, .color = c });
             }
         }
+
         // Camera zoom controls
         zoom += rl.getMouseWheelMove() * 0.19 * zoom;
         zoom = rl.math.clamp(zoom, 0.002, 19.0);
@@ -106,18 +126,18 @@ pub fn main() anyerror!void {
         camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
         // camera.zoom = zoom;
         // Player movement arrow keys
-
-        if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
-            player.x += 9;
-        } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
-            player.x -= 9;
+        if (!isLocked) {
+            if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
+                player.x += 9;
+            } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
+                player.x -= 9;
+            }
+            if (rl.isKeyDown(rl.KeyboardKey.key_up)) {
+                player.y -= 9;
+            } else if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
+                player.y += 9;
+            }
         }
-        if (rl.isKeyDown(rl.KeyboardKey.key_up)) {
-            player.y -= 9;
-        } else if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
-            player.y += 9;
-        }
-
         // Key listeners
         if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
             isPause = !isPause;
@@ -131,6 +151,12 @@ pub fn main() anyerror!void {
             isDebug = !isDebug;
         }
 
+        if (rl.isKeyPressed(rl.KeyboardKey.key_l)) {
+            if (isTargetModeOn) isLocked = false;
+            isTargetModeOn = !isTargetModeOn;
+            // std.debug.print("\n{}", .{isTargetModeOn});
+
+        }
         //Body count
         const string = try std.fmt.allocPrint(
             ally,
@@ -146,7 +172,6 @@ pub fn main() anyerror!void {
         camera.target = rl.Vector2.init(player.x, player.y);
         // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
-
         camera.begin();
 
         // if (engine.bodies.items.len > 2) {
@@ -166,14 +191,38 @@ pub fn main() anyerror!void {
         if (!isPause)
             try engine.step(0.05);
 
-        const gColor = rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = 255 };
-
-        // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);
+        // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
+        if (isPause) {
+            if (isTargetModeOn) {
+                if (isLocked) {
+                    player.x = rl.math.lerp(player.x, targetBody.position[0], 0.1);
+                    player.y = rl.math.lerp(player.y, targetBody.position[1], 0.1);
+                } else for (engine.bodies.items) |body| {
+                    const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+                    const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
+                    if (isDebug) {
+                        rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
+                        rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
+                    }
+                    // std.debug.print("\n{}", .{body.radius});
+                    // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
+                    if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+                        isLocked = true;
+                        targetBody = body;
+                        std.debug.print("\n{}", .{body.id});
+                    }
+                }
+            }
+        }
         for (engine.bodies.items) |body|
-            drawPlanet(body.position[0], body.position[1], 10, gColor);
-
+            drawPlanet(body.position[0], body.position[1], body.radius, body.color);
         // drawZone.End();
 
+        if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_right)) {
+            rl.drawCircleV(planetStartPoint, playerRadius, playerColor);
+            const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+            rl.drawLineEx(planetStartPoint, pos, 10, Color.red);
+        }
         if (isDebug) {
             // try engine.showBounds(drawBound);
             if (engine.bodies.items.len > 0) {
@@ -202,7 +251,6 @@ pub fn main() anyerror!void {
             drawMenu(menu);
             drawMenuText(menu);
             drawColorPicker(menu, 20, 20);
-            std.debug.print("\n{}", .{color});
         }
         //HUD End
     }
@@ -257,8 +305,9 @@ fn randomPlanet(seed: u64) void {
     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
 }
 
-fn drawPlanet(x: f32, y: f32, r: f32, col: Color) void {
-    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, col);
+fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
+    const color = rl.Color.fromInt(col);
+    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, color);
 }
 
 //HUD DRAW
@@ -280,7 +329,7 @@ fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
     _ = rg.guiColorPicker(
         PcikerRec,
         "",
-        &color,
+        &playerColor,
     );
 }
 

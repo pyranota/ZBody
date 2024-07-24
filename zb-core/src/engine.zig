@@ -134,7 +134,7 @@ pub fn Engine() type {
 
                 body.velocity += accel.* * sd;
                 body.position += body.velocity * sd;
-
+                // std.debug.print("\n{}", .{body.velocity});
                 accel.* = @splat(0);
             }
         }
