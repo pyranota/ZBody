@@ -6,6 +6,7 @@ const RndGen = std.rand.DefaultPrng;
 const rl = @import("raylib");
 const rg = @import("raygui");
 const core = @import("zb-core");
+const draw = @import("draw.zig");
 const Color = rl.Color;
 // Size of a galaxy
 const boxSize: u32 = 256;
@@ -26,24 +27,17 @@ var isPlanetBeingCreated: bool = false;
 //Player input
 var isDebugThreads = false;
 var isMultiThreaded = true;
-
-var playerColor = rl.Color{
-    .r = 255,
-    .g = 0,
-    .b = 0,
-    .a = 255,
-};
+var playerColor = draw.playerColor;
 var targetBodyId: u32 = undefined;
 var targetBody: core.Body = undefined;
-var playerMass: i32 = 10;
-var playerRadius: i32 = 10;
+var playerMass: i32 = draw.playerMass;
+var playerRadius: i32 = draw.playerRadius;
 var planetStartPoint = rl.Vector2{
     .x = 0,
     .y = 0,
 };
 const ally = std.heap.page_allocator;
 var zoom: f32 = 1;
-
 pub fn main() anyerror!void {
     // const tracy_zone = ztracy.ZoneNC(@src(), "Compute Magic", 0x00_ff_00_00);
     // defer tracy_zone.End();
@@ -278,8 +272,11 @@ pub fn main() anyerror!void {
             }
         }
 
+        // const shader: rl.Shader = rl.loadShader(null, @constCast("./src/bloom.fs"));
+        // rl.beginShaderMode(shader);
         for (engine.bodies.items) |body|
-            drawPlanet(body.position[0], body.position[1], body.radius, body.color);
+            draw.drawPlanet(body.position[0], body.position[1], body.radius, body.color);
+        // rl.endShaderMode();
         // drawZone.End();
 
         if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_right)) {
@@ -323,11 +320,11 @@ pub fn main() anyerror!void {
             // >>>>>>> threading
             if (engine.bodies.items.len > 0) {
                 const p = engine.bodies.items[0].position;
-                try engine.showForceBounds(p, drawBoundForceAndCoM);
+                try engine.showForceBounds(p, draw.drawBoundForceAndCoM);
             };
 
         if (isDebugBounds)
-            try engine.showBounds(drawBound);
+            try engine.showBounds(draw.drawBound);
 
         for (0..amount) |i| {
             _ = i; // autofix
@@ -346,11 +343,11 @@ pub fn main() anyerror!void {
 
         if (isMenuShown) {
             // std.debug.print("Yes", .{});
-            drawMenu(menu);
-            drawMenuText(menu);
-            drawColorPicker(menu, 20, 20);
-            drawMassInput(menu, 20, 280);
-            drawRadiusInput(menu, 20, 360);
+            draw.drawMenu(menu);
+            draw.drawMenuText(menu);
+            draw.drawColorPicker(menu, 20, 20);
+            draw.drawMassInput(menu, 20, 280);
+            draw.drawRadiusInput(menu, 20, 360);
         }
         //HUD End
     }
@@ -394,16 +391,16 @@ fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
     }
 }
 
-fn randomPlanet(seed: u64) void {
-    var rnd = RndGen.init(seed);
-    // var some_random_num = rnd.random().int(i32);
-    var r = rnd.random();
-    const x = rnd.random().intRangeAtMost(i32, -boxSize, boxSize);
-    const y = rnd.random().intRangeAtMost(i32, -boxSize, boxSize);
-    const radius = r.float(f32) * 10;
-    const c = r.int(u32);
-    drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
-}
+// fn randomPlanet(seed: u64) void {
+//     var rnd = RndGen.init(seed);
+//     // var some_random_num = rnd.random().int(i32);
+//     var r = rnd.random();
+//     const x = rnd.random().intRangeAtMost(i32, -boxSize, boxSize);
+//     const y = rnd.random().intRangeAtMost(i32, -boxSize, boxSize);
+//     const radius = r.float(f32) * 10;
+//     const c = r.int(u32);
+//     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
+// }
 
 fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
     const color = rl.Color.fromInt(col);
