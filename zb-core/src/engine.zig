@@ -138,6 +138,13 @@ pub fn Engine() type {
                 body.position += @splat(@floatFromInt(amount));
         }
 
+        pub fn getCenterOfMass(self: Self) ?Vec2F {
+            if (self.tree.root) |root|
+                return root.coordinates()
+            else
+                return null;
+        }
+
         pub fn mergeSamePositions(self: *Self) !void {
             // Create a tracing zone to measure the performance of this function
             const zone = ztracy.Zone(@src());

@@ -130,6 +130,13 @@ pub fn main() anyerror!void {
         if (rl.isKeyPressed(rl.KeyboardKey.key_d)) {
             isDebug = !isDebug;
         }
+        // Go to center of mas
+        if (rl.isKeyPressed(rl.KeyboardKey.key_c))
+            if (engine.getCenterOfMass()) |p| {
+                player.x = p[0];
+                player.y = p[1];
+                zoom = 1;
+            };
 
         //Body count
         const string = try std.fmt.allocPrint(
