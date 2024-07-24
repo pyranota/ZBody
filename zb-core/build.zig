@@ -34,10 +34,13 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const enableTracy = b.option(bool, "enableTracy", "Enable ZTracy support. If yes, executable is slower") orelse false;
+
+    // b.addOptions().addOption(bool, "enableTracy", enableTracy);
 
     const ztracy = b.dependency("ztracy", .{
-        .enable_ztracy = false,
-        .enable_fibers = false,
+        .enable_ztracy = enableTracy,
+        .enable_fibers = enableTracy,
     });
 
     l.addImport("ztracy", ztracy.module("root"));

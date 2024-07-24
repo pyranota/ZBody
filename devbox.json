@@ -3,6 +3,7 @@
   "packages": [
     "just@latest",
     "onefetch@latest",
+    "raylib@latest",
     "github:zigtools/zls?ref=0.13.0",
     "github:mitchellh/zig-overlay"
   ],

@@ -8,19 +8,24 @@ const rg = @import("raygui");
 const core = @import("zb-core");
 const Color = rl.Color;
 // Size of a galaxy
-const boxSize: u32 = 1024 * 256;
+const boxSize: u32 = 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
 const Vec2F = core.vec2.Vec2F;
+const time = std.time;
+const Instant = time.Instant;
 
 var isPause = false;
-var isDebug = false;
+var isDebugBounds = false;
+var isDebugLoD = false;
 var isMenuShown = false;
 var isTargetModeOn: bool = false;
 var isLocked = false;
 var isPlanetBeingCreated: bool = false;
 //Player input
+var isDebugThreads = true;
+var isMultiThreaded = true;
 
 var playerColor = rl.Color{
     .r = 255,
@@ -81,6 +86,8 @@ pub fn main() anyerror!void {
     };
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+        // std.debug.print("Cores: {}", .{rl.jxd});
+        // std.
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -111,12 +118,19 @@ pub fn main() anyerror!void {
             const c: u32 = @bitCast(rl.colorToInt(playerColor));
             const x = pos.x;
             const y = pos.y;
+            // <<<<<<< HEAD
             // std.debug.print("\n{}", .{c});
-            if (x > 0 and y > 0) {
-                if (x == planetStartPoint.x and y == planetStartPoint.y) {
-                    try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = playerRadius, .color = c });
-                } else try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = playerRadius, .color = c });
-            }
+            // if (x > 0 and y > 0) {
+            if (x == planetStartPoint.x and y == planetStartPoint.y) {
+                try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = playerRadius, .color = c });
+            } else try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = playerRadius, .color = c });
+            // }
+            // =======
+
+            // if (x > 0 and y > 0) {
+            // try engine.addBody(core.Body{ .mass = 10, .position = .{ x, y }, .velocity = @splat(0) });
+            // }
+            // >>>>>>> threading
         }
 
         // Camera zoom controls
@@ -139,16 +153,29 @@ pub fn main() anyerror!void {
             }
         }
         // Key listeners
-        if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
+        if (rl.isKeyPressed(rl.KeyboardKey.key_space))
             isPause = !isPause;
-        }
 
-        if (rl.isKeyPressed(rl.KeyboardKey.key_h)) {
+        if (rl.isKeyPressed(rl.KeyboardKey.key_h))
             isMenuShown = !isMenuShown;
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_m))
+            if (isMultiThreaded) {
+                isMultiThreaded = false;
+                engine.fixThreadAmount(1);
+            } else {
+                isMultiThreaded = true;
+                try engine.unfixThreadAmount();
+            };
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_o)) {
+            isDebugLoD = !isDebugLoD;
+            isDebugBounds = false;
         }
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_d)) {
-            isDebug = !isDebug;
+            isDebugBounds = !isDebugBounds;
+            isDebugLoD = false;
         }
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_l)) {
@@ -157,6 +184,17 @@ pub fn main() anyerror!void {
             // std.debug.print("\n{}", .{isTargetModeOn});
 
         }
+        if (rl.isKeyPressed(rl.KeyboardKey.key_k))
+            isDebugThreads = !isDebugThreads;
+
+        // Go to center of mas
+        if (rl.isKeyPressed(rl.KeyboardKey.key_c))
+            if (engine.getCenterOfMass()) |p| {
+                player.x = p[0];
+                player.y = p[1];
+                zoom = 1;
+            };
+
         //Body count
         const string = try std.fmt.allocPrint(
             ally,
@@ -165,11 +203,33 @@ pub fn main() anyerror!void {
         );
         defer ally.free(string);
         rl.drawText(@ptrCast(string), 3, 40, 20, Color.dark_green);
+
+        const threshold_string = try std.fmt.allocPrint(
+            ally,
+            "Threads used: {d}",
+            .{engine.thread_amount},
+        );
+        defer ally.free(threshold_string);
+        rl.drawText(@ptrCast(threshold_string), 3, 60, 20, Color.green);
         // var val: i32 = 15;
         // _ = rg.guiSpinner(rl.Rectangle{ .x = 0, .y = 0, .width = 100, .height = 100 }, "Spinner", &val, 0, 50, true);
 
+        const move_amount = try engine.fitBodies();
+
+        if (move_amount != 0) {
+            const x: f32 = @floatFromInt(move_amount);
+            const y: f32 = @floatFromInt(move_amount);
+
+            player.x += x;
+            player.y += y;
+            camera.target.x += x;
+            camera.target.y += y;
+        }
+
         // Camera target follows player
-        camera.target = rl.Vector2.init(player.x, player.y);
+        const final_cam_pos = rl.Vector2.init(player.x, player.y);
+        camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.2);
+        camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.2);
         // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
@@ -191,6 +251,7 @@ pub fn main() anyerror!void {
         if (!isPause)
             try engine.step(0.05);
 
+        // <<<<<<< HEAD
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
         if (isPause) {
             if (isTargetModeOn) {
@@ -200,7 +261,7 @@ pub fn main() anyerror!void {
                 } else for (engine.bodies.items) |body| {
                     const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
                     const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
-                    if (isDebug) {
+                    if (isDebugBounds) {
                         rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
                         rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
                     }
@@ -223,13 +284,48 @@ pub fn main() anyerror!void {
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
             rl.drawLineEx(planetStartPoint, pos, 10, Color.red);
         }
-        if (isDebug) {
-            // try engine.showBounds(drawBound);
+        // if (!isPause) {
+        // try engine.showBounds(drawBound);
+        // =======
+        const gColor = rl.Color{ .r = playerColor.r, .g = playerColor.g, .b = playerColor.b, .a = 255 };
+
+        const start = try Instant.now();
+        // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);
+        for (engine.bodies.items) |body| {
+            var col = gColor;
+            if (isDebugThreads) {
+                var rnd = RndGen.init(body.assigned_thread);
+                const some_random_num = rnd.random().int(u32) | 0xff;
+                col = rl.Color.fromInt(some_random_num);
+            }
+
+            const body_p = rl.Vector2.init(body.position[0], body.position[1]);
+            const scr_coords = rl.getWorldToScreen2D(body_p, camera);
+
+            if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
+                continue;
+            // col.a = 255;
+            drawPlanet(body.position[0], body.position[1], 10, @bitCast(col.toInt()));
+        }
+
+        const end = try Instant.now();
+        const elapsed1: f64 = @floatFromInt(end.since(start));
+        std.debug.print("Time to draw: {d:.3}ms\n", .{
+            elapsed1 / time.ns_per_ms,
+        });
+        // }
+
+        // drawZone.End();
+
+        if (isDebugLoD)
+            // >>>>>>> threading
             if (engine.bodies.items.len > 0) {
                 const p = engine.bodies.items[0].position;
                 try engine.showForceBounds(p, drawBoundForceAndCoM);
-            }
-        }
+            };
+
+        if (isDebugBounds)
+            try engine.showBounds(drawBound);
 
         for (0..amount) |i| {
             _ = i; // autofix
@@ -263,7 +359,7 @@ fn drawBound(position: Vec2, size: u32) void {
     if (size <= padding * 8) {
         padding = 0;
     }
-    const col = if (size == boxSize) Color.dark_green else Color.yellow;
+    const col = if (size == boxSize) Color.yellow else Color.yellow;
     rl.drawRectangleLines( //
         @intCast(position[0] + padding), //
         @intCast(position[1] + padding), //

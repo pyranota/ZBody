@@ -23,10 +23,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    const raylib_dep = b.dependency("raylib-zig", .{
-        .target = target,
-        .optimize = optimize,
-    });
+    const raylib_dep = b.dependency("raylib-zig", .{ .target = target, .optimize = optimize, .linux_display_backend = .X11 });
 
     const raylib = raylib_dep.module("raylib"); // main raylib module
     const raygui = raylib_dep.module("raygui"); // raygui module

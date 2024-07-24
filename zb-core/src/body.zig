@@ -10,6 +10,8 @@ var prng = std.rand.DefaultPrng.init(blk: {
 const rand = prng.random();
 mass: f32 = 0,
 position: Vec2F = @splat(0),
+
+assigned_thread: usize = 0,
 //
 velocity: Vec2F = @splat(0),
 radius: f32 = 0,

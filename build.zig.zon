@@ -20,14 +20,14 @@
             .hash = "1220361ce363a465c3f52e7e35ca5f1d9c2f5ed8a9207b79c2edb4396cdf31009c48",
         },
         .@"zb-core" = .{
-            .url = "./zb-core",
-            .hash = "1220735b159acb972c9e60c378c94e4e524c042f84188e907ab8c571bc3541e524dd",
+            .path = "./zb-core",
         },
     },
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
+        "deps.nix",
         // For example...
         //"LICENSE",
         //"README.md",

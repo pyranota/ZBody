@@ -149,7 +149,7 @@ pub fn Tree() type {
 
         pub fn showForceBounds(self: Self, args: anytype) !void {
             // TODO: Fix. its crashing if there is just one node
-            args.@"1"(@splat(0), self.size, if (self.root) |root| root.branch.centerOfMass else null);
+            args.@"1"(@splat(0), self.size, if (self.root) |root| root.coordinates() else null);
             try self.traverse(callbacks.forceBoundsCB, args);
         }
 

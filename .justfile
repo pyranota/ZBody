@@ -1,16 +1,19 @@
+alias ggf := gotta-go-fast
 # Default target
 # Compile and run
 default: run
 
 # Compile and run
-run: pull
-    zig build run
+run: 
+    nixGL zig build run
 
-# Pull dependencies to latest version
-pull:
-    zig fetch --save ./zb-core
+# Compile and run in release mode
+run-fast: 
+    nixGL zig build run --release=fast
 
-# -target x86_64-linux
+# Speeeeeeed 󱐌
+gotta-go-fast: run-fast
+
 # Compile in release mode
 release:
     zig build -Dtarget=x86_64-linux-gnu.2.17
@@ -25,8 +28,9 @@ release-osx:
 build:
     zig build
 
-profile: build-core
-     nixGL tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
+profile: 
+    cd zb-core; zig build -DenableTracy
+    nixGL tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
 
 build-core: 
     cd zb-core; zig build
