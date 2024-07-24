@@ -228,6 +228,12 @@ pub fn main() anyerror!void {
                 const some_random_num = rnd.random().int(u32) | 0xff;
                 col = rl.Color.fromInt(some_random_num);
             }
+
+            const body_p = rl.Vector2.init(body.position[0], body.position[1]);
+            const scr_coords = rl.getWorldToScreen2D(body_p, camera);
+
+            if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
+                continue;
             // col.a = 255;
             drawPlanet(body.position[0], body.position[1], 10, col);
         }
