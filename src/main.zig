@@ -19,6 +19,7 @@ var isDebugBounds = false;
 var isDebugLoD = false;
 var isMenuShown = false;
 var isDebugThreads = true;
+var isMultiThreaded = true;
 
 //RGB
 
@@ -129,6 +130,15 @@ pub fn main() anyerror!void {
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_h))
             isMenuShown = !isMenuShown;
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_m))
+            if (isMultiThreaded) {
+                isMultiThreaded = false;
+                engine.fixThreadAmount(1);
+            } else {
+                isMultiThreaded = true;
+                try engine.unfixThreadAmount();
+            };
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_o)) {
             isDebugLoD = !isDebugLoD;

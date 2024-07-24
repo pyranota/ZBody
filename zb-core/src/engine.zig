@@ -47,8 +47,9 @@ pub fn Engine() type {
             self.thread_amount = amount;
         }
 
-        pub fn unfixThreadAmount(self: *Self) void {
+        pub fn unfixThreadAmount(self: *Self) !void {
             self.is_fixed = false;
+            self.thread_amount = try std.Thread.getCpuCount();
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
