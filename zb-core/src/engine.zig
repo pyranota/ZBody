@@ -19,7 +19,7 @@ pub fn Engine() type {
         /// Amount of thread being used in execution
         /// Its dynamic value and changes on runtime
         /// Call `fixThreadAmount` to specify fixed amount
-        thread_amount: usize = 32,
+        thread_amount: usize,
         is_fixed: bool = false,
 
         const Self = @This();
@@ -29,6 +29,7 @@ pub fn Engine() type {
 
         pub fn init(comptime size: u32) !Self {
             return .{ //
+                .thread_amount = try std.Thread.getCpuCount(),
                 .tree = try tree.Tree().init(size),
                 .bodies = List(Body).init(ally),
                 .accels = List(Vec2F).init(ally),
@@ -245,7 +246,8 @@ pub fn Engine() type {
             const start = try Instant.now();
             const zone = ztracy.Zone(@src());
             defer zone.End();
-            const num_threads: usize = 8; // adjust this to your liking
+
+            const num_threads = self.thread_amount;
             // const num_threads: usize = if (self.bodies.items.len < self.thread_amount) 1 else 4; // adjust this to your liking
             if (self.bodies.items.len == 0) {
                 return;
@@ -263,16 +265,30 @@ pub fn Engine() type {
             std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
 
             // Create threads
-            var threads: [num_threads]std.Thread = undefined;
-            for (&threads, 0..) |*thread, i|
-                thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
+            // var threads = try std.ArrayList(std.Thread).initCapacity(ally, num_threads);
+            // defer threads.deinit();
+            // for (threads.items) |*b| b.* = null;
+
+            // for (threads.items, 0..) |*thread, i|
+            //     thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
+            //         self,
+            //         i,
+            //         num_elements,
+            //         num_threads,
+            //     });
+            var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(ally);
+            defer threads.deinit();
+
+            for (0..num_threads) |i| {
+                try threads.append(try std.Thread.spawn(.{}, parallelLoop, .{
                     self,
                     i,
                     num_elements,
                     num_threads,
-                });
+                }));
+            }
 
-            for (threads) |thread|
+            for (threads.items) |*thread|
                 thread.join();
 
             const end = try Instant.now();

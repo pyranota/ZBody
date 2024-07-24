@@ -15,7 +15,8 @@ const Vec2 = core.vec2.Vec2;
 const Vec2F = core.vec2.Vec2F;
 
 var isPause = false;
-var isDebug = false;
+var isDebugBounds = false;
+var isDebugLoD = false;
 var isMenuShown = false;
 var isDebugThreads = true;
 
@@ -38,6 +39,7 @@ pub fn main() anyerror!void {
     // Initialization
     var engine = try core.engine.Engine().init(boxSize);
     defer engine.deinit();
+
     // for (0..50) |x| {
     //     for (0..50) |y| {
     //         const p: Vec2F = .{ @floatFromInt(boxSize / 2 + x * 150), @floatFromInt(boxSize / 2 + y * 150) };
@@ -73,6 +75,8 @@ pub fn main() anyerror!void {
     };
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+        // std.debug.print("Cores: {}", .{rl.jxd});
+        // std.
 
         // Draw
         //----------------------------------------------------------------------------------
@@ -126,8 +130,15 @@ pub fn main() anyerror!void {
         if (rl.isKeyPressed(rl.KeyboardKey.key_h))
             isMenuShown = !isMenuShown;
 
-        if (rl.isKeyPressed(rl.KeyboardKey.key_d))
-            isDebug = !isDebug;
+        if (rl.isKeyPressed(rl.KeyboardKey.key_o)) {
+            isDebugLoD = !isDebugLoD;
+            isDebugBounds = false;
+        }
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_d)) {
+            isDebugBounds = !isDebugBounds;
+            isDebugLoD = false;
+        }
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_k))
             isDebugThreads = !isDebugThreads;
@@ -148,6 +159,14 @@ pub fn main() anyerror!void {
         );
         defer ally.free(string);
         rl.drawText(@ptrCast(string), 3, 40, 20, Color.dark_green);
+
+        const threshold_string = try std.fmt.allocPrint(
+            ally,
+            "Threads used: {d}",
+            .{engine.thread_amount},
+        );
+        defer ally.free(threshold_string);
+        rl.drawText(@ptrCast(threshold_string), 3, 60, 20, Color.green);
         // var val: i32 = 15;
         // _ = rg.guiSpinner(rl.Rectangle{ .x = 0, .y = 0, .width = 100, .height = 100 }, "Spinner", &val, 0, 50, true);
 
@@ -205,13 +224,14 @@ pub fn main() anyerror!void {
 
         // drawZone.End();
 
-        if (isDebug) {
-            // try engine.showBounds(drawBound);
+        if (isDebugLoD)
             if (engine.bodies.items.len > 0) {
                 const p = engine.bodies.items[0].position;
                 try engine.showForceBounds(p, drawBoundForceAndCoM);
-            }
-        }
+            };
+
+        if (isDebugBounds)
+            try engine.showBounds(drawBound);
 
         for (0..amount) |i| {
             _ = i; // autofix
@@ -245,7 +265,7 @@ fn drawBound(position: Vec2, size: u32) void {
     if (size <= padding * 8) {
         padding = 0;
     }
-    const col = if (size == boxSize) Color.dark_green else Color.yellow;
+    const col = if (size == boxSize) Color.yellow else Color.yellow;
     rl.drawRectangleLines( //
         @intCast(position[0] + padding), //
         @intCast(position[1] + padding), //
