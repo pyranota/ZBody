@@ -1,3 +1,4 @@
+alias ggf := gotta-go-fast
 # Default target
 # Compile and run
 default: run
