@@ -55,10 +55,15 @@ pub fn Engine() type {
 
         pub fn addBody(self: *Self, body: Body) !void {
             var b: Body = body;
-            var rnd = RndGen.init(0);
-            var some_random_num = rnd.random().int(i32);
-            b.id = rand.intRangeAtMost(u32, 1, 4294967295);
-            try self.bodies.append(body);
+            var prng = std.rand.DefaultPrng.init(blk: {
+                var seed: u64 = undefined;
+                try std.posix.getrandom(std.mem.asBytes(&seed));
+                break :blk seed;
+            });
+            const rand = prng.random();
+            b.id = rand.int(u32);
+            std.debug.print("\n{}", .{b.id});
+            try self.bodies.append(b);
             try self.accels.append(@splat(0));
         }
 

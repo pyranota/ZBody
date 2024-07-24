@@ -179,9 +179,10 @@ pub fn main() anyerror!void {
         }
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_l)) {
-            if (isTargetModeOn) isLocked = false;
-            isTargetModeOn = !isTargetModeOn;
-            // std.debug.print("\n{}", .{isTargetModeOn});
+            if (isPause) {
+                if (isTargetModeOn) isLocked = false;
+                isTargetModeOn = !isTargetModeOn;
+            } // std.debug.print("\n{}", .{isTargetModeOn});
 
         }
         if (rl.isKeyPressed(rl.KeyboardKey.key_k))
@@ -264,12 +265,13 @@ pub fn main() anyerror!void {
                 }
                 // std.debug.print("\n{}", .{body.radius});
                 // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
-                if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+                if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left) and !isLocked and isPause) {
                     isLocked = true;
                     targetBodyId = body.id;
                     std.debug.print("\n{}", .{body.id});
                 }
-                if (isLocked) {
+                if (isLocked and targetBodyId == body.id) {
+                    targetBody = body;
                     player.x = rl.math.lerp(player.x, targetBody.position[0], 0.1);
                     player.y = rl.math.lerp(player.y, targetBody.position[1], 0.1);
                 }
