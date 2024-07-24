@@ -10,7 +10,9 @@ run:
 run-fast: 
     nixGL zig build run --release=fast
 
-# -target x86_64-linux
+# Speeeeeeed 󱐌
+gotta-go-fast: run-fast
+
 # Compile in release mode
 release:
     zig build -Dtarget=x86_64-linux-gnu.2.17
