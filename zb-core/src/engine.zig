@@ -231,12 +231,14 @@ pub fn Engine() type {
             const end: usize = start + chunk_size + if (num_threads - 1 == thread_id) remainder else 0;
             // std.debug.print("End: {}\n", .{end});
 
-            for (self.bodies.items[start..end], start..) |body, i|
+            for (self.bodies.items[start..end], start..) |*body, i| {
+                body.assigned_thread = thread_id;
                 self.tree.step(0, .{ //
                     .accel = &self.accels.items[i],
                     .bodyPos = body.position,
                     .bodyMass = @intFromFloat(body.mass),
                 });
+            }
         }
 
         fn stepEachTreeBody(self: *Self) !void {

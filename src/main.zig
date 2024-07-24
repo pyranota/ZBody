@@ -17,6 +17,7 @@ const Vec2F = core.vec2.Vec2F;
 var isPause = false;
 var isDebug = false;
 var isMenuShown = false;
+var isDebugThreads = true;
 
 //RGB
 
@@ -119,17 +120,18 @@ pub fn main() anyerror!void {
         }
 
         // Key listeners
-        if (rl.isKeyPressed(rl.KeyboardKey.key_space)) {
+        if (rl.isKeyPressed(rl.KeyboardKey.key_space))
             isPause = !isPause;
-        }
 
-        if (rl.isKeyPressed(rl.KeyboardKey.key_h)) {
+        if (rl.isKeyPressed(rl.KeyboardKey.key_h))
             isMenuShown = !isMenuShown;
-        }
 
-        if (rl.isKeyPressed(rl.KeyboardKey.key_d)) {
+        if (rl.isKeyPressed(rl.KeyboardKey.key_d))
             isDebug = !isDebug;
-        }
+
+        if (rl.isKeyPressed(rl.KeyboardKey.key_k))
+            isDebugThreads = !isDebugThreads;
+
         // Go to center of mas
         if (rl.isKeyPressed(rl.KeyboardKey.key_c))
             if (engine.getCenterOfMass()) |p| {
@@ -190,8 +192,16 @@ pub fn main() anyerror!void {
         const gColor = rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = 255 };
 
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);
-        for (engine.bodies.items) |body|
-            drawPlanet(body.position[0], body.position[1], 10, gColor);
+        for (engine.bodies.items) |body| {
+            var col = gColor;
+            if (isDebugThreads) {
+                var rnd = RndGen.init(body.assigned_thread);
+                const some_random_num = rnd.random().int(u32) | 0xff;
+                col = rl.Color.fromInt(some_random_num);
+            }
+            // col.a = 255;
+            drawPlanet(body.position[0], body.position[1], 10, col);
+        }
 
         // drawZone.End();
 

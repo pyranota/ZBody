@@ -4,5 +4,7 @@ const Vec2F = vec2.Vec2F;
 
 mass: f32 = 0,
 position: Vec2F = @splat(0),
+
+assigned_thread: usize = 0,
 //
 velocity: Vec2F = @splat(0)
