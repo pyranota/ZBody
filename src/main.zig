@@ -30,7 +30,7 @@ var playerColor = rl.Color{
 };
 var targetBodyId: u32 = undefined;
 var targetBody: core.Body = undefined;
-var playerMass: f32 = 10;
+var playerMass: i32 = 10;
 var playerRadius: f32 = 100;
 var planetStartPoint = rl.Vector2{
     .x = 0,
@@ -114,8 +114,8 @@ pub fn main() anyerror!void {
             // std.debug.print("\n{}", .{c});
             if (x > 0 and y > 0) {
                 if (x == planetStartPoint.x and y == planetStartPoint.y) {
-                    try engine.addBody(core.Body{ .mass = playerMass, .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = playerRadius, .color = c });
-                } else try engine.addBody(core.Body{ .mass = playerMass, .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = playerRadius, .color = c });
+                    try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = playerRadius, .color = c });
+                } else try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = playerRadius, .color = c });
             }
         }
 
@@ -251,6 +251,7 @@ pub fn main() anyerror!void {
             drawMenu(menu);
             drawMenuText(menu);
             drawColorPicker(menu, 20, 20);
+            drawMassInput(menu, 20, 280);
         }
         //HUD End
     }
@@ -318,7 +319,7 @@ fn drawMenu(rec: rl.Rectangle) void {
     rl.drawRectangleLinesEx( //
         rec, 4, Color.dark_green);
 }
-//SLIDERS
+//HUD USERINPUT
 fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
     const PcikerRec = rl.Rectangle{
         .x = (rec.x) + x,
@@ -331,6 +332,17 @@ fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
         "",
         &playerColor,
     );
+}
+
+fn drawMassInput(rec: rl.Rectangle, x: f32, y: f32) void {
+    const MassInputRec = rl.Rectangle{
+        .x = (rec.x) + x,
+        .y = (rec.y) + y,
+        .width = 240,
+        .height = 60,
+    };
+
+    _ = rg.guiValueBox(MassInputRec, "", &playerMass, 1, 10000, true);
 }
 
 fn drawMenuText(rec: rl.Rectangle) void {
