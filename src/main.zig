@@ -253,28 +253,29 @@ pub fn main() anyerror!void {
 
         // <<<<<<< HEAD
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
-        if (isPause) {
-            if (isTargetModeOn) {
+
+        if (isTargetModeOn) {
+            for (engine.bodies.items) |body| {
+                const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+                const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
+                if (isDebugBounds) {
+                    rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
+                    rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
+                }
+                // std.debug.print("\n{}", .{body.radius});
+                // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
+                if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
+                    isLocked = true;
+                    targetBodyId = body.id;
+                    std.debug.print("\n{}", .{body.id});
+                }
                 if (isLocked) {
                     player.x = rl.math.lerp(player.x, targetBody.position[0], 0.1);
                     player.y = rl.math.lerp(player.y, targetBody.position[1], 0.1);
-                } else for (engine.bodies.items) |body| {
-                    const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-                    const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
-                    if (isDebugBounds) {
-                        rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
-                        rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
-                    }
-                    // std.debug.print("\n{}", .{body.radius});
-                    // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
-                    if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
-                        isLocked = true;
-                        targetBody = body;
-                        std.debug.print("\n{}", .{body.id});
-                    }
                 }
             }
         }
+
         for (engine.bodies.items) |body|
             drawPlanet(body.position[0], body.position[1], body.radius, body.color);
         // drawZone.End();

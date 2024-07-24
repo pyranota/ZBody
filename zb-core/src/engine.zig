@@ -7,6 +7,7 @@ const Vec2 = vec2.Vec2;
 const ztracy = @import("ztracy");
 const time = std.time;
 const Instant = time.Instant;
+const RndGen = std.rand.DefaultPrng;
 
 const List = std.ArrayList;
 
@@ -53,6 +54,10 @@ pub fn Engine() type {
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
+            var b: Body = body;
+            var rnd = RndGen.init(0);
+            var some_random_num = rnd.random().int(i32);
+            b.id = rand.intRangeAtMost(u32, 1, 4294967295);
             try self.bodies.append(body);
             try self.accels.append(@splat(0));
         }
