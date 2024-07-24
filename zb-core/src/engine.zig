@@ -202,11 +202,31 @@ pub fn Engine() type {
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
+            const start = try Instant.now();
+
             try self.mergeSamePositions();
+            const endMerge = try Instant.now();
+
             try self.addBodiesToTree();
+            const endAdd = try Instant.now();
+
             try self.stepEachTreeBody();
+            const endStep = try Instant.now();
 
             self.applyAcceleration(20);
+            const endApplyAccel = try Instant.now();
+
+            const elapsed1: f64 = @floatFromInt(endMerge.since(start));
+            const elapsed2: f64 = @floatFromInt(endAdd.since(endMerge));
+            const elapsed3: f64 = @floatFromInt(endStep.since(endAdd));
+            const elapsed4: f64 = @floatFromInt(endApplyAccel.since(endStep));
+
+            std.debug.print("\n\n Time elapsed in stages:\n merge: {d:.3}ms\n build: {d:.3}ms\n step: {d:.3}ms\n apply: {d:.3}ms\n", .{
+                elapsed1 / time.ns_per_ms,
+                elapsed2 / time.ns_per_ms,
+                elapsed3 / time.ns_per_ms,
+                elapsed4 / time.ns_per_ms,
+            });
         }
 
         fn addBodiesToTree(self: *Self) !void {
@@ -244,7 +264,6 @@ pub fn Engine() type {
         }
 
         fn stepEachTreeBody(self: *Self) !void {
-            const start = try Instant.now();
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
@@ -253,6 +272,7 @@ pub fn Engine() type {
             if (self.bodies.items.len == 0) {
                 return;
             } else if (self.bodies.items.len <= num_threads or num_threads == 1) {
+                // TODO: Remove
                 for (self.bodies.items, 0..) |body, i|
                     self.tree.step(0, .{ //
                         .accel = &self.accels.items[i],
@@ -263,7 +283,7 @@ pub fn Engine() type {
             }
 
             const num_elements = self.bodies.items.len; // adjust this to your liking
-            std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
+            // std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
 
             // Create threads
             // var threads = try std.ArrayList(std.Thread).initCapacity(ally, num_threads);
@@ -291,12 +311,6 @@ pub fn Engine() type {
 
             for (threads.items) |*thread|
                 thread.join();
-
-            const end = try Instant.now();
-            const elapsed1: f64 = @floatFromInt(end.since(start));
-            std.debug.print("Time elapsed is: {d:.3}ms\n", .{
-                elapsed1 / time.ns_per_ms,
-            });
         }
 
         /// Apply accelerations to velocity

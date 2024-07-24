@@ -13,6 +13,8 @@ const boxSize: u32 = 256;
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
 const Vec2F = core.vec2.Vec2F;
+const time = std.time;
+const Instant = time.Instant;
 
 var isPause = false;
 var isDebugBounds = false;
@@ -220,6 +222,7 @@ pub fn main() anyerror!void {
 
         const gColor = rl.Color{ .r = color.r, .g = color.g, .b = color.b, .a = 255 };
 
+        const start = try Instant.now();
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);
         for (engine.bodies.items) |body| {
             var col = gColor;
@@ -237,6 +240,12 @@ pub fn main() anyerror!void {
             // col.a = 255;
             drawPlanet(body.position[0], body.position[1], 10, col);
         }
+
+        const end = try Instant.now();
+        const elapsed1: f64 = @floatFromInt(end.since(start));
+        std.debug.print("Time to draw: {d:.3}ms\n", .{
+            elapsed1 / time.ns_per_ms,
+        });
 
         // drawZone.End();
 
