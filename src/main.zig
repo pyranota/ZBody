@@ -137,7 +137,7 @@ pub fn main() anyerror!void {
 
         // Camera zoom controls
         zoom += rl.getMouseWheelMove() * 0.19 * zoom;
-        zoom = rl.math.clamp(zoom, 0.002, 19.0);
+        zoom = rl.math.clamp(zoom, 0.00002, 19.0);
 
         camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
         // camera.zoom = zoom;

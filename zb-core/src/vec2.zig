@@ -15,6 +15,7 @@ pub fn convert(comptime To: type, vector: anytype) @Vector(2, To) {
     inline for (0..2) |i| res[i] = if (To == u32) @intFromFloat(vector[i]) else @floatFromInt(vector[i]);
     return res;
 }
+
 pub fn fit(comptime To: type, self: anytype, width: u32) @Vector(2, To) {
     const w: f32 = @floatFromInt(width);
     // TODO: Use splat and vec % width

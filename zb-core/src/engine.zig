@@ -222,7 +222,7 @@ pub fn Engine() type {
             try self.stepEachTreeBody();
             const endStep = try Instant.now();
 
-            self.applyAcceleration(1);
+            self.applyAcceleration(1500);
             const endApplyAccel = try Instant.now();
 
             const elapsed1: f64 = @floatFromInt(endMerge.since(start));
