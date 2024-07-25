@@ -20,7 +20,7 @@ pub const Node = union(enum) {
         /// We dont do this until tree is structured, because we need to add bodies.
         centerOfMass: Vec2F,
         // Total mass
-        mass: u32,
+        mass: f32,
         /// Width and Height occupied by this branch
         size: u32,
         /// Find out in which quadrant should we put node with given position
@@ -31,7 +31,7 @@ pub const Node = union(enum) {
     };
     const Leaf = struct {
         //
-        mass: u32 = 0,
+        mass: f32 = 0,
         /// Represents position of the body within this Leaf
         /// It's coordinates are relative to the leaf
         position: Vec2F = @splat(0),
@@ -57,7 +57,7 @@ pub const Node = union(enum) {
 
         leaf.* = self.leaf;
 
-        const m: Vec2F = @splat(@floatFromInt(leaf.mass));
+        const m: Vec2F = @splat(leaf.mass);
 
         const cm = leaf.position * m;
 

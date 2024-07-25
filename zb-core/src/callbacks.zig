@@ -20,7 +20,7 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
     defer zone.End();
 
     const mass: f32 = switch (node.*) {
-        inline else => |case| @floatFromInt(case.mass),
+        inline else => |case| case.mass,
     };
 
     const size: f32 = @floatFromInt(node.size());
@@ -92,7 +92,7 @@ pub fn treeBoundsCB(node: *Node, nodePosition: Vec2, callb: anytype) void {
 
 pub fn finalizeCB(node: *Node, _: Vec2, _: anytype) void {
     if (node.* == Node.branch) {
-        const m: Vec2F = @splat(@floatFromInt(node.branch.mass));
+        const m: Vec2F = @splat(node.branch.mass);
         node.branch.centerOfMass /= m;
     }
 }

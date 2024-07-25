@@ -253,7 +253,7 @@ pub fn Engine() type {
             self.tree.clean();
             // const num_threads: usize = 3; // adjust this to your liking
             for (self.bodies.items) |body| {
-                try self.tree.addBody(@intFromFloat(body.mass), body.position);
+                try self.tree.addBody(body.mass, body.position);
             }
 
             self.tree.finalize();

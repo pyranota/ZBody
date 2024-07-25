@@ -48,7 +48,7 @@ pub fn Tree() type {
         }
 
         /// Add Astronomical Body to the System
-        pub fn addBody(self: *@This(), mass: u32, position: Vec2F) !void {
+        pub fn addBody(self: *@This(), mass: f32, position: Vec2F) !void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
             const positionF = vec2.convert(u32, position);
@@ -58,7 +58,7 @@ pub fn Tree() type {
             try Tree().visitNode(&self.root, mass, position, self.size);
         }
 
-        fn visitNode(node: *?*Node, mass: u32, position: Vec2F, size: u32) !void {
+        fn visitNode(node: *?*Node, mass: f32, position: Vec2F, size: u32) !void {
             if (node.*) |n| {
 
                 // If we have our node being something (not a null) we always need it to be a branch.
@@ -98,7 +98,7 @@ pub fn Tree() type {
                 // In other words if `try` statement above will fail, this mass modificatin will not occure and tree wont be modified
                 // But if it works correctly we use stacked values to modify needed values in inverted order (from bottom to up).
                 br.mass += mass;
-                const m: Vec2F = @splat(@floatFromInt(mass));
+                const m: Vec2F = @splat(mass);
                 br.centerOfMass += position * m;
             }
             // Here our journey ends. We found a null node and can use it.
