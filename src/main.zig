@@ -219,6 +219,14 @@ pub fn main() anyerror!void {
         );
         defer ally.free(threshold_string);
         rl.drawText(@ptrCast(threshold_string), 3, 60, 20, Color.green);
+
+        const cpos_string = try std.fmt.allocPrint(
+            ally,
+            "Camera position: {?}",
+            .{camera.target},
+        );
+        defer ally.free(cpos_string);
+        rl.drawText(@ptrCast(cpos_string), 3, 100, 20, Color.green);
         // var val: i32 = 15;
         // _ = rg.guiSpinner(rl.Rectangle{ .x = 0, .y = 0, .width = 100, .height = 100 }, "Spinner", &val, 0, 50, true);
 
@@ -260,7 +268,7 @@ pub fn main() anyerror!void {
 
         if (!isPause)
             if (fastMode)
-                try engine.step(2e5)
+                try engine.step(4e4)
             else
                 try engine.step(1 / camera.zoom);
 
@@ -280,7 +288,7 @@ pub fn main() anyerror!void {
                 if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left) and !isLocked and isPause) {
                     isLocked = true;
                     targetBodyId = body.id;
-                    std.debug.print("\n{}", .{body.id});
+                    // std.debug.print("\n{}", .{body.id});
                 }
                 if (isLocked and targetBodyId == body.id) {
                     targetBody = body;
@@ -326,9 +334,11 @@ pub fn main() anyerror!void {
 
         const end = try Instant.now();
         const elapsed1: f64 = @floatFromInt(end.since(start));
-        std.debug.print("Time to draw: {d:.3}ms\n", .{
-            elapsed1 / time.ns_per_ms,
-        });
+        _ = elapsed1; // autofix
+
+        // std.debug.print("Time to draw: {d:.3}ms\n", .{
+        //     elapsed1 / time.ns_per_ms,
+        // });
         // }
 
         // drawZone.End();

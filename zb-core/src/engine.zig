@@ -15,7 +15,7 @@ const List = std.ArrayList;
 
 pub fn Engine() type {
     return struct { //
-        const SPEED_O_LIGHT: f32 = 0.1;
+        const SPEED_O_LIGHT: f32 = 1;
         tree: tree.Tree(),
         bodies: List(Body),
         accels: List(Vec2F),
@@ -65,7 +65,7 @@ pub fn Engine() type {
             });
             const rand = prng.random();
             b.id = rand.int(u32);
-            std.debug.print("\n{}", .{b.id});
+            // std.debug.print("\n{}", .{b.id});
             try self.bodies.append(b);
             try self.accels.append(@splat(0));
         }
@@ -221,31 +221,31 @@ pub fn Engine() type {
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
-            const start = try Instant.now();
+            // const start = try Instant.now();
 
             try self.mergeSamePositions();
-            const endMerge = try Instant.now();
+            // const endMerge = try Instant.now();
 
             try self.addBodiesToTree();
-            const endAdd = try Instant.now();
+            // const endAdd = try Instant.now();
 
             try self.stepEachTreeBody();
-            const endStep = try Instant.now();
+            // const endStep = try Instant.now();
 
             self.applyAcceleration(delta);
-            const endApplyAccel = try Instant.now();
+            // const endApplyAccel = try Instant.now();
 
-            const elapsed1: f64 = @floatFromInt(endMerge.since(start));
-            const elapsed2: f64 = @floatFromInt(endAdd.since(endMerge));
-            const elapsed3: f64 = @floatFromInt(endStep.since(endAdd));
-            const elapsed4: f64 = @floatFromInt(endApplyAccel.since(endStep));
+            // const elapsed1: f64 = @floatFromInt(endMerge.since(start));
+            // const elapsed2: f64 = @floatFromInt(endAdd.since(endMerge));
+            // const elapsed3: f64 = @floatFromInt(endStep.since(endAdd));
+            // const elapsed4: f64 = @floatFromInt(endApplyAccel.since(endStep));
 
-            std.debug.print("\n\n Time elapsed in stages:\n merge: {d:.3}ms\n build: {d:.3}ms\n step: {d:.3}ms\n apply: {d:.3}ms\n", .{
-                elapsed1 / time.ns_per_ms,
-                elapsed2 / time.ns_per_ms,
-                elapsed3 / time.ns_per_ms,
-                elapsed4 / time.ns_per_ms,
-            });
+            // std.debug.print("\n\n Time elapsed in stages:\n merge: {d:.3}ms\n build: {d:.3}ms\n step: {d:.3}ms\n apply: {d:.3}ms\n", .{
+            //     elapsed1 / time.ns_per_ms,
+            //     elapsed2 / time.ns_per_ms,
+            //     elapsed3 / time.ns_per_ms,
+            //     elapsed4 / time.ns_per_ms,
+            // });
         }
 
         fn addBodiesToTree(self: *Self) !void {
@@ -328,7 +328,9 @@ pub fn Engine() type {
                 const new_vel = body.velocity + accel.* * sd;
                 // TODO: Unhardcode
                 if (@max(@abs(new_vel[0]), @abs(new_vel[1])) < SPEED_O_LIGHT)
-                    body.velocity = new_vel;
+                    body.velocity = new_vel
+                else
+                    std.debug.print("Hit speed o light", .{});
 
                 body.position += body.velocity * sd;
                 // std.debug.print("\n{}", .{body.velocity});

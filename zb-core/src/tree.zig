@@ -18,8 +18,8 @@ pub fn Tree() type {
 
         // TODO: Make dynamic and smart
         // TODO: Prevent from being 0 or 1
-        pub const threshhold: f32 = 0.5;
-        pub const safety: f32 = 2e2;
+        pub const threshhold: f32 = 0.9;
+        pub const safety: f32 = 0;
 
         root: ?*Node = null,
         // TODO: Make dynamic?
