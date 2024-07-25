@@ -27,6 +27,6 @@ pub fn render() void {
 
         if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
             continue;
-        draw.drawPlanet(body.position[0], body.position[1], 10, col);
+        draw.drawPlanet(body.position[0], body.position[1], body.radius, col);
     }
 }
