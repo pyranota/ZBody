@@ -15,7 +15,7 @@ const Vec2F = core.vec2.Vec2F;
 const time = std.time;
 const Instant = time.Instant;
 
-var playerColor = rl.Color{
+pub var playerColor = rl.Color{
     .r = 255,
     .g = 0,
     .b = 0,
@@ -23,10 +23,10 @@ var playerColor = rl.Color{
 };
 var targetBodyId: u32 = undefined;
 var targetBody: core.Body = undefined;
-var playerMass: i32 = 10;
-var playerRadius: i32 = 10;
+pub var playerMass: f32 = 10;
+pub var playerRadius: f32 = 10;
 
-fn drawBound(position: Vec2, size: u32) void {
+pub fn drawBound(position: Vec2, size: u32) void {
     // Also add padding
     var padding: u32 = 4;
     if (size <= padding * 8) {
@@ -41,7 +41,7 @@ fn drawBound(position: Vec2, size: u32) void {
         col);
 }
 
-fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
+pub fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
     // Also add padding
     var padding: u32 = 4;
     if (size <= padding * 8) {
@@ -75,13 +75,13 @@ fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
 //     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
 // }
 
-fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
+pub fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
     const color = rl.Color.fromInt(col);
     rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, color);
 }
 
 //HUD DRAW
-fn drawMenu(rec: rl.Rectangle) void {
+pub fn drawMenu(rec: rl.Rectangle) void {
     rl.drawRectangleRec( //
         rec, Color.black);
 
@@ -89,7 +89,7 @@ fn drawMenu(rec: rl.Rectangle) void {
         rec, 4, Color.dark_green);
 }
 //HUD USERINPUT
-fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
+pub fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
     const PcikerRec = rl.Rectangle{
         .x = (rec.x) + x,
         .y = (rec.y) + y,
@@ -103,7 +103,7 @@ fn drawColorPicker(rec: rl.Rectangle, x: f32, y: f32) void {
     );
 }
 
-fn drawMassInput(rec: rl.Rectangle, x: f32, y: f32) void {
+pub fn drawMassInput(rec: rl.Rectangle, x: f32, y: f32) void {
     const MassInputRec = rl.Rectangle{
         .x = (rec.x) + x,
         .y = (rec.y) + y,
@@ -111,10 +111,10 @@ fn drawMassInput(rec: rl.Rectangle, x: f32, y: f32) void {
         .height = 60,
     };
 
-    _ = rg.guiValueBox(MassInputRec, "", &playerMass, 1, 10000, true);
+    _ = rg.guiSliderBar(MassInputRec, "", "", &playerMass, 1, 1000000);
 }
 
-fn drawRadiusInput(rec: rl.Rectangle, x: f32, y: f32) void {
+pub fn drawRadiusInput(rec: rl.Rectangle, x: f32, y: f32) void {
     const MassInputRec = rl.Rectangle{
         .x = (rec.x) + x,
         .y = (rec.y) + y,
@@ -122,9 +122,9 @@ fn drawRadiusInput(rec: rl.Rectangle, x: f32, y: f32) void {
         .height = 60,
     };
 
-    _ = rg.guiValueBox(MassInputRec, "", &playerRadius, 1, 10000, true);
+    _ = rg.guiSliderBar(MassInputRec, "", "", &playerRadius, 1, 1000);
 }
 
-fn drawMenuText(rec: rl.Rectangle) void {
+pub fn drawMenuText(rec: rl.Rectangle) void {
     rl.drawText(@ptrCast(""), @intFromFloat((rec.x)), @intFromFloat(rec.y), 20, Color.dark_green);
 }
