@@ -3,6 +3,7 @@ const rl = @import("raylib");
 const rg = @import("raygui");
 const core = @import("zb-core");
 const main = @import("main.zig");
+const ctrl = @import("controls.zig");
 
 const Color = rl.Color;
 // Size of a galaxy
@@ -63,19 +64,8 @@ pub fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) voi
     }
 }
 
-// fn randomPlanet(seed: u64) void {
-//     var rnd = RndGen.init(seed);
-//     // var some_random_num = rnd.random().int(i32);
-//     var r = rnd.random();
-//     const x = rnd.random().intRangeAtMost(i32, -boxSize, boxSize);
-//     const y = rnd.random().intRangeAtMost(i32, -boxSize, boxSize);
-//     const radius = r.float(f32) * 10;
-//     const c = r.int(u32);
-//     drawPlanet(x, y, radius, Color.fromInt(c).alpha(1.0));
-// }
-
 pub fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
-    const min_radius = 1 / main.camera.zoom;
+    const min_radius = 1 / ctrl.camera.zoom;
     // Use the maximum of the original radius and the minimum radius
     const effectiveRadius = @max(r, min_radius);
     const color = rl.Color.fromInt(col);

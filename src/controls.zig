@@ -1,9 +1,10 @@
-//! This file is controlling time, camera movement and threading
+//! This file is controlling time, camera movement and threading also controlls execution of program
 const rl = @import("raylib");
 const main = @import("main.zig");
 
-const isLocked = @import("lock.zig").isLocked;
-const isMenuShown = @import("ui.zig").isMenuShown;
+const planetStartPoint = &@import("spawn.zig").planetStartPoint;
+const isLocked = &@import("lock.zig").isLocked;
+const isMenuShown = &@import("ui.zig").isMenuShown;
 
 pub const screenWidth = 1000;
 pub const screenHeight = 1000;
@@ -22,9 +23,31 @@ pub var isPause: bool = false;
 pub var fastMode: bool = false;
 var isMultiThreaded = true;
 
-pub fn control() void {
+pub fn simStep() !void {
+    if (!isPause)
+        if (fastMode)
+            try engine.step(2e1)
+        else
+            // We speed up simulation if zoom is low
+            // And slow down if zoom is high
+            try engine.step(3e-2 / camera.zoom);
+}
+
+/// Entry point for Controls, handles everything.
+/// Should be called before everything
+pub fn handleControls() !void {
+    try mapKeys();
+    moveCameraWithMouse();
+
+    smoothZoom();
+    lerpCamera();
+
+    infiniteSpace();
+}
+
+fn moveCameraWithMouse() void {
     // Mouse controls
-    if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown and !isLocked) {
+    if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown.* and !isLocked.*) {
         const d = rl.getMouseDelta();
         const sens = 1;
         player.x -= (d.x * sens) / camera.zoom;
@@ -34,12 +57,10 @@ pub fn control() void {
 
 /// Handles fitting all bodies in given range and extending borders.
 /// Makes it *seemless*
-pub fn infiniteSpace() void {
+fn infiniteSpace() void {
 
     // Camera zoom controls
     const move_amount = try engine.fitBodies();
-
-    const planetStartPoint = @import("spawn.zig").planetStartPoint;
 
     if (move_amount != 0) {
         const x: f32 = @floatFromInt(move_amount);
@@ -55,6 +76,7 @@ pub fn infiniteSpace() void {
     }
 }
 
+/// Apply move settings to camera
 fn lerpCamera() void {
     // NOTE: Lerp is disabled for now
     // camera.target.x = final_cam_pos.x;
@@ -65,7 +87,7 @@ fn lerpCamera() void {
     camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.2);
 }
 
-fn mapKeys() void {
+fn mapKeys() !void {
 
     // Pause
     if (rl.isKeyPressed(rl.KeyboardKey.key_space))
@@ -96,25 +118,24 @@ fn mapKeys() void {
         };
 }
 
-pub fn smoothZoom() void {
+fn smoothZoom() void {
     zoom += rl.getMouseWheelMove() * 0.19 * zoom;
     zoom = rl.math.clamp(zoom, 1e-4, 19.0);
 
     camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
 }
 
-pub fn arrowKeysMove() void {
+fn arrowKeysMove() void {
     // Player movement arrow keys
     if (!isLocked) {
-        if (rl.isKeyDown(rl.KeyboardKey.key_right)) {
-            player.x += 9;
-        } else if (rl.isKeyDown(rl.KeyboardKey.key_left)) {
+        if (rl.isKeyDown(rl.KeyboardKey.key_right))
+            player.x += 9
+        else if (rl.isKeyDown(rl.KeyboardKey.key_left))
             player.x -= 9;
-        }
-        if (rl.isKeyDown(rl.KeyboardKey.key_up)) {
-            player.y -= 9;
-        } else if (rl.isKeyDown(rl.KeyboardKey.key_down)) {
+
+        if (rl.isKeyDown(rl.KeyboardKey.key_up))
+            player.y -= 9
+        else if (rl.isKeyDown(rl.KeyboardKey.key_down))
             player.y += 9;
-        }
     }
 }

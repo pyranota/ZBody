@@ -11,12 +11,17 @@ const menu = rl.Rectangle{
     .height = ((ctrl.screenHeight / 2.5) * 1.5),
 };
 
-pub fn mapKeys() void {
+pub fn handleHUD() void {
+    mapKeys();
+    drawHUD();
+}
+
+fn mapKeys() void {
     if (rl.isKeyPressed(rl.KeyboardKey.key_h))
         isMenuShown = !isMenuShown;
 }
 
-pub fn drawHUD() void {
+fn drawHUD() void {
     //
     rl.drawText(
     //

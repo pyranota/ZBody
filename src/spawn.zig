@@ -1,7 +1,7 @@
 const rl = @import("raylib");
 const draw = @import("drawing.zig");
 const ctrl = @import("controls.zig");
-const camera = ctrl.camera;
+const camera = &ctrl.camera;
 const core = @import("zb-core");
 const engine = &@import("main.zig").engine;
 //Player input
@@ -19,20 +19,20 @@ pub var planetStartPoint = rl.Vector2{
 };
 
 var isPlanetBeingCreated: bool = false;
-pub fn spawnBodyWithVelocity() void {
+pub fn spawnBodyWithVelocity() !void {
     playerMass = draw.playerMass;
     playerRadius = draw.playerRadius;
     playerColor = draw.playerColor;
 
     if (rl.isMouseButtonPressed(rl.MouseButton.mouse_button_right)) {
-        const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+        const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera.*);
         planetStartPoint.x = pos.x;
         planetStartPoint.y = pos.y;
         isPlanetBeingCreated = true;
     }
     if (rl.isMouseButtonReleased(rl.MouseButton.mouse_button_right)) {
         isPlanetBeingCreated = false;
-        const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+        const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera.*);
 
         const c: u32 = @bitCast(rl.colorToInt(playerColor));
         const x = pos.x;
@@ -61,7 +61,7 @@ pub fn spawnBodyWithVelocity() void {
     }
     if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_right)) {
         rl.drawCircleV(planetStartPoint, (playerRadius), playerColor);
-        const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+        const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera.*);
         rl.drawLineEx(planetStartPoint, pos, 10, rl.Color.red);
     }
 }

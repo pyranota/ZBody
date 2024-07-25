@@ -1,17 +1,22 @@
-// raylib-zig (c) Nikolas Wipper 2023
-
-// const ztracy = @import("ztracy");
+// ------------ Basis ------------- //
+const core = @import("zb-core");
 const std = @import("std");
-const RndGen = std.rand.DefaultPrng;
 const rl = @import("raylib");
 const rg = @import("raygui");
-const core = @import("zb-core");
+
+// ----------- Modules ------------ //
+const debug = @import("debug.zig");
+const spawn = @import("spawn.zig");
+const lock = @import("lock.zig");
 const draw = @import("drawing.zig");
 const ctrl = @import("controls.zig");
+const ui = @import("ui.zig");
+
 // Size of a galaxy
 const boxSize: u32 = 256;
+const rndr = @import("render.zig");
 
-var engine: core.engine.Engine() = undefined;
+pub var engine: core.engine.Engine() = undefined;
 
 pub fn main() anyerror!void {
     // Z-Body engine initialization
@@ -21,6 +26,7 @@ pub fn main() anyerror!void {
 
     // Generating starting galaxy
     // try engine.generateGalaxy();
+    try engine.addBody(.{});
     //--------------------------------------------------------------------------------------
 
     rl.initWindow(ctrl.screenWidth, ctrl.screenHeight, "Z-body");
@@ -28,43 +34,39 @@ pub fn main() anyerror!void {
 
     rl.setTargetFPS(80); // Set our game to run at 80 frames-per-second
 
-    //--------------------------------------------------------------------------------------
-
-    // const boxSizeFloat: f32 = @floatFromInt(boxSize);
-
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
 
-        // Draw
-        //----------------------------------------------------------------------------------
-
         rl.clearBackground(rl.Color.black);
 
-        ctrl.camera.begin();
+        try ctrl.handleControls();
 
-        ctrl.camera.end();
-
+        // Draw
+        //----------------------------------------------------------------------------------
         rl.beginDrawing();
 
-        rl.drawFPS(10, 10);
+        try ctrl.simStep();
 
-        // Key listeners
+        // Camera begin
+        //--------------------------------------------
+        ctrl.camera.begin();
 
-        // Go to center of mass
+        lock.handleLock();
 
-        //Body count
+        try spawn.spawnBodyWithVelocity();
 
-        // camera.begin();
+        try debug.handleDebugWorld();
 
-        if (!ctrl.isPause)
-            if (ctrl.fastMode)
-                try engine.step(2e1)
-            else
-                try engine.step(3e-2 / ctrl.camera.zoom);
+        rndr.render();
 
-        // camera.end();
+        ctrl.camera.end();
+        //--------------------------------------------
 
-        //HUD
+        ui.handleHUD();
+
+        try debug.handleDebugHUD();
+
         rl.endDrawing();
+        //----------------------------------------------------------------------------------
     }
 }

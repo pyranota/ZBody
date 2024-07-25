@@ -329,7 +329,7 @@ pub fn Engine() type {
                 if (@max(@abs(new_vel[0]), @abs(new_vel[1])) < SPEED_O_LIGHT)
                     body.velocity = new_vel
                 else
-                    std.debug.print("Hit speed o light", .{});
+                    std.log.warn("Hit speed o light\n Dats bad, no-no \n", .{});
 
                 body.position += body.velocity * sd;
                 // std.debug.print("\n{}", .{body.velocity});
