@@ -3,7 +3,7 @@
 
 <h1 align="center">
   <br>
-  <img src="media/splash-v1.png" alt="ZBody logo" width="500">
+  <img src="media/splash-v1-high-rez.png" alt="ZBody logo" width="500">
 
 </h1>
 
@@ -72,7 +72,7 @@ $ just
 
 ## Download
 
-You can [download](https://github.com/amitmerchant1990/electron-markdownify/releases/tag/v1.2.0) the latest installable version of Markdownify for Windows, macOS and Linux.
+You can [download]() the latest installable version of ZBody for Linux, macOS and windows are NOT avalible.
 
 ## Benchmark
 
