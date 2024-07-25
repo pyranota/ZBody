@@ -41,8 +41,16 @@ var planetStartPoint = rl.Vector2{
     .x = 0,
     .y = 0,
 };
+const screenWidth = 1000;
+const screenHeight = 1000;
 const ally = std.heap.page_allocator;
 var zoom: f32 = 1;
+var camera = rl.Camera2D{
+    .target = rl.Vector2.init(1000, 1000),
+    .offset = rl.Vector2.init(screenWidth / 2, screenHeight / 2),
+    .rotation = 0,
+    .zoom = 1,
+};
 
 pub fn main() anyerror!void {
     // const tracy_zone = ztracy.ZoneNC(@src(), "Compute Magic", 0x00_ff_00_00);
@@ -61,8 +69,6 @@ pub fn main() anyerror!void {
     // }
 
     //--------------------------------------------------------------------------------------
-    const screenWidth = 1000;
-    const screenHeight = 1000;
 
     rl.initWindow(screenWidth, screenHeight, "Z-body");
     defer rl.closeWindow(); // Close window and OpenGL context
@@ -73,12 +79,6 @@ pub fn main() anyerror!void {
     const boxSizeFloat: f32 = @floatFromInt(boxSize);
     var player = rl.Rectangle{ .x = boxSizeFloat / 2, .y = boxSizeFloat / 2, .width = 40, .height = 40 };
     // const raylib_zig = rl.Color.init(247, 164, 29, 255);
-    var camera = rl.Camera2D{
-        .target = rl.Vector2.init(1000, 1000),
-        .offset = rl.Vector2.init(screenWidth / 2, screenHeight / 2),
-        .rotation = 0,
-        .zoom = 1,
-    };
     //HUD initialization
     const menu = rl.Rectangle{
         .x = ((screenWidth / 4) * 2.2),
@@ -404,8 +404,15 @@ fn randomPlanet(seed: u64) void {
 }
 
 fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
+    // const pixelSize = 1.0 / @as(f32, @floatFromInt(@max(rl.getScreenWidth(), rl.getScreenHeight())));
+    const min_radius = 1 / camera.zoom;
+    // const min_radius = if (pixelSize > 0) pixelSize else 1.0 / zoom;
+
+    // Use the maximum of the original radius and the minimum radius
+    const effectiveRadius = @max(r, min_radius);
     const color = rl.Color.fromInt(col);
-    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, color);
+    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), effectiveRadius, color);
+    // rl.drawPixel(@intFromFloat(x), @intFromFloat(y), color);
 }
 
 //HUD DRAW
