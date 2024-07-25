@@ -3,8 +3,11 @@ const Body = @import("body.zig");
 const ally = std.heap.page_allocator;
 const vec2 = @import("vec2.zig");
 const Vec2F = vec2.Vec2F;
+const safety = @import("tree.zig").Tree().safety;
 
 const Objects = std.ArrayList(Body);
+
+var rnd = std.rand.DefaultPrng.init(0);
 /// Returned array should be deallocated manually
 pub fn generateGalaxy() !Objects {
     var objects = Objects.init(ally);
@@ -14,8 +17,8 @@ pub fn generateGalaxy() !Objects {
 
 /// Returned array should be deallocated manually
 fn generateSolarSystem(objects: *Objects) !void {
-    const mass = 100_000_000;
-    const radius = 2000;
+    const mass = 100_000;
+    const radius = 1000;
     // const dist = 1500;
 
     // Create Sun
@@ -31,7 +34,7 @@ fn generateSolarSystem(objects: *Objects) !void {
         .velocity = @splat(0),
         .position = @splat(0),
         .radius = radius,
-    }, 3);
+    }, 2);
 }
 
 fn objectVisit(
@@ -45,15 +48,22 @@ fn objectVisit(
     },
     depth: u8,
 ) !void {
-    const min_dist = findMinDistance(0.0000001, origin.mass);
+    const min_dist = findMinDistance(0.1, origin.mass);
 
-    for (0..1) |i| {
+    if (depth != 2 and depth != 1)
+        return;
+    const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 18500);
+    for (0..10) |i| {
+        // const v = rnd.random().float(f32);
         const fi: f32 = @floatFromInt(i);
-        const pos_n_vel = find(0, min_dist + fi * 200, origin.mass);
+
+        const pos_n_vel = find(fi / 10, min_dist * dep + 6e4 + (fi * 5e4), origin.mass);
         const mass = origin.mass / 1000;
         const radius = origin.radius / 2;
+
         const position = pos_n_vel[1] + origin.position;
-        const velocity = pos_n_vel[0] + origin.velocity;
+
+        const velocity = origin.velocity + if (i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
 
         try objects.append(.{
             //
@@ -64,13 +74,16 @@ fn objectVisit(
             .color = 0xff_ff_ff_ff,
         });
 
-        if (depth > 1)
+        if (depth > 0)
             try objectVisit(objects, .{ //
                 .mass = mass,
                 .velocity = velocity,
                 .position = position,
                 .radius = radius,
             }, depth - 1);
+
+        if (depth == 2)
+            return;
     }
 }
 
@@ -93,6 +106,9 @@ fn find(angle: f32, distance: f32, mass2: f32) std.meta.Tuple(&.{ Vec2F, Vec2F }
     return .{ rotated_velocity, position };
 }
 
+// fn findVelocityScalar(distance: f32, mass2: f32) f32 {
+//     return @sqrt(mass2 * distance / (distance * distance + safety));
+// }
 fn findVelocityScalar(distance: f32, mass2: f32) f32 {
     return @sqrt(mass2 / distance);
 }

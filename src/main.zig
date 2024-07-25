@@ -23,6 +23,7 @@ var isMenuShown = false;
 var isTargetModeOn: bool = false;
 var isLocked = false;
 var isPlanetBeingCreated: bool = false;
+var fastMode: bool = false;
 //Player input
 var isDebugThreads = false;
 var isMultiThreaded = true;
@@ -36,7 +37,7 @@ var playerColor = rl.Color{
 var targetBodyId: u32 = undefined;
 var targetBody: core.Body = undefined;
 var playerMass: i32 = 10;
-var playerRadius: f32 = 10;
+var playerRadius: i32 = 10;
 var planetStartPoint = rl.Vector2{
     .x = 0,
     .y = 0,
@@ -124,8 +125,8 @@ pub fn main() anyerror!void {
             // std.debug.print("\n{}", .{c});
             // if (x > 0 and y > 0) {
             if (x == planetStartPoint.x and y == planetStartPoint.y) {
-                try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = playerRadius, .color = c });
-            } else try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = playerRadius, .color = c });
+                try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = @splat(0), .radius = @floatFromInt(playerRadius), .color = c });
+            } else try engine.addBody(core.Body{ .mass = @floatFromInt(playerMass), .position = .{ planetStartPoint.x, planetStartPoint.y }, .velocity = .{ -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000) }, .radius = @floatFromInt(playerRadius), .color = c });
             // }
             // =======
 
@@ -134,6 +135,10 @@ pub fn main() anyerror!void {
             // }
             // >>>>>>> threading
         }
+        if (rl.isKeyDown(rl.KeyboardKey.key_f))
+            fastMode = true
+        else
+            fastMode = false;
 
         // Camera zoom controls
         zoom += rl.getMouseWheelMove() * 0.19 * zoom;
@@ -181,9 +186,10 @@ pub fn main() anyerror!void {
         }
 
         if (rl.isKeyPressed(rl.KeyboardKey.key_l)) {
-            if (isTargetModeOn) isLocked = false;
-            isTargetModeOn = !isTargetModeOn;
-            // std.debug.print("\n{}", .{isTargetModeOn});
+            if (isPause) {
+                if (isTargetModeOn) isLocked = false;
+                isTargetModeOn = !isTargetModeOn;
+            } // std.debug.print("\n{}", .{isTargetModeOn});
 
         }
         if (rl.isKeyPressed(rl.KeyboardKey.key_k))
@@ -230,8 +236,10 @@ pub fn main() anyerror!void {
 
         // Camera target follows player
         const final_cam_pos = rl.Vector2.init(player.x, player.y);
-        camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.2);
-        camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.2);
+        // camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.2);
+        // camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.2);
+        camera.target.x = final_cam_pos.x;
+        camera.target.y = final_cam_pos.y;
         // camera.target.x = rl.math.clamp(camera.target.x, 500, 20000);
         // camera.target.y = rl.math.clamp(camera.target.y, 500, 20000);
         camera.begin();
@@ -251,38 +259,45 @@ pub fn main() anyerror!void {
         // }
 
         if (!isPause)
-            try engine.step(0.05);
+            if (fastMode)
+                try engine.step(3e5)
+            else
+                try engine.step(1 / camera.zoom);
 
         // <<<<<<< HEAD
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
-        if (isPause) {
-            if (isTargetModeOn) {
-                if (isLocked) {
-                    player.x = rl.math.lerp(player.x, targetBody.position[0], 0.1);
-                    player.y = rl.math.lerp(player.y, targetBody.position[1], 0.1);
-                } else for (engine.bodies.items) |body| {
-                    const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-                    const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
-                    if (isDebugBounds) {
-                        rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
-                        rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
-                    }
-                    // std.debug.print("\n{}", .{body.radius});
-                    // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
-                    if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left)) {
-                        isLocked = true;
-                        targetBody = body;
-                        std.debug.print("\n{}", .{body.id});
-                    }
+
+        if (isTargetModeOn) {
+            for (engine.bodies.items) |body| {
+                const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+                const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
+                if (isDebugBounds) {
+                    rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
+                    rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
+                }
+                // std.debug.print("\n{}", .{body.radius});
+                // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
+                if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left) and !isLocked and isPause) {
+                    isLocked = true;
+                    targetBodyId = body.id;
+                    std.debug.print("\n{}", .{body.id});
+                }
+                if (isLocked and targetBodyId == body.id) {
+                    targetBody = body;
+                    // player.x = rl.math.lerp(player.x, targetBody.position[0], 0.4);
+                    // player.y = rl.math.lerp(player.y, targetBody.position[1], 0.4);
+                    player.x = targetBody.position[0];
+                    player.y = targetBody.position[1];
                 }
             }
         }
+
         for (engine.bodies.items) |body|
             drawPlanet(body.position[0], body.position[1], body.radius, body.color);
         // drawZone.End();
 
         if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_right)) {
-            rl.drawCircleV(planetStartPoint, playerRadius, playerColor);
+            rl.drawCircleV(planetStartPoint, @floatFromInt(playerRadius), playerColor);
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
             rl.drawLineEx(planetStartPoint, pos, 10, Color.red);
         }
@@ -349,6 +364,7 @@ pub fn main() anyerror!void {
             drawMenuText(menu);
             drawColorPicker(menu, 20, 20);
             drawMassInput(menu, 20, 280);
+            drawRadiusInput(menu, 20, 360);
         }
         //HUD End
     }
@@ -447,6 +463,17 @@ fn drawMassInput(rec: rl.Rectangle, x: f32, y: f32) void {
     };
 
     _ = rg.guiValueBox(MassInputRec, "", &playerMass, 1, 10000, true);
+}
+
+fn drawRadiusInput(rec: rl.Rectangle, x: f32, y: f32) void {
+    const MassInputRec = rl.Rectangle{
+        .x = (rec.x) + x,
+        .y = (rec.y) + y,
+        .width = 240,
+        .height = 60,
+    };
+
+    _ = rg.guiValueBox(MassInputRec, "", &playerRadius, 1, 10000, true);
 }
 
 fn drawMenuText(rec: rl.Rectangle) void {

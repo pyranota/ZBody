@@ -9,6 +9,7 @@ const time = std.time;
 const Instant = time.Instant;
 /// Galaxy Generator
 const gxg = @import("galaxy-gen.zig");
+const RndGen = std.rand.DefaultPrng;
 
 const List = std.ArrayList;
 
@@ -55,7 +56,16 @@ pub fn Engine() type {
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
-            try self.bodies.append(body);
+            var b: Body = body;
+            var prng = std.rand.DefaultPrng.init(blk: {
+                var seed: u64 = undefined;
+                try std.posix.getrandom(std.mem.asBytes(&seed));
+                break :blk seed;
+            });
+            const rand = prng.random();
+            b.id = rand.int(u32);
+            std.debug.print("\n{}", .{b.id});
+            try self.bodies.append(b);
             try self.accels.append(@splat(0));
         }
 
@@ -207,7 +217,6 @@ pub fn Engine() type {
         }
 
         pub fn step(self: *Self, delta: f32) !void {
-            _ = delta; // autofix
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
@@ -222,7 +231,7 @@ pub fn Engine() type {
             try self.stepEachTreeBody();
             const endStep = try Instant.now();
 
-            self.applyAcceleration(1500);
+            self.applyAcceleration(delta);
             const endApplyAccel = try Instant.now();
 
             const elapsed1: f64 = @floatFromInt(endMerge.since(start));
@@ -292,20 +301,6 @@ pub fn Engine() type {
             }
 
             const num_elements = self.bodies.items.len; // adjust this to your liking
-            // std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
-
-            // Create threads
-            // var threads = try std.ArrayList(std.Thread).initCapacity(ally, num_threads);
-            // defer threads.deinit();
-            // for (threads.items) |*b| b.* = null;
-
-            // for (threads.items, 0..) |*thread, i|
-            //     thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
-            //         self,
-            //         i,
-            //         num_elements,
-            //         num_threads,
-            //     });
             var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(ally);
             defer threads.deinit();
 

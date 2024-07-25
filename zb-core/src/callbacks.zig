@@ -52,7 +52,8 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
     if (node.* == Node.leaf or size / d < Threshold) {
         const applyAccel = ztracy.ZoneN(@src(), "Apply accleration zone");
         const accel: Vec2F = @splat((mass) / (d * d * d + Safety));
-        args.accel.* += accel * d_vec;
+        const G: Vec2F = @splat(1);
+        args.accel.* += accel * d_vec * G;
         applyAccel.End();
         return false;
     }
