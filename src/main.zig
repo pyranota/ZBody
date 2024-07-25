@@ -60,8 +60,7 @@ pub fn main() anyerror!void {
     defer engine.deinit();
 
     // Generating starting galaxy
-    // try engine.generateGalaxy();
-    try engine.addBody(.{});
+    try engine.generateGalaxy();
     //--------------------------------------------------------------------------------------
 
     rl.initWindow(ctrl.screenWidth, ctrl.screenHeight, "Z-body");
