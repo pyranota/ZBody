@@ -270,7 +270,7 @@ pub fn main() anyerror!void {
             if (fastMode)
                 try engine.step(4e0)
             else
-                try engine.step(0.001 / camera.zoom);
+                try engine.step(0.003 / camera.zoom);
 
         // <<<<<<< HEAD
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
@@ -300,8 +300,8 @@ pub fn main() anyerror!void {
             }
         }
 
-        for (engine.bodies.items) |body|
-            drawPlanet(body.position[0], body.position[1], body.radius, body.color);
+        // for (engine.bodies.items) |body|
+        //     drawPlanet(body.position[0], body.position[1], body.radius, body.color);
         // drawZone.End();
 
         if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_right)) {
