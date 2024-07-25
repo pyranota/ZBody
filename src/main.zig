@@ -142,7 +142,7 @@ pub fn main() anyerror!void {
 
         // Camera zoom controls
         zoom += rl.getMouseWheelMove() * 0.19 * zoom;
-        zoom = rl.math.clamp(zoom, 0.000002, 19.0);
+        zoom = rl.math.clamp(zoom, 1e-4, 19.0);
 
         camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
         // camera.zoom = zoom;
@@ -275,31 +275,6 @@ pub fn main() anyerror!void {
         // <<<<<<< HEAD
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
 
-        if (isTargetModeOn) {
-            for (engine.bodies.items) |body| {
-                const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
-                const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
-                if (isDebugBounds) {
-                    rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
-                    rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
-                }
-                // std.debug.print("\n{}", .{body.radius});
-                // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
-                if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left) and !isLocked and isPause) {
-                    isLocked = true;
-                    targetBodyId = body.id;
-                    // std.debug.print("\n{}", .{body.id});
-                }
-                if (isLocked and targetBodyId == body.id) {
-                    targetBody = body;
-                    // player.x = rl.math.lerp(player.x, targetBody.position[0], 0.4);
-                    // player.y = rl.math.lerp(player.y, targetBody.position[1], 0.4);
-                    player.x = targetBody.position[0];
-                    player.y = targetBody.position[1];
-                }
-            }
-        }
-
         // for (engine.bodies.items) |body|
         //     drawPlanet(body.position[0], body.position[1], body.radius, body.color);
         // drawZone.End();
@@ -330,6 +305,30 @@ pub fn main() anyerror!void {
                 continue;
             // col.a = 255;
             drawPlanet(body.position[0], body.position[1], 10, col);
+        }
+        if (isTargetModeOn) {
+            for (engine.bodies.items) |body| {
+                const pos = rl.getScreenToWorld2D(rl.getMousePosition(), camera);
+                const bodyVec = rl.Vector2{ .x = body.position[0], .y = body.position[1] };
+                if (isDebugBounds) {
+                    rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, Color.white);
+                    rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, Color.white);
+                }
+                // std.debug.print("\n{}", .{body.radius});
+                // std.debug.print("\n {}", .{rl.checkCollisionPointCircle(pos, bodyVec, body.radius)});
+                if (rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left) and !isLocked and isPause) {
+                    isLocked = true;
+                    targetBodyId = body.id;
+                    // std.debug.print("\n{}", .{body.id});
+                }
+                if (isLocked and targetBodyId == body.id) {
+                    targetBody = body;
+                    // player.x = rl.math.lerp(player.x, targetBody.position[0], 0.4);
+                    // player.y = rl.math.lerp(player.y, targetBody.position[1], 0.4);
+                    player.x = targetBody.position[0];
+                    player.y = targetBody.position[1];
+                }
+            }
         }
 
         const end = try Instant.now();

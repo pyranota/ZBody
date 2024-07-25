@@ -19,22 +19,38 @@ pub fn generateGalaxy() !Objects {
 fn generateSolarSystem(objects: *Objects) !void {
     const mass = 1e9;
     const radius = 5000;
-    // const dist = 1500;
 
     // Create Sun
     try objects.append(.{ //
         .radius = radius,
         .mass = mass,
-        .position = @splat(0),
         .color = 0xff_99_00_ff,
     });
 
     try objectVisit(objects, .{ //
         .mass = mass,
-        .velocity = @splat(0),
-        .position = @splat(0),
         .radius = radius,
-    }, 2);
+    }, //
+        .{
+        // Planets in solar systems
+        LevelConfig{
+            .mass = 1e-11,
+            .max_accel = 1e-2,
+            .radius = 1,
+            .amount = 3,
+            .color = 0xff_ff_00_ff,
+            .can_be_rotated = true,
+        },
+        // Sun's
+        LevelConfig{
+            .mass = 1e2,
+            .max_accel = 2e-2,
+            .radius = 8,
+            .randomely_distributed = true,
+            .amount = 1500,
+            .color = 0xff_99_00_ff,
+        },
+    }, 1);
 }
 
 fn objectVisit(
@@ -42,33 +58,24 @@ fn objectVisit(
     origin: struct {
         //
         mass: f32,
-        velocity: Vec2F,
-        position: Vec2F,
+        velocity: Vec2F = @splat(0),
+        position: Vec2F = @splat(0),
         radius: f32,
     },
+    depth_config: [2]LevelConfig,
     depth: u8,
 ) !void {
-    if (depth != 2 and depth != 1)
-        return;
-    // const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 20);
-    const amount: usize = (if (depth == 2) 1500 else 8);
+    const cfg = depth_config[depth];
+    const amount = cfg.amount;
     for (0..amount) |i| {
-        // const v = rnd.random().float(f32);
         const fi: f32 = @floatFromInt(i);
-
-        const coeff = if (depth == 2) rnd.random().float(f32) else 1;
-
-        const min_dist = std.math.clamp(findMinDistance(2e-2 * coeff, origin.mass), 0.1, 1e6);
-
-        // const off = if (depth == 2) (@rem(fi, @as(f32, 8))) * 5e5 else 0;
-
-        const pos_n_vel = find(fi / @as(f32, @floatFromInt(amount)), min_dist + 1e1 + (fi * 0), origin.mass);
-        const mass = 1e2;
-        const radius = 8;
-
+        const coeff = if (cfg.randomely_distributed) rnd.random().float(f32) else 1;
+        const min_dist = std.math.clamp(findMinDistance(cfg.max_accel * coeff, origin.mass), 0, 2e6);
+        const pos_n_vel = find(fi / @as(f32, @floatFromInt(amount)), min_dist + (fi * 2e1), origin.mass);
+        const mass = cfg.mass;
+        const radius = cfg.radius;
         const position = pos_n_vel[1] + origin.position;
-
-        const velocity = origin.velocity + if (depth == 2 or i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
+        const velocity = origin.velocity + if (!cfg.can_be_rotated or i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
 
         try objects.append(.{
             //
@@ -76,177 +83,28 @@ fn objectVisit(
             .mass = mass,
             .position = position,
             .velocity = velocity,
-            .color = 0xff_ff_ff_ff,
+            .color = cfg.color,
         });
 
-        try objectVisit2(objects, .{ //
-            .mass = mass,
-            .velocity = velocity,
-            .position = position,
-            .radius = radius,
-        }, depth - 1);
-
-        // if (depth == 2)
-        //     return;
+        if (depth > 0)
+            try objectVisit(objects, .{ //
+                .mass = mass,
+                .velocity = velocity,
+                .position = position,
+                .radius = radius,
+            }, depth_config, depth - 1);
     }
 }
 
-fn objectVisit2(
-    objects: *Objects,
-    origin: struct {
-        //
-        mass: f32,
-        velocity: Vec2F,
-        position: Vec2F,
-        radius: f32,
-    },
-    depth: u8,
-) !void {
-    _ = depth; // autofix
-    // const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 20);
-    const amount: usize = 3;
-    for (0..amount) |i| {
-        // const v = rnd.random().float(f32);
-        const fi: f32 = @floatFromInt(i);
-
-        // const coeff = if (depth == 2) rnd.random().float(f32) else 1;
-
-        const min_dist = std.math.clamp(findMinDistance(1e-2, origin.mass), 0, 2e6);
-        std.debug.print("Min dist: {d}\n", .{min_dist});
-
-        // const off = if (depth == 2) (@rem(fi, @as(f32, 8))) * 5e5 else 0;
-
-        const pos_n_vel = find(fi / @as(f32, @floatFromInt(amount)), min_dist + fi * 2e1, origin.mass);
-        const mass = 1e-11;
-        const radius = 1;
-
-        const position = pos_n_vel[1] + origin.position;
-
-        const velocity = origin.velocity + if (i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
-
-        try objects.append(.{
-            //
-            .radius = radius,
-            .mass = mass,
-            .position = position,
-            .velocity = velocity,
-            .color = 0xff_00_ff_ff,
-        });
-
-        // if (depth > 2)
-        // _ = depth; // autofix
-        // try objectVisit3(objects, .{ //
-        //     .mass = mass,
-        //     .velocity = velocity,
-        //     .position = position,
-        //     .radius = radius,
-        // }, depth - 1);
-
-        // if (depth == 2)
-        //     return;
-    }
-}
-fn objectVisit3(
-    objects: *Objects,
-    origin: struct {
-        //
-        mass: f32,
-        velocity: Vec2F,
-        position: Vec2F,
-        radius: f32,
-    },
-    depth: u8,
-) !void {
-    _ = depth; // autofix
-    // const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 20);
-    const amount: usize = 1;
-    for (0..amount) |i| {
-        // const v = rnd.random().float(f32);
-        const fi: f32 = @floatFromInt(i);
-
-        // const coeff = if (depth == 2) rnd.random().float(f32) else 1;
-
-        const min_dist = std.math.clamp(findMinDistance(2e-4, origin.mass), 0, 2e5);
-        std.debug.print("Min dist: {d}\n", .{min_dist});
-
-        // const off = if (depth == 2) (@rem(fi, @as(f32, 8))) * 5e5 else 0;
-
-        const pos_n_vel = find(fi / @as(f32, @floatFromInt(amount)), min_dist, origin.mass);
-        const mass = 1e-8;
-        const radius = 1;
-
-        const position = pos_n_vel[1] + origin.position;
-
-        const velocity = origin.velocity + if (i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
-
-        try objects.append(.{
-            //
-            .radius = radius,
-            .mass = mass,
-            .position = position,
-            .velocity = velocity,
-            .color = 0xff_ff_00_ff,
-        });
-
-        // if (depth > 2)
-        //     try objectVisit(objects, .{ //
-        //         .mass = mass,
-        //         .velocity = velocity,
-        //         .position = position,
-        //         .radius = radius,
-        //     }, depth - 1);
-
-        // if (depth == 2)
-        //     return;
-    }
-}
-
-// const addObjArgs = struct {
-//   max_acceleration: f32,
-//   amount: usize,
-//   mass:
-// };
-// fn addObjects(
-//     objects: *Objects,
-//     origin: struct {
-//         //
-//         mass: f32,
-//         velocity: Vec2F,
-//         position: Vec2F,
-//         radius: f32,
-//     }
-// ) !void {
-//     // const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 20);
-//     const amount: usize = 1;
-//     for (0..amount) |i| {
-//         // const v = rnd.random().float(f32);
-//         const fi: f32 = @floatFromInt(i);
-
-//         // const coeff = if (depth == 2) rnd.random().float(f32) else 1;
-
-//         const min_dist = std.math.clamp(findMinDistance(2e-4, origin.mass), 0, 2e5);
-//         std.debug.print("Min dist: {d}\n", .{min_dist});
-
-//         // const off = if (depth == 2) (@rem(fi, @as(f32, 8))) * 5e5 else 0;
-
-//         const pos_n_vel = find(fi / @as(f32, @floatFromInt(amount)), min_dist, origin.mass);
-//         const mass = 1e-8;
-//         const radius = 0.1;
-
-//         const position = pos_n_vel[1] + origin.position;
-
-//         const velocity = origin.velocity + if (i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
-
-//         try objects.append(.{
-//             //
-//             .radius = radius,
-//             .mass = mass,
-//             .position = position,
-//             .velocity = velocity,
-//             .color = 0xff_ff_00_ff,
-//         });
-//     }
-// }
+const LevelConfig = struct { //
+    amount: usize = 1,
+    randomely_distributed: bool = false,
+    mass: f32,
+    radius: f32,
+    can_be_rotated: bool = false,
+    max_accel: f32,
+    color: u32 = 0xff_ff_ff_ff,
+};
 
 /// Calculate Velocity and Position of body for given parameters, so body can stay on orbit.
 /// Angle between 0 and 1 (0-360)
@@ -267,9 +125,6 @@ fn find(angle: f32, distance: f32, mass2: f32) std.meta.Tuple(&.{ Vec2F, Vec2F }
     return .{ rotated_velocity, position };
 }
 
-// fn findVelocityScalar(distance: f32, mass2: f32) f32 {
-//     return @sqrt(mass2 * distance / (distance * distance + safety));
-// }
 fn findVelocityScalar(distance: f32, mass2: f32) f32 {
     return @sqrt(mass2 / distance);
 }
