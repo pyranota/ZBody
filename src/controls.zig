@@ -1,3 +1,10 @@
+// --------------------------------------------------------
+// ZBody - Concurrent N-body sim using Barnes-Hut and Zig
+// --------------------------------------------------------
+// Codeberg: https://codeberg.org/pyranota/Z-body
+// Licensed under the MIT License
+// --------------------------------------------------------
+
 //! This file is controlling time, camera movement and threading also controlls execution of program
 const rl = @import("raylib");
 const main = @import("main.zig");

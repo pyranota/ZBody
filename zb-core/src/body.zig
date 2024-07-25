@@ -1,3 +1,10 @@
+// --------------------------------------------------------
+// ZBody - Concurrent N-body sim using Barnes-Hut and Zig
+// --------------------------------------------------------
+// Codeberg: https://codeberg.org/pyranota/Z-body
+// Licensed under the MIT License
+// --------------------------------------------------------
+
 const vec2 = @import("vec2.zig");
 const Vec2 = vec2.Vec2;
 const Vec2F = vec2.Vec2F;

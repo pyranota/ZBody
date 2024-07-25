@@ -1,3 +1,10 @@
+// --------------------------------------------------------
+// ZBody - Concurrent N-body sim using Barnes-Hut and Zig
+// --------------------------------------------------------
+// Codeberg: https://codeberg.org/pyranota/Z-body
+// Licensed under the MIT License
+// --------------------------------------------------------
+
 const std = @import("std");
 const testing = std.testing;
 
