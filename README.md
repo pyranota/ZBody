@@ -3,7 +3,7 @@
 
 <h1 align="center">
   <br>
-  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="media/splash-v1.svg" alt="Markdownify" width="500"></a>
+  <a href="http://www.amitmerchant.com/electron-markdownify"><img src="media/splash-v1.png" alt="Markdownify" width="500"></a>
 
 </h1>
 
