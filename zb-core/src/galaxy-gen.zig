@@ -53,17 +53,19 @@ fn objectVisit(
     if (depth != 2 and depth != 1)
         return;
     const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 18500);
-    for (0..10) |i| {
+    for (0..(if (depth == 2) 200 else 10)) |i| {
         // const v = rnd.random().float(f32);
         const fi: f32 = @floatFromInt(i);
 
-        const pos_n_vel = find(fi / 10, min_dist * dep + 6e4 + (fi * 5e4), origin.mass);
-        const mass = origin.mass / 1000;
+        const off = if (depth == 2) fi * 5e5 else 0;
+
+        const pos_n_vel = find(fi / 10, min_dist * dep + 6e4 + (fi * 5e3) + off, origin.mass);
+        const mass = origin.mass / 10000;
         const radius = origin.radius / 2;
 
         const position = pos_n_vel[1] + origin.position;
 
-        const velocity = origin.velocity + if (i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
+        const velocity = origin.velocity + if (depth == 2 or i % 2 == 0) pos_n_vel[0] else -pos_n_vel[0];
 
         try objects.append(.{
             //
@@ -82,8 +84,8 @@ fn objectVisit(
                 .radius = radius,
             }, depth - 1);
 
-        if (depth == 2)
-            return;
+        // if (depth == 2)
+        //     return;
     }
 }
 

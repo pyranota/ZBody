@@ -142,7 +142,7 @@ pub fn main() anyerror!void {
 
         // Camera zoom controls
         zoom += rl.getMouseWheelMove() * 0.19 * zoom;
-        zoom = rl.math.clamp(zoom, 0.00002, 19.0);
+        zoom = rl.math.clamp(zoom, 0.000002, 19.0);
 
         camera.zoom = rl.math.lerp(camera.zoom, zoom, 0.16);
         // camera.zoom = zoom;
@@ -260,7 +260,7 @@ pub fn main() anyerror!void {
 
         if (!isPause)
             if (fastMode)
-                try engine.step(3e5)
+                try engine.step(2e6)
             else
                 try engine.step(1 / camera.zoom);
 
