@@ -7,12 +7,15 @@ const Vec2 = vec2.Vec2;
 const ztracy = @import("ztracy");
 const time = std.time;
 const Instant = time.Instant;
+/// Galaxy Generator
+const gxg = @import("galaxy-gen.zig");
 const RndGen = std.rand.DefaultPrng;
 
 const List = std.ArrayList;
 
 pub fn Engine() type {
     return struct { //
+        const SPEED_O_LIGHT: f32 = 1e3;
         tree: tree.Tree(),
         bodies: List(Body),
         accels: List(Vec2F),
@@ -62,7 +65,6 @@ pub fn Engine() type {
             });
             const rand = prng.random();
             b.id = rand.int(u32);
-            std.debug.print("\n{}", .{b.id});
             try self.bodies.append(b);
             try self.accels.append(@splat(0));
         }
@@ -77,6 +79,13 @@ pub fn Engine() type {
 
         pub fn showForceBounds(self: Self, targetPosition: Vec2F, callb: anytype) !void {
             try self.tree.showForceBounds(.{ targetPosition, callb });
+        }
+
+        pub fn generateGalaxy(self: *Self) !void {
+            const objects = try gxg.generateGalaxy();
+            defer objects.deinit();
+            for (objects.items) |obj|
+                try self.addBody(obj);
         }
 
         /// Returns the smallest power of two that is greater than or equal to the input `x`.
@@ -208,35 +217,34 @@ pub fn Engine() type {
         }
 
         pub fn step(self: *Self, delta: f32) !void {
-            _ = delta; // autofix
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
-            const start = try Instant.now();
+            // const start = try Instant.now();
 
             try self.mergeSamePositions();
-            const endMerge = try Instant.now();
+            // const endMerge = try Instant.now();
 
             try self.addBodiesToTree();
-            const endAdd = try Instant.now();
+            // const endAdd = try Instant.now();
 
             try self.stepEachTreeBody();
-            const endStep = try Instant.now();
+            // const endStep = try Instant.now();
 
-            self.applyAcceleration(20);
-            const endApplyAccel = try Instant.now();
+            self.applyAcceleration(delta);
+            // const endApplyAccel = try Instant.now();
 
-            const elapsed1: f64 = @floatFromInt(endMerge.since(start));
-            const elapsed2: f64 = @floatFromInt(endAdd.since(endMerge));
-            const elapsed3: f64 = @floatFromInt(endStep.since(endAdd));
-            const elapsed4: f64 = @floatFromInt(endApplyAccel.since(endStep));
+            // const elapsed1: f64 = @floatFromInt(endMerge.since(start));
+            // const elapsed2: f64 = @floatFromInt(endAdd.since(endMerge));
+            // const elapsed3: f64 = @floatFromInt(endStep.since(endAdd));
+            // const elapsed4: f64 = @floatFromInt(endApplyAccel.since(endStep));
 
-            std.debug.print("\n\n Time elapsed in stages:\n merge: {d:.3}ms\n build: {d:.3}ms\n step: {d:.3}ms\n apply: {d:.3}ms\n", .{
-                elapsed1 / time.ns_per_ms,
-                elapsed2 / time.ns_per_ms,
-                elapsed3 / time.ns_per_ms,
-                elapsed4 / time.ns_per_ms,
-            });
+            // std.debug.print("\n\n Time elapsed in stages:\n merge: {d:.3}ms\n build: {d:.3}ms\n step: {d:.3}ms\n apply: {d:.3}ms\n", .{
+            //     elapsed1 / time.ns_per_ms,
+            //     elapsed2 / time.ns_per_ms,
+            //     elapsed3 / time.ns_per_ms,
+            //     elapsed4 / time.ns_per_ms,
+            // });
         }
 
         fn addBodiesToTree(self: *Self) !void {
@@ -245,7 +253,7 @@ pub fn Engine() type {
             self.tree.clean();
             // const num_threads: usize = 3; // adjust this to your liking
             for (self.bodies.items) |body| {
-                try self.tree.addBody(@intFromFloat(body.mass), body.position);
+                try self.tree.addBody(body.mass, body.position);
             }
 
             self.tree.finalize();
@@ -293,20 +301,6 @@ pub fn Engine() type {
             }
 
             const num_elements = self.bodies.items.len; // adjust this to your liking
-            // std.debug.print("New round \n \n Total objects: {}\n", .{num_elements});
-
-            // Create threads
-            // var threads = try std.ArrayList(std.Thread).initCapacity(ally, num_threads);
-            // defer threads.deinit();
-            // for (threads.items) |*b| b.* = null;
-
-            // for (threads.items, 0..) |*thread, i|
-            //     thread.* = try std.Thread.spawn(.{}, parallelLoop, .{
-            //         self,
-            //         i,
-            //         num_elements,
-            //         num_threads,
-            //     });
             var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(ally);
             defer threads.deinit();
 
@@ -330,7 +324,13 @@ pub fn Engine() type {
             for (self.accels.items, self.bodies.items) |*accel, *body| {
                 const sd: Vec2F = @splat(delta);
 
-                body.velocity += accel.* * sd;
+                const new_vel = body.velocity + accel.* * sd;
+                // TODO: Unhardcode
+                if (@max(@abs(new_vel[0]), @abs(new_vel[1])) < SPEED_O_LIGHT)
+                    body.velocity = new_vel
+                else
+                    std.debug.print("Hit speed o light", .{});
+
                 body.position += body.velocity * sd;
                 // std.debug.print("\n{}", .{body.velocity});
                 accel.* = @splat(0);

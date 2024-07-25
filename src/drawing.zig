@@ -1,10 +1,9 @@
-// raylib-zig (c) Nikolas Wipper 2023
-
-// const ztracy = @import("ztracy");
 const std = @import("std");
 const rl = @import("raylib");
 const rg = @import("raygui");
 const core = @import("zb-core");
+const main = @import("main.zig");
+
 const Color = rl.Color;
 // Size of a galaxy
 const boxSize: u32 = 256;
@@ -76,8 +75,11 @@ pub fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) voi
 // }
 
 pub fn drawPlanet(x: f32, y: f32, r: f32, col: u32) void {
+    const min_radius = 1 / main.camera.zoom;
+    // Use the maximum of the original radius and the minimum radius
+    const effectiveRadius = @max(r, min_radius);
     const color = rl.Color.fromInt(col);
-    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), r, color);
+    rl.drawCircle(@intFromFloat(x), @intFromFloat(y), effectiveRadius, color);
 }
 
 //HUD DRAW

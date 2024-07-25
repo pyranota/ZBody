@@ -20,7 +20,7 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
     defer zone.End();
 
     const mass: f32 = switch (node.*) {
-        inline else => |case| @floatFromInt(case.mass),
+        inline else => |case| case.mass,
     };
 
     const size: f32 = @floatFromInt(node.size());
@@ -52,7 +52,8 @@ pub fn calcForcesCB(node: *Node, nodePosition: Vec2, args: stepArgs) bool {
     if (node.* == Node.leaf or size / d < Threshold) {
         const applyAccel = ztracy.ZoneN(@src(), "Apply accleration zone");
         const accel: Vec2F = @splat((mass) / (d * d * d + Safety));
-        args.accel.* += accel * d_vec;
+        const G: Vec2F = @splat(1);
+        args.accel.* += accel * d_vec * G;
         applyAccel.End();
         return false;
     }
@@ -91,7 +92,7 @@ pub fn treeBoundsCB(node: *Node, nodePosition: Vec2, callb: anytype) void {
 
 pub fn finalizeCB(node: *Node, _: Vec2, _: anytype) void {
     if (node.* == Node.branch) {
-        const m: Vec2F = @splat(@floatFromInt(node.branch.mass));
+        const m: Vec2F = @splat(node.branch.mass);
         node.branch.centerOfMass /= m;
     }
 }
