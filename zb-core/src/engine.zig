@@ -15,7 +15,7 @@ const List = std.ArrayList;
 
 pub fn Engine() type {
     return struct { //
-        const SPEED_O_LIGHT: f32 = 1;
+        const SPEED_O_LIGHT: f32 = 100;
         tree: tree.Tree(),
         bodies: List(Body),
         accels: List(Vec2F),

@@ -16,7 +16,7 @@ const Vec2F = core.vec2.Vec2F;
 const time = std.time;
 const Instant = time.Instant;
 
-var isPause = false;
+var isPause = true;
 var isDebugBounds = false;
 var isDebugLoD = false;
 var isMenuShown = false;
@@ -268,9 +268,9 @@ pub fn main() anyerror!void {
 
         if (!isPause)
             if (fastMode)
-                try engine.step(4e4)
+                try engine.step(4e0)
             else
-                try engine.step(1 / camera.zoom);
+                try engine.step(0.001 / camera.zoom);
 
         // <<<<<<< HEAD
         // const drawZone = ztracy.ZoneNC(@src(), "Draw bodies Zone", 0x00_ff_ff_00);i
