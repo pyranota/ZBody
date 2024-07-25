@@ -15,6 +15,7 @@ const List = std.ArrayList;
 
 pub fn Engine() type {
     return struct { //
+        const SPEED_O_LIGHT: f32 = 0.1;
         tree: tree.Tree(),
         bodies: List(Body),
         accels: List(Vec2F),
@@ -324,7 +325,11 @@ pub fn Engine() type {
             for (self.accels.items, self.bodies.items) |*accel, *body| {
                 const sd: Vec2F = @splat(delta);
 
-                body.velocity += accel.* * sd;
+                const new_vel = body.velocity + accel.* * sd;
+                // TODO: Unhardcode
+                if (@max(@abs(new_vel[0]), @abs(new_vel[1])) < SPEED_O_LIGHT)
+                    body.velocity = new_vel;
+
                 body.position += body.velocity * sd;
                 // std.debug.print("\n{}", .{body.velocity});
                 accel.* = @splat(0);

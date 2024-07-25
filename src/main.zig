@@ -74,7 +74,7 @@ pub fn main() anyerror!void {
     rl.initWindow(screenWidth, screenHeight, "Z-body");
     defer rl.closeWindow(); // Close window and OpenGL context
 
-    rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
+    rl.setTargetFPS(120); // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
 
     const boxSizeFloat: f32 = @floatFromInt(boxSize);
@@ -260,7 +260,7 @@ pub fn main() anyerror!void {
 
         if (!isPause)
             if (fastMode)
-                try engine.step(2e6)
+                try engine.step(2e5)
             else
                 try engine.step(1 / camera.zoom);
 

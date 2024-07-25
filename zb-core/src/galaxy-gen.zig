@@ -17,8 +17,8 @@ pub fn generateGalaxy() !Objects {
 
 /// Returned array should be deallocated manually
 fn generateSolarSystem(objects: *Objects) !void {
-    const mass = 100_000;
-    const radius = 1000;
+    const mass = 1000;
+    const radius = 50;
     // const dist = 1500;
 
     // Create Sun
@@ -48,19 +48,21 @@ fn objectVisit(
     },
     depth: u8,
 ) !void {
-    const min_dist = findMinDistance(0.1, origin.mass);
-
     if (depth != 2 and depth != 1)
         return;
-    const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 18500);
-    for (0..(if (depth == 2) 200 else 10)) |i| {
+    const dep: f32 = @floatFromInt(1 + @as(u32, depth - 1) * 20);
+    const amount: usize = (if (depth == 2) 1000 else 8);
+    for (0..amount) |i| {
         // const v = rnd.random().float(f32);
         const fi: f32 = @floatFromInt(i);
 
-        const off = if (depth == 2) fi * 5e5 else 0;
+        const coeff = if (depth == 2) rnd.random().float(f32) else 1;
 
-        const pos_n_vel = find(fi / 10, min_dist * dep + 6e4 + (fi * 5e3) + off, origin.mass);
-        const mass = origin.mass / 10000;
+        const min_dist = findMinDistance(0.01 * coeff * 2, origin.mass);
+        // const off = if (depth == 2) (@rem(fi, @as(f32, 8))) * 5e5 else 0;
+
+        const pos_n_vel = find(fi / @as(f32, @floatFromInt(amount)), min_dist * dep + 1e2 + (0 * fi * 5e1), origin.mass);
+        const mass = origin.mass / 1e8;
         const radius = origin.radius / 2;
 
         const position = pos_n_vel[1] + origin.position;
@@ -76,7 +78,7 @@ fn objectVisit(
             .color = 0xff_ff_ff_ff,
         });
 
-        if (depth > 0)
+        if (depth > 2)
             try objectVisit(objects, .{ //
                 .mass = mass,
                 .velocity = velocity,
