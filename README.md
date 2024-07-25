@@ -3,7 +3,7 @@
 
 <h1 align="center">
   <br>
-  <img src="media/splash-v1.png" alt="ZBody" width="500">
+  <img src="media/splash-v1.png?" alt="ZBody" width="500">
 
 </h1>
 
