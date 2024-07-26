@@ -21,7 +21,7 @@
 
 <h1 align="center">
   <br>
-  <img src="media/showcase2.gif" alt="ZBody showcase demo" width="60%">
+  <img style="border-radius: 10px; border: 1px solid gray; " src="media/showcase2.gif" alt="ZBody showcase demo" width="80%">
 
 </h1>
 
