@@ -43,12 +43,17 @@ pub fn simStep() !void {
 /// Entry point for Controls, handles everything.
 /// Should be called before everything
 pub fn handleControls() !void {
+    // Listen for keys
     try mapKeys();
-    moveCameraWithMouse();
 
-    smoothZoom();
+    // Move by grabbing
+    moveCameraWithMouse();
     lerpCamera();
 
+    // Zoom
+    smoothZoom();
+
+    // Dynamically Extend
     infiniteSpace();
 }
 
