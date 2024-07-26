@@ -19,7 +19,11 @@
   <a href="#license">License</a>
 </p>
 
-![screenshot]()
+<h1 align="center">
+  <br>
+  <img src="media/showcase.gif" alt="ZBody logo" width="800">
+
+</h1>
 
 ## Key Features
 
