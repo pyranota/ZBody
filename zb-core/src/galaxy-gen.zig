@@ -7,16 +7,19 @@
 
 const std = @import("std");
 const Body = @import("body.zig");
-const ally = std.heap.page_allocator;
 const vec2 = @import("vec2.zig");
 const Vec2F = vec2.Vec2F;
 const safety = @import("tree.zig").Tree().safety;
+
+var ally: std.mem.Allocator = undefined;
 
 const Objects = std.ArrayList(Body);
 
 var rnd = std.rand.DefaultPrng.init(0);
 /// Returned array should be deallocated manually
-pub fn generateGalaxy() !Objects {
+pub fn generateGalaxy(allocator: std.mem.Allocator) !Objects {
+    ally = allocator;
+
     var objects = Objects.init(ally);
     try generateSolarSystem(&objects);
     return objects;

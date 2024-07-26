@@ -51,11 +51,17 @@ const rndr = @import("render.zig");
 // ----------- Export ------------ //
 pub var engine: core.engine.Engine() = undefined;
 
+// --------- Allocators ---------- //
+const Alloc = std.mem.Allocator;
+
 // --------- Entry point --------- //
 pub fn main() anyerror!void {
+
     // Z-Body engine initialization
     //--------------------------------------------------------------------------------------
-    engine = try core.engine.Engine().init(128);
+    engine = try core.engine.Engine().init( //
+        128, null, null);
+
     defer engine.deinit();
 
     // Generating starting galaxy
@@ -112,5 +118,23 @@ pub fn main() anyerror!void {
 
         rl.endDrawing();
         //----------------------------------------------------------------------------------
+    }
+}
+
+test "test memory leak" {
+    engine = try core.engine.Engine().init( //
+        128, std.testing.allocator, null);
+
+    try engine.addBody(.{});
+    try engine.addBody(.{});
+    try engine.addBody(.{});
+
+    defer engine.deinit();
+
+    for (0..2) |_| {
+        ctrl.infiniteSpace();
+
+        // Make a step in simulation
+        try ctrl.simStep();
     }
 }

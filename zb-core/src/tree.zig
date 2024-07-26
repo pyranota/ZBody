@@ -20,8 +20,11 @@ pub fn Tree() type {
         const Self = @This();
 
         // TODO: Remove allocators
-        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-        const ally = arena.allocator();
+        // var buffer: [1e9]u8 = undefined;
+        // var fba = std.heap.FixedBufferAllocator.init(&buffer);
+        // const ally = fba.allocator();
+
+        var ally: std.mem.Allocator = undefined;
 
         // TODO: Make dynamic and smart
         // TODO: Prevent from being 0 or 1
@@ -38,7 +41,8 @@ pub fn Tree() type {
         final: bool = false,
 
         /// Create new QuadTree
-        pub fn init(comptime size: u32) !Self {
+        pub fn init(allocator: std.mem.Allocator, comptime size: u32) !Self {
+            ally = allocator;
             // TODO: Use math.isPowOfTwo
             if (!((size & (size - 1)) == 0))
                 @compileError("Bad value, size should be a power of two.");
@@ -47,7 +51,12 @@ pub fn Tree() type {
         }
         /// Deinit QuadTree
         pub fn deinit(_: @This()) void {
-            arena.deinit();
+            // fba.deinit();
+        }
+        /// Delete all bodies
+        pub fn clean(self: *Self) void {
+            // TODO: Memory leak possibility
+            self.root = null;
         }
 
         pub fn print(self: Self) !void {
@@ -77,7 +86,7 @@ pub fn Tree() type {
                         // There is already node on the given spot
                         return TreeError.BodyAtGivenPositionAlreadyExist
                     else
-                        try n.split();
+                        try n.split(ally);
 
                 // In *which* *quadrant* do we want to put this node
                 const quadrant = n.which(vec2.convert(u32, position));
@@ -130,12 +139,6 @@ pub fn Tree() type {
             const x: u2 = if (position[0] < half) 0 else 1;
             const y: u2 = if (position[1] < half) 0 else 1;
             return (x + y * 2);
-        }
-
-        /// Delete all bodies
-        pub fn clean(self: *Self) void {
-            // TODO: Memory leak possibility
-            self.root = null;
         }
 
         // TODO: Remove delta

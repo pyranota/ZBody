@@ -23,6 +23,7 @@ const List = std.ArrayList;
 pub fn Engine() type {
     return struct { //
         const SPEED_O_LIGHT: f32 = 1e3;
+
         tree: tree.Tree(),
         bodies: List(Body),
         accels: List(Vec2F),
@@ -35,13 +36,28 @@ pub fn Engine() type {
 
         const Self = @This();
 
-        // TODO: Find better allocator
-        const ally = std.heap.page_allocator;
+        var ally: std.mem.Allocator = std.heap.page_allocator;
+        // Tree allocator
+        var buffer: [1e9]u8 = undefined;
+        var fba = std.heap.FixedBufferAllocator.init(&buffer);
 
-        pub fn init(comptime size: u32) !Self {
+        /// Init the engine.
+        /// Allocators are optional, default for engine is page allocator
+        /// And for tree fixed buffer allocator
+        pub fn init(
+            comptime size: u32,
+            engine_alloc: ?std.mem.Allocator,
+            tree_allloc: ?std.mem.Allocator,
+        ) !Self {
+            if (engine_alloc) |alloc| ally = alloc;
             return .{ //
                 .thread_amount = try std.Thread.getCpuCount(),
-                .tree = try tree.Tree().init(size),
+                .tree = try tree.Tree().init( //
+                    if (tree_allloc) |alloc| //
+                    alloc
+                else
+                    fba.allocator(), //
+                    size),
                 .bodies = List(Body).init(ally),
                 .accels = List(Vec2F).init(ally),
             };
@@ -70,6 +86,7 @@ pub fn Engine() type {
                 try std.posix.getrandom(std.mem.asBytes(&seed));
                 break :blk seed;
             });
+
             const rand = prng.random();
             b.id = rand.int(u32);
             try self.bodies.append(b);
@@ -89,7 +106,7 @@ pub fn Engine() type {
         }
 
         pub fn generateGalaxy(self: *Self) !void {
-            const objects = try gxg.generateGalaxy();
+            const objects = try gxg.generateGalaxy(ally);
             defer objects.deinit();
             for (objects.items) |obj|
                 try self.addBody(obj);
@@ -258,6 +275,7 @@ pub fn Engine() type {
             const zone = ztracy.Zone(@src());
             defer zone.End();
             self.tree.clean();
+            fba.reset();
             // const num_threads: usize = 3; // adjust this to your liking
             for (self.bodies.items) |body| {
                 try self.tree.addBody(body.mass, body.position);

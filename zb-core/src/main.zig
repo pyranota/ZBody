@@ -23,7 +23,7 @@ pub fn main() !void {
     // try tr.addBody(10, .{ .x = 10, .y = 0 });
     // try tr.addBody(81, .{ .x = 9, .y = 11 });
     // try tr.print();
-    var e = try engine.Engine().init(256);
+    var e = try engine.Engine().init(256, null, null);
     try e.addBody(Body{ .mass = 99, .position = .{ 199, 18 }, .velocity = @splat(0) });
     try e.addBody(Body{ .mass = 9, .position = .{ 99, 8 }, .velocity = @splat(0) });
     try e.addBody(Body{ .mass = 16, .position = .{ 99, 99 }, .velocity = @splat(0) });

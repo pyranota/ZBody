@@ -69,7 +69,8 @@ fn moveCameraWithMouse() void {
 
 /// Handles fitting all bodies in given range and extending borders.
 /// Makes it *seemless*
-fn infiniteSpace() void {
+/// By default called from `handleControls`, but can be called explicitly
+pub fn infiniteSpace() void {
 
     // Camera zoom controls
     const move_amount = try engine.fitBodies();

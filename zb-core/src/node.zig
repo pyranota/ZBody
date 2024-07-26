@@ -45,8 +45,6 @@ pub const Node = union(enum) {
         /// Quadrant size
         size: u32,
     };
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    const ally = arena.allocator();
 
     // Enum / Union Variants
     leaf: Leaf,
@@ -54,7 +52,7 @@ pub const Node = union(enum) {
     /// Split leaf on branch and move body to new leaf
     /// Transform leaf to the branch
     /// Also allocate a new leaf
-    pub fn split(self: *@This()) !void {
+    pub fn split(self: *@This(), ally: std.mem.Allocator) !void {
         // TODO: Not leaf check
 
         // Allocate
