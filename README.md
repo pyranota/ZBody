@@ -19,11 +19,7 @@
   <a href="#license">License</a>
 </p>
 
-<h1 align="center">
-  <br>
-  <img style="border-radius: 10px; border: 1px solid gray; " src="media/showcase2.gif" alt="ZBody showcase demo" width="80%">
 
-</h1>
 
 ## Key Features
 
