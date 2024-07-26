@@ -21,7 +21,7 @@
 
 <h1 align="center">
   <br>
-  <img src="media/showcase.gif" alt="ZBody logo" width="800">
+  <img src="media/showcase2.gif" alt="ZBody showcase demo" width="800">
 
 </h1>
 
