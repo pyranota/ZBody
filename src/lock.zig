@@ -5,7 +5,7 @@
 // Licensed under the MIT License
 // --------------------------------------------------------
 
-const core = @import("zb-core");
+const core = @import("main.zig").core;
 const rl = @import("raylib");
 const ctrl = @import("controls.zig");
 const isPause = &ctrl.isPause;

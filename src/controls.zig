@@ -14,7 +14,7 @@ const isLocked = &@import("lock.zig").isLocked;
 const isMenuShown = &@import("ui.zig").isMenuShown;
 
 pub const screenWidth = 1000;
-pub const screenHeight = 1000;
+pub const screenHeight = 700;
 // Camera position basically
 pub var player = rl.Rectangle{ .x = 0, .y = 0, .width = 40, .height = 40 };
 var zoom: f32 = 1;
@@ -28,7 +28,7 @@ pub var camera = rl.Camera2D{
 
 pub var isPause: bool = false;
 pub var fastMode: bool = false;
-var isMultiThreaded = true;
+var isMultiThreaded = false;
 
 pub fn simStep() !void {
     if (!isPause)

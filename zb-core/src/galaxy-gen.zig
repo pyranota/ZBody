@@ -17,16 +17,16 @@ const Objects = std.ArrayList(Body);
 
 var rnd = std.rand.DefaultPrng.init(0);
 /// Returned array should be deallocated manually
-pub fn generateGalaxy(allocator: std.mem.Allocator) !Objects {
+pub fn generateGalaxy(allocator: std.mem.Allocator, body_amount: usize) !Objects {
     ally = allocator;
 
     var objects = Objects.init(ally);
-    try generateSolarSystem(&objects);
+    try generateSolarSystem(&objects, body_amount);
     return objects;
 }
 
 /// Returned array should be deallocated manually
-fn generateSolarSystem(objects: *Objects) !void {
+fn generateSolarSystem(objects: *Objects, body_amount: usize) !void {
     const mass = 1e9;
     const radius = 5000;
 
@@ -57,7 +57,7 @@ fn generateSolarSystem(objects: *Objects) !void {
             .max_accel = 2e-2,
             .radius = 8,
             .randomely_distributed = true,
-            .amount = 1500,
+            .amount = body_amount / 3,
             .color = 0xff_99_00_ff,
         },
     }, 1);

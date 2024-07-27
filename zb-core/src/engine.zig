@@ -11,7 +11,7 @@ const std = @import("std");
 const vec2 = @import("vec2.zig");
 const Vec2F = vec2.Vec2F;
 const Vec2 = vec2.Vec2;
-const ztracy = @import("ztracy");
+// const ztracy = @import("ztracy");
 const time = std.time;
 const Instant = time.Instant;
 /// Galaxy Generator
@@ -23,6 +23,7 @@ const List = std.ArrayList;
 pub fn Engine() type {
     return struct { //
         const SPEED_O_LIGHT: f32 = 1e3;
+        const isWASM = @import("builtin").target.isWasm();
 
         tree: tree.Tree(),
         bodies: List(Body),
@@ -36,10 +37,12 @@ pub fn Engine() type {
 
         const Self = @This();
 
-        var ally: std.mem.Allocator = std.heap.page_allocator;
+        var gpa = std.heap.GeneralPurposeAllocator(.{}){};
         // Tree allocator
         var buffer: [1e9]u8 = undefined;
         var fba = std.heap.FixedBufferAllocator.init(&buffer);
+
+        var ally: std.mem.Allocator = std.heap.c_allocator;
 
         /// Init the engine.
         /// Allocators are optional, default for engine is page allocator
@@ -51,7 +54,7 @@ pub fn Engine() type {
         ) !Self {
             if (engine_alloc) |alloc| ally = alloc;
             return .{ //
-                .thread_amount = try std.Thread.getCpuCount(),
+                .thread_amount = if (isWASM) 1 else try std.Thread.getCpuCount(),
                 .tree = try tree.Tree().init( //
                     if (tree_allloc) |alloc| //
                     alloc
@@ -76,7 +79,8 @@ pub fn Engine() type {
 
         pub fn unfixThreadAmount(self: *Self) !void {
             self.is_fixed = false;
-            self.thread_amount = try std.Thread.getCpuCount();
+            if (!isWASM)
+                self.thread_amount = try std.Thread.getCpuCount();
         }
 
         pub fn addBody(self: *Self, body: Body) !void {
@@ -89,7 +93,7 @@ pub fn Engine() type {
 
             const rand = prng.random();
             b.id = rand.int(u32);
-            try self.bodies.append(b);
+            try self.bodies.append(body);
             try self.accels.append(@splat(0));
         }
 
@@ -105,8 +109,8 @@ pub fn Engine() type {
             try self.tree.showForceBounds(.{ targetPosition, callb });
         }
 
-        pub fn generateGalaxy(self: *Self) !void {
-            const objects = try gxg.generateGalaxy(ally);
+        pub fn generateGalaxy(self: *Self, body_amount: usize) !void {
+            const objects = try gxg.generateGalaxy(ally, body_amount);
             defer objects.deinit();
             for (objects.items) |obj|
                 try self.addBody(obj);
@@ -192,8 +196,8 @@ pub fn Engine() type {
 
         pub fn mergeSamePositions(self: *Self) !void {
             // Create a tracing zone to measure the performance of this function
-            const zone = ztracy.Zone(@src());
-            defer zone.End();
+            // const zone = ztracy.Zone(@src());
+            // defer zone.End();
             // Create a hashmap to store the positions and indices of the bodies
             var positions = std.AutoHashMap(Vec2, usize).init(ally);
             var toRemove = std.ArrayList(usize).init(ally);
@@ -241,8 +245,8 @@ pub fn Engine() type {
         }
 
         pub fn step(self: *Self, delta: f32) !void {
-            const zone = ztracy.Zone(@src());
-            defer zone.End();
+            // const zone = ztracy.Zone(@src());
+            // defer zone.End();
 
             // const start = try Instant.now();
 
@@ -272,8 +276,8 @@ pub fn Engine() type {
         }
 
         fn addBodiesToTree(self: *Self) !void {
-            const zone = ztracy.Zone(@src());
-            defer zone.End();
+            // const zone = ztracy.Zone(@src());
+            // defer zone.End();
             self.tree.clean();
             fba.reset();
             // const num_threads: usize = 3; // adjust this to your liking
@@ -307,14 +311,14 @@ pub fn Engine() type {
         }
 
         fn stepEachTreeBody(self: *Self) !void {
-            const zone = ztracy.Zone(@src());
-            defer zone.End();
+            // const zone = ztracy.Zone(@src());
+            // defer zone.End();
 
             const num_threads = self.thread_amount;
             // const num_threads: usize = if (self.bodies.items.len < self.thread_amount) 1 else 4; // adjust this to your liking
-            if (self.bodies.items.len == 0) {
-                return;
-            } else if (self.bodies.items.len <= num_threads or num_threads == 1) {
+            if (self.bodies.items.len == 0)
+                return
+            else if (self.bodies.items.len <= num_threads or num_threads == 1) {
                 // TODO: Remove
                 for (self.bodies.items, 0..) |body, i|
                     self.tree.step(0, .{ //
@@ -324,28 +328,29 @@ pub fn Engine() type {
                     });
                 return;
             }
+            if (!isWASM) {
+                const num_elements = self.bodies.items.len; // adjust this to your liking
+                var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(ally);
+                defer threads.deinit();
 
-            const num_elements = self.bodies.items.len; // adjust this to your liking
-            var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(ally);
-            defer threads.deinit();
+                for (0..num_threads) |i| {
+                    try threads.append(try std.Thread.spawn(.{}, parallelLoop, .{
+                        self,
+                        i,
+                        num_elements,
+                        num_threads,
+                    }));
+                }
 
-            for (0..num_threads) |i| {
-                try threads.append(try std.Thread.spawn(.{}, parallelLoop, .{
-                    self,
-                    i,
-                    num_elements,
-                    num_threads,
-                }));
+                for (threads.items) |*thread|
+                    thread.join();
             }
-
-            for (threads.items) |*thread|
-                thread.join();
         }
 
         /// Apply accelerations to velocity
         fn applyAcceleration(self: *Self, delta: f32) void {
-            const zone = ztracy.Zone(@src());
-            defer zone.End();
+            // const zone = ztracy.Zone(@src());
+            // defer zone.End();
             for (self.accels.items, self.bodies.items) |*accel, *body| {
                 const sd: Vec2F = @splat(delta);
 

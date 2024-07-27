@@ -6,7 +6,7 @@
 // --------------------------------------------------------
 
 const std = @import("std");
-const ally = std.heap.page_allocator;
+const ally = std.heap.c_allocator;
 const draw = @import("drawing.zig");
 const rl = @import("raylib");
 

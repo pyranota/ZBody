@@ -1,4 +1,5 @@
 const std = @import("std");
+const rlz = @import("raylib-zig");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
@@ -9,34 +10,43 @@ pub fn build(b: *std.Build) void {
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
+    const isWasm = target.result.isWasm();
 
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addStaticLibrary(.{
-        .name = "zb-core",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const lib = b.addStaticLibrary(.{
+    //     .name = "zb-core",
+    //     // In this case the main source file is merely a path, however, in more
+    //     // complicated build scripts, this could be a generated file.
+    //     .root_source_file = b.path("src/root.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
     // running `zig build`).
-    b.installArtifact(lib);
+    // b.installArtifact(lib);
 
     const l = b.addModule("zb-core", .{
         .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
     });
+
+    // _ = rlz.emcc.compileForEmscripten(b, "zb-core", "src/lib.zig", target, optimize);
+
+    if (isWasm)
+        return;
+
+    // const isWASM = b.option(bool, "enableWASM", "Do we build for Web?") orelse false;
     const enableTracy = b.option(bool, "enableTracy", "Enable ZTracy support. If yes, executable is slower") orelse false;
 
-    // b.addOptions().addOption(bool, "enableTracy", enableTracy);
+    b.addOptions().addOption(bool, "enableTracy", enableTracy);
+    // b.addOptions().addOption(bool, "enableWASM", isWASM);
 
     const ztracy = b.dependency("ztracy", .{
         .enable_ztracy = enableTracy,
@@ -59,81 +69,81 @@ pub fn build(b: *std.Build) void {
 
     bench.linkLibrary(ztracy.artifact("tracy"));
     // add the following:
-    const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
-    bench.root_module.addImport("pretty", pretty.module("pretty"));
+    // const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
+    // bench.root_module.addImport("pretty", pretty.module("pretty"));
 
     b.installArtifact(bench);
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
-    const exe = b.addExecutable(.{
-        .name = "zb-core",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const exe = b.addExecutable(.{
+    //     .name = "zb-core",
+    //     .root_source_file = b.path("src/main.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
     // const ztracy = b.dependency("ztracy", .{
     //     .enable_ztracy = true,
     //     .enable_fibers = true,
     // });
-    exe.root_module.addImport("ztracy", ztracy.module("root"));
+    // exe.root_module.addImport("ztracy", ztracy.module("root"));
 
-    exe.linkLibrary(ztracy.artifact("tracy"));
+    // exe.linkLibrary(ztracy.artifact("tracy"));
     // add the following:
     // const pretty = b.dependency("pretty", .{ .target = target, .optimize = optimize });
-    exe.root_module.addImport("pretty", pretty.module("pretty"));
+    // exe.root_module.addImport("pretty", pretty.module("pretty"));
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
-    b.installArtifact(exe);
+    // b.installArtifact(exe);
 
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
-    const run_cmd = b.addRunArtifact(exe);
+    // const run_cmd = b.addRunArtifact(exe);
 
     // By making the run step depend on the install step, it will be run from the
     // installation directory rather than directly from within the cache directory.
     // This is not necessary, however, if the application depends on other installed
     // files, this ensures they will be present and in the expected location.
-    run_cmd.step.dependOn(b.getInstallStep());
+    // run_cmd.step.dependOn(b.getInstallStep());
 
     // This allows the user to pass arguments to the application in the build
     // command itself, like this: `zig build run -- arg1 arg2 etc`
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
+    // if (b.args) |args| {
+    //     run_cmd.addArgs(args);
+    // }
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
+    // const run_step = b.step("run", "Run the app");
+    // run_step.dependOn(&run_cmd.step);
 
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
-    const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/root.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const lib_unit_tests = b.addTest(.{
+    //     .root_source_file = b.path("src/root.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
-    const exe_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    exe_unit_tests.root_module.addImport("pretty", pretty.module("pretty"));
+    // const exe_unit_tests = b.addTest(.{
+    //     .root_source_file = b.path("src/main.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // exe_unit_tests.root_module.addImport("pretty", pretty.module("pretty"));
 
-    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+    // const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
-    test_step.dependOn(&run_exe_unit_tests.step);
+    // const test_step = b.step("test", "Run unit tests");
+    // test_step.dependOn(&run_lib_unit_tests.step);
+    // test_step.dependOn(&run_exe_unit_tests.step);
 }

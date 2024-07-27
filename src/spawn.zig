@@ -9,8 +9,9 @@ const rl = @import("raylib");
 const draw = @import("drawing.zig");
 const ctrl = @import("controls.zig");
 const camera = &ctrl.camera;
-const core = @import("zb-core");
-const engine = &@import("main.zig").engine;
+const main = @import("main.zig");
+const core = main.core;
+const engine = &main.engine;
 //Player input
 var playerColor = rl.Color{
     .r = 255,
@@ -59,9 +60,9 @@ pub fn spawnBodyWithVelocity() !void {
             .position = .{ //
                 planetStartPoint.x, planetStartPoint.y,
             },
-            .velocity = .{ //
-                -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000),
-            },
+            // .velocity = .{ //
+            //     -((x - planetStartPoint.x) / 1000), -((y - planetStartPoint.y) / 1000),
+            // },
             .radius = (playerRadius),
             .color = c,
         });

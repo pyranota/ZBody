@@ -34,7 +34,7 @@
 // -------------------------------------------------------- //
 
 // ------------ Basis ------------- //
-const core = @import("zb-core");
+pub const core = @import("zb-core");
 const std = @import("std");
 const rl = @import("raylib");
 const rg = @import("raygui");
@@ -65,7 +65,7 @@ pub fn main() anyerror!void {
     defer engine.deinit();
 
     // Generating starting galaxy
-    try engine.generateGalaxy();
+    try engine.generateGalaxy(6000);
     //--------------------------------------------------------------------------------------
 
     // Window creation
@@ -83,6 +83,7 @@ pub fn main() anyerror!void {
 
         // Handle camera, time, threading, execution
         try ctrl.handleControls();
+        // ctrl.infiniteSpace();
 
         // Make a step in simulation
         try ctrl.simStep();

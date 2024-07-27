@@ -8,8 +8,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 const rg = @import("raygui");
-const core = @import("zb-core");
 const main = @import("main.zig");
+const core = main.core;
 const ctrl = @import("controls.zig");
 
 const Color = rl.Color;
