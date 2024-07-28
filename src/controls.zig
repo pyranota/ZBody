@@ -85,6 +85,8 @@ fn dragCamera(delta: f32) void {
         const scr_coords = rl.getWorldToScreen2D(body_p, camera);
 
         // Cull
+        // TODO: Move out somewhere else.
+        // TODO: Make dynamic
         if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
             continue;
 
@@ -92,17 +94,19 @@ fn dragCamera(delta: f32) void {
         totalMass += @splat(body.mass);
 
         // Sum up all velocities multiplied by body mass each
+        // This value will be divided by total mass after to find out AVG velocity
         cameraDragVelocity += body.velocity * @as(Vec2F, @splat(body.mass));
     }
 
-    // We dont want to devide by zero
-    //            __ < X and Y are same in mass
+    // We dont want to devide by zero.
+    //            __ < X and Y are same in mass.
     if (totalMass[0] <= 0) return;
 
     // Find AVG velocity
     cameraDragVelocity /= totalMass;
 
     // Apply
+    // TODO: We could use oneliner for this...
     player.x += (cameraDragVelocity[0] * delta) / camera.zoom;
     player.y += (cameraDragVelocity[1] * delta) / camera.zoom;
 }
