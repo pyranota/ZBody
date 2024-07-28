@@ -48,7 +48,7 @@ fn generateSolarSystem(objects: *Objects) !void {
             .max_accel = 1e-2,
             .radius = 1,
             .amount = 3,
-            .color = 0xff_ff_00_ff,
+            .color = 0xe8e9f9ff,
             .can_be_rotated = true,
         },
         // Sun's
@@ -58,7 +58,7 @@ fn generateSolarSystem(objects: *Objects) !void {
             .radius = 8,
             .randomely_distributed = true,
             .amount = 1500,
-            .color = 0xff_99_00_ff,
+            .color = 0xFFA6D6FF,
         },
     }, 1);
 }
