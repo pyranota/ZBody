@@ -33,7 +33,6 @@ pub var fastMode: bool = false;
 var isMultiThreaded = true;
 
 // TODO: Make readonly
-pub var cameraDragForce: Vec2F = @splat(0);
 pub var cameraDragVelocity: Vec2F = @splat(0);
 
 pub fn simStep() !void {
@@ -52,7 +51,7 @@ pub fn handleControls() !void {
     // Listen for keys
     try mapKeys();
 
-    // Autodrag
+    // Auto-drag
     dragCamera(3e-2);
 
     // Move by grabbing
@@ -67,12 +66,21 @@ pub fn handleControls() !void {
 }
 
 /// Auto-drag logic
+/// Allows to automatically drag camera according to AVG velocity of visible bodies
 fn dragCamera(delta: f32) void {
+
+    // Safety checks
     if (isPause or engine.isEmpty()) return;
 
     var totalMass: Vec2F = @splat(0);
+    // Cleanup from previous iterations
     cameraDragVelocity = @splat(0);
+
+    // Iterate over all bodies and find visible one.
+    //                      >____< Ignore black hole in center.
     for (engine.bodies.items[1..]) |body| {
+
+        // Converting vectors
         const body_p = rl.Vector2.init(body.position[0], body.position[1]);
         const scr_coords = rl.getWorldToScreen2D(body_p, camera);
 
@@ -82,28 +90,21 @@ fn dragCamera(delta: f32) void {
 
         // Find total mass of all bodies in visible zone
         totalMass += @splat(body.mass);
-        // std.debug.print("Accel in body: {?}\n", .{accel});
 
-        // Find total force on all bodies in visible zone
-        // We store only acceleration and masses of bodies
-        // Lets multiply those to get force.
-        // ** F = m * a **
+        // Sum up all velocities multiplied by body mass each
         cameraDragVelocity += body.velocity * @as(Vec2F, @splat(body.mass));
-        // cameraDragVelocity += body.velocity * ;
     }
 
     // We dont want to devide by zero
     //            __ < X and Y are same in mass
     if (totalMass[0] <= 0) return;
 
-    // cameraDragVelocity /=@as(Vec2F, @splat(delta));
+    // Find AVG velocity
     cameraDragVelocity /= totalMass;
 
-    // std.debug.print("{?}\n", .{totalMass});
-
+    // Apply
     player.x += (cameraDragVelocity[0] * delta) / camera.zoom;
     player.y += (cameraDragVelocity[1] * delta) / camera.zoom;
-    // std.debug.print("Mass: {?}\n Force: {?}\n Accel: {?}\n\n", .{ totalMass, cameraDragForce, cameraDragAccel });
 }
 
 fn moveCameraWithMouse() void {
