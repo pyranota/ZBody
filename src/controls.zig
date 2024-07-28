@@ -19,13 +19,13 @@ pub const screenWidth = 1000;
 pub const screenHeight = 1000;
 // Camera position basically
 pub var player = rl.Rectangle{ .x = 1e3, .y = 1e3, .width = 40, .height = 40 };
-var zoom: f32 = 1;
+var zoom: f32 = 1e-5;
 var engine = &main.engine;
 pub var camera = rl.Camera2D{
     .target = rl.Vector2.init(1000, 1000),
     .offset = rl.Vector2.init(screenWidth / 2, screenHeight / 2),
     .rotation = 0,
-    .zoom = 1,
+    .zoom = 1e-10,
 };
 
 pub var isPause: bool = false;
