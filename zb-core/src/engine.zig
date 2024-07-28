@@ -252,7 +252,7 @@ pub fn Engine() type {
             try self.addBodiesToTree();
             // const endAdd = try Instant.now();
 
-            try self.stepEachTreeBody();
+            try self.calcAccels();
             // const endStep = try Instant.now();
 
             self.applyAcceleration(delta);
@@ -284,20 +284,29 @@ pub fn Engine() type {
             self.tree.finalize();
         }
 
-        fn parallelLoop(self: *Self, thread_id: usize, num_elements: usize, num_threads: usize) !void {
+        fn stepInRange(self: *Self, thread_id: usize, num_elements: usize, num_threads: usize) !void {
+
+            // How many elements each thread will process
             const chunk_size: usize = num_elements / num_threads;
+
+            // How many elements are being left after division
             const remainder: usize = num_elements % num_threads;
 
-            // std.debug.print("Remainder: {}\n", .{remainder});
-
+            // First element for thread
             const start: usize = thread_id * chunk_size;
-            // std.debug.print("Start: {}\n", .{start});
 
+            // Last element
+            // NOTE: Last thread takes entire remainder
             const end: usize = start + chunk_size + if (num_threads - 1 == thread_id) remainder else 0;
-            // std.debug.print("End: {}\n", .{end});
 
+            // Iterate through bodies within given range
             for (self.bodies.items[start..end], start..) |*body, i| {
+
+                // Assign thread to body
+                // *Used for debug purposes*
                 body.assigned_thread = thread_id;
+
+                // Iterate
                 self.tree.step(0, .{ //
                     .accel = &self.accels.items[i],
                     .bodyPos = body.position,
@@ -306,40 +315,42 @@ pub fn Engine() type {
             }
         }
 
-        fn stepEachTreeBody(self: *Self) !void {
+        fn calcAccels(self: *Self) !void {
+            // -------------- Tracy ----------------//
             const zone = ztracy.Zone(@src());
             defer zone.End();
+            // -------------------------------------//
 
+            // Cache
             const num_threads = self.thread_amount;
-            // const num_threads: usize = if (self.bodies.items.len < self.thread_amount) 1 else 4; // adjust this to your liking
-            if (self.bodies.items.len == 0) {
-                return;
-            } else if (self.bodies.items.len <= num_threads or num_threads == 1) {
-                // TODO: Remove
-                for (self.bodies.items, 0..) |body, i|
-                    self.tree.step(0, .{ //
-                        .accel = &self.accels.items[i],
-                        .bodyPos = body.position,
-                        .bodyMass = @intFromFloat(body.mass),
-                    });
-                return;
-            }
+            const num_elements = self.bodies.items.len;
 
-            const num_elements = self.bodies.items.len; // adjust this to your liking
-            var threads: std.ArrayList(std.Thread) = std.ArrayList(std.Thread).init(ally);
+            // Detect single threaded mode
+            if (num_elements <= num_threads or num_threads == 1)
+                // step and exit
+                return self.stepInRange(0, num_elements, 1);
+
+            // -------------- Threading ----------------//
+
+            // Allocate temporary list to store thread handles
+            var threads = std.ArrayList(std.Thread).init(ally);
             defer threads.deinit();
 
-            for (0..num_threads) |i| {
-                try threads.append(try std.Thread.spawn(.{}, parallelLoop, .{
+            for (0..num_threads) |i|
+                // Spawning threads
+                try threads.append(try std.Thread.spawn(.{}, stepInRange, .{
                     self,
                     i,
                     num_elements,
                     num_threads,
                 }));
-            }
 
+            // Joining all of them
+            // Works as a barrier
             for (threads.items) |*thread|
                 thread.join();
+
+            // ----------------------------------------//
         }
 
         /// Apply accelerations to velocity
