@@ -29,30 +29,30 @@ linkFarm "zig-packages" [
     };
   }
 
-  # Pretty
-  {
-    name = "1220309f083656d3e9b487a4c0f79f514b0fbc682dba717c294fb02ec2bfd7080850";
-    path = fetchzip {
-      url = "https://github.com/timfayz/pretty/archive/main.tar.gz";
-      hash = "sha256-Y/XDNvjBxT5odP4Gtf/NRwAwWNJnVoffCajQgPGGTQ8=";
-    };
-  }
+  # # Pretty
+  # {
+  #   name = "1220309f083656d3e9b487a4c0f79f514b0fbc682dba717c294fb02ec2bfd7080850";
+  #   path = fetchzip {
+  #     url = "https://github.com/timfayz/pretty/archive/main.tar.gz";
+  #     hash = "sha256-Y/XDNvjBxT5odP4Gtf/NRwAwWNJnVoffCajQgPGGTQ8=";
+  #   };
+  # }
 
-  # ZTracy
-  {
-    name = "1220d02ebfd349a43c7ddf450bc0f548339b502aa4d77dc37e8bf5d6fc8f1b7f871e";
-    path = fetchzip {
-    url = "https://github.com/7R35C0/ztracy/archive/main.tar.gz";
-    hash = "sha256-Quno72sDgNODfSAQHN88HsC9Dd37YX341/eIWQyvf0g=";
-    };
-  }
+  # # ZTracy
+  # {
+  #   name = "1220d02ebfd349a43c7ddf450bc0f548339b502aa4d77dc37e8bf5d6fc8f1b7f871e";
+  #   path = fetchzip {
+  #   url = "https://github.com/7R35C0/ztracy/archive/main.tar.gz";
+  #   hash = "sha256-Quno72sDgNODfSAQHN88HsC9Dd37YX341/eIWQyvf0g=";
+  #   };
+  # }
 
-  # Dependency of ZTracy
-  {
-    name = "1220bd21394b50683441ebc101d7d7ac9178d93693b37a34a9124c0024b8d068f8a1";
-    path = fetchzip {
-    url = "https://github.com/7R35C0/system-sdk/releases/download/system-sdk-0.1.1/system-sdk-0.1.1.tar.gz";
-    hash = "sha256-rn+hP+58rnYJlIKnwfkkjkuKsreTJ+Gr9W2BuRlV1IU=";
-    };
-  }
+  # # Dependency of ZTracy
+  # {
+  #   name = "1220bd21394b50683441ebc101d7d7ac9178d93693b37a34a9124c0024b8d068f8a1";
+  #   path = fetchzip {
+  #   url = "https://github.com/7R35C0/system-sdk/releases/download/system-sdk-0.1.1/system-sdk-0.1.1.tar.gz";
+  #   hash = "sha256-rn+hP+58rnYJlIKnwfkkjkuKsreTJ+Gr9W2BuRlV1IU=";
+  #   };
+  # }
 ]

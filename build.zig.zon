@@ -19,9 +19,9 @@
             .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
             .hash = "1220361ce363a465c3f52e7e35ca5f1d9c2f5ed8a9207b79c2edb4396cdf31009c48",
         },
-        .@"zb-core" = .{
-            .path = "./zb-core",
-        },
+        // .@"zb-core" = .{
+        //     .path = "./zb-core",
+        // },
     },
     .paths = .{
         "build.zig",

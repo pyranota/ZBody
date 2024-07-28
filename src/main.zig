@@ -34,108 +34,109 @@
 // -------------------------------------------------------- //
 
 // ------------ Basis ------------- //
-pub const core = @import("zb-core");
-const std = @import("std");
-const rl = @import("raylib");
-const rg = @import("raygui");
+// pub const core = @import("zb-core");
+// const std = @import("std");
+// const rl = @import("raylib");
+// const rg = @import("raygui");
 
-// ----------- Modules ------------ //
-const debug = @import("debug.zig");
-const spawn = @import("spawn.zig");
-const lock = @import("lock.zig");
-const draw = @import("drawing.zig");
-const ctrl = @import("controls.zig");
-const ui = @import("ui.zig");
-const rndr = @import("render.zig");
+// // ----------- Modules ------------ //
+// const debug = @import("debug.zig");
+// const spawn = @import("spawn.zig");
+// const lock = @import("lock.zig");
+// const draw = @import("drawing.zig");
+// const ctrl = @import("controls.zig");
+// const ui = @import("ui.zig");
+// const rndr = @import("render.zig");
 
 // ----------- Export ------------ //
-pub var engine: core.engine.Engine() = undefined;
+// pub var engine: core.engine.Engine() = undefined;
 
-// --------- Allocators ---------- //
-const Alloc = std.mem.Allocator;
+// // --------- Allocators ---------- //
+// const Alloc = std.mem.Allocator;
 
 // --------- Entry point --------- //
 pub fn main() anyerror!void {
+    // std.debug.print("Hello world!", .{});
 
-    // Z-Body engine initialization
-    //--------------------------------------------------------------------------------------
-    engine = try core.engine.Engine().init( //
-        128, null, null);
+    // // Z-Body engine initialization
+    // //--------------------------------------------------------------------------------------
+    // engine = try core.engine.Engine().init( //
+    //     128, null, null);
 
-    defer engine.deinit();
+    // defer engine.deinit();
 
-    // Generating starting galaxy
-    try engine.generateGalaxy(6000);
-    //--------------------------------------------------------------------------------------
+    // // Generating starting galaxy
+    // try engine.generateGalaxy(60);
+    // //--------------------------------------------------------------------------------------
 
-    // Window creation
-    rl.initWindow(ctrl.screenWidth, ctrl.screenHeight, "Z-body");
-    defer rl.closeWindow(); // Close window and OpenGL context
+    // // Window creation
+    // rl.initWindow(ctrl.screenWidth, ctrl.screenHeight, "Z-body");
+    // defer rl.closeWindow(); // Close window and OpenGL context
 
-    // We want our simulation to be more precise
-    // So we higher FPS a little bit.
-    rl.setTargetFPS(80);
+    // // We want our simulation to be more precise
+    // // So we higher FPS a little bit.
+    // rl.setTargetFPS(80);
 
-    // Main game loop
-    while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+    // // Main game loop
+    // while (!rl.windowShouldClose()) { // Detect window close button or ESC key
 
-        rl.clearBackground(rl.Color.black);
+    //     rl.clearBackground(rl.Color.black);
 
-        // Handle camera, time, threading, execution
-        try ctrl.handleControls();
-        // ctrl.infiniteSpace();
+    //     // Handle camera, time, threading, execution
+    //     try ctrl.handleControls();
+    //     // ctrl.infiniteSpace();
 
-        // Make a step in simulation
-        try ctrl.simStep();
+    //     // Make a step in simulation
+    //     try ctrl.simStep();
 
-        // Draw
-        //----------------------------------------------------------------------------------
-        rl.beginDrawing();
+    //     // Draw
+    //     //----------------------------------------------------------------------------------
+    //     rl.beginDrawing();
 
-        // Camera begin
-        //--------------------------------------------
-        ctrl.camera.begin();
+    //     // Camera begin
+    //     //--------------------------------------------
+    //     ctrl.camera.begin();
 
-        // Lock camera to specific body
-        lock.handleLock();
+    //     // Lock camera to specific body
+    //     lock.handleLock();
 
-        // Spawn bodies with Right click
-        try spawn.spawnBodyWithVelocity();
+    //     // Spawn bodies with Right click
+    //     try spawn.spawnBodyWithVelocity();
 
-        // Show debug information withing simulation world
-        try debug.handleDebugWorld();
+    //     // Show debug information withing simulation world
+    //     try debug.handleDebugWorld();
 
-        // Render and Draw all bodies in scene. (With culling enabled)
-        rndr.render();
+    //     // Render and Draw all bodies in scene. (With culling enabled)
+    //     rndr.render();
 
-        ctrl.camera.end();
-        //--------------------------------------------
+    //     ctrl.camera.end();
+    //     //--------------------------------------------
 
-        // UI
-        ui.handleHUD();
+    //     // UI
+    //     ui.handleHUD();
 
-        // Show debug information in HUD
-        try debug.handleDebugHUD();
+    //     // Show debug information in HUD
+    //     try debug.handleDebugHUD();
 
-        rl.endDrawing();
-        //----------------------------------------------------------------------------------
-    }
+    //     rl.endDrawing();
+    //     //----------------------------------------------------------------------------------
+    // }
 }
 
-test "test memory leak" {
-    engine = try core.engine.Engine().init( //
-        128, std.testing.allocator, null);
+// test "test memory leak" {
+//     engine = try core.engine.Engine().init( //
+//         128, std.testing.allocator, null);
 
-    try engine.addBody(.{});
-    try engine.addBody(.{});
-    try engine.addBody(.{});
+//     try engine.addBody(.{});
+//     try engine.addBody(.{});
+//     try engine.addBody(.{});
 
-    defer engine.deinit();
+//     defer engine.deinit();
 
-    for (0..2) |_| {
-        ctrl.infiniteSpace();
+//     for (0..2) |_| {
+//         ctrl.infiniteSpace();
 
-        // Make a step in simulation
-        try ctrl.simStep();
-    }
-}
+//         // Make a step in simulation
+//         try ctrl.simStep();
+//     }
+// }
