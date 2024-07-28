@@ -72,7 +72,7 @@ fn dragCamera(delta: f32) void {
 
     var totalMass: Vec2F = @splat(0);
     cameraDragVelocity = @splat(0);
-    for (engine.bodies.items) |body| {
+    for (engine.bodies.items[1..]) |body| {
         const body_p = rl.Vector2.init(body.position[0], body.position[1]);
         const scr_coords = rl.getWorldToScreen2D(body_p, camera);
 
