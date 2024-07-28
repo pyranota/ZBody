@@ -142,8 +142,8 @@ fn lerpCamera() void {
     // camera.target.y = final_cam_pos.y;
 
     const final_cam_pos = rl.Vector2.init(player.x, player.y);
-    camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.2);
-    camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.2);
+    camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.12);
+    camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.12);
 }
 
 fn mapKeys() !void {
