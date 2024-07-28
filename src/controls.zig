@@ -8,6 +8,8 @@
 //! This file is controlling time, camera movement and threading also controlls execution of program
 const rl = @import("raylib");
 const main = @import("main.zig");
+const Vec2F = @import("zb-core").vec2.Vec2F;
+const std = @import("std");
 
 const planetStartPoint = &@import("spawn.zig").planetStartPoint;
 const isLocked = &@import("lock.zig").isLocked;
@@ -16,7 +18,7 @@ const isMenuShown = &@import("ui.zig").isMenuShown;
 pub const screenWidth = 1000;
 pub const screenHeight = 1000;
 // Camera position basically
-pub var player = rl.Rectangle{ .x = 0, .y = 0, .width = 40, .height = 40 };
+pub var player = rl.Rectangle{ .x = 1e3, .y = 1e3, .width = 40, .height = 40 };
 var zoom: f32 = 1;
 var engine = &main.engine;
 pub var camera = rl.Camera2D{
@@ -29,6 +31,10 @@ pub var camera = rl.Camera2D{
 pub var isPause: bool = false;
 pub var fastMode: bool = false;
 var isMultiThreaded = true;
+
+// TODO: Make readonly
+pub var cameraDragForce: Vec2F = @splat(0);
+pub var cameraDragVelocity: Vec2F = @splat(0);
 
 pub fn simStep() !void {
     if (!isPause)
@@ -55,6 +61,46 @@ pub fn handleControls() !void {
 
     // Dynamically Extend
     infiniteSpace();
+}
+
+/// Auto-drag logic
+pub fn dragCamera(delta: f32) void {
+    if (isPause or engine.isEmpty()) return;
+
+    var totalMass: Vec2F = @splat(0);
+    cameraDragVelocity = @splat(0);
+    for (engine.bodies.items) |body| {
+        const body_p = rl.Vector2.init(body.position[0], body.position[1]);
+        const scr_coords = rl.getWorldToScreen2D(body_p, camera);
+
+        // Cull
+        if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
+            continue;
+
+        // Find total mass of all bodies in visible zone
+        totalMass += @splat(body.mass);
+        // std.debug.print("Accel in body: {?}\n", .{accel});
+
+        // Find total force on all bodies in visible zone
+        // We store only acceleration and masses of bodies
+        // Lets multiply those to get force.
+        // ** F = m * a **
+        cameraDragVelocity += body.velocity * @as(Vec2F, @splat(body.mass));
+        // cameraDragVelocity += body.velocity * ;
+    }
+
+    // We dont want to devide by zero
+    //            __ < X and Y are same in mass
+    if (totalMass[0] <= 0) return;
+
+    // cameraDragVelocity /=@as(Vec2F, @splat(delta));
+    cameraDragVelocity /= totalMass;
+
+    // std.debug.print("{?}\n", .{totalMass});
+
+    player.x += (cameraDragVelocity[0] * delta) / camera.zoom;
+    player.y += (cameraDragVelocity[1] * delta) / camera.zoom;
+    // std.debug.print("Mass: {?}\n Force: {?}\n Accel: {?}\n\n", .{ totalMass, cameraDragForce, cameraDragAccel });
 }
 
 fn moveCameraWithMouse() void {

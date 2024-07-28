@@ -87,6 +87,8 @@ pub fn main() anyerror!void {
         // Make a step in simulation
         try ctrl.simStep();
 
+        ctrl.dragCamera(3e-2);
+
         // Draw
         //----------------------------------------------------------------------------------
         rl.beginDrawing();
