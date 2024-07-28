@@ -34,7 +34,7 @@ fn generateSolarSystem(objects: *Objects) !void {
     try objects.append(.{ //
         .radius = radius,
         .mass = mass,
-        .color = 0xff_99_00_ff,
+        .color = 0x0,
     });
 
     try objectVisit(objects, .{ //
