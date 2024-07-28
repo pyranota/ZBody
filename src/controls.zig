@@ -52,6 +52,9 @@ pub fn handleControls() !void {
     // Listen for keys
     try mapKeys();
 
+    // Autodrag
+    dragCamera(3e-2);
+
     // Move by grabbing
     moveCameraWithMouse();
     lerpCamera();
@@ -64,7 +67,7 @@ pub fn handleControls() !void {
 }
 
 /// Auto-drag logic
-pub fn dragCamera(delta: f32) void {
+fn dragCamera(delta: f32) void {
     if (isPause or engine.isEmpty()) return;
 
     var totalMass: Vec2F = @splat(0);
