@@ -59,8 +59,9 @@ pub fn handleLock() void {
 fn mapKeys() void {
     if (isPause.*) {
         if (rl.isKeyPressed(rl.KeyboardKey.key_l)) {
+            targetBody = undefined;
             if (isTargetModeOn) isLocked = false;
             isTargetModeOn = !isTargetModeOn;
         }
-    } else isTargetModeOn = false;
+    }
 }
