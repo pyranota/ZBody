@@ -32,8 +32,16 @@ pub var isPause: bool = false;
 pub var fastMode: bool = false;
 var isMultiThreaded = true;
 
-// TODO: Make readonly
-pub var cameraDragVelocity: Vec2F = @splat(0);
+/// Is camera auto-drag enabled
+pub var isAutoDrag: bool = true;
+
+/// Add velocity to camera, to "move along" with visible objects
+var cameraDragVelocity: Vec2F = @splat(0);
+
+/// Get velocity of camera, which "moves along" with visible objects
+pub fn getCameraDragVelocity() Vec2F {
+    return cameraDragVelocity;
+}
 
 pub fn simStep() !void {
     if (!isPause)
