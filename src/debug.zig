@@ -9,6 +9,7 @@ const std = @import("std");
 const ally = std.heap.page_allocator;
 const draw = @import("drawing.zig");
 const rl = @import("raylib");
+const lock = @import("lock.zig");
 
 var engine = &@import("main.zig").engine;
 const camera = &@import("controls.zig").camera;
@@ -40,7 +41,7 @@ pub fn handleDebugHUD() !void {
 fn debugLoD() !void {
     if (isDebugLoD)
         if (engine.bodies.items.len > 0) {
-            const p = engine.bodies.items[0].position;
+            const p = lock.targetBody.position;
             try engine.showForceBounds(p, draw.drawBoundForceAndCoM);
         };
 }
