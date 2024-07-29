@@ -77,7 +77,7 @@ pub fn handleControls() !void {
     modifyDelta();
 
     // Auto-drag
-    dragCamera(3e-2);
+    dragCamera();
 
     // Move by grabbing
     moveCameraWithMouse();
@@ -104,18 +104,18 @@ fn modifyDelta() void {
 
 /// Auto-drag logic
 /// Allows to automatically drag camera according to AVG velocity of visible bodies
-fn dragCamera(delta: f32) void {
+fn dragCamera() void {
 
     // Safety checks
-    if (isPause or engine.isEmpty()) return;
+    if (!isAutoDrag or isPause or engine.isEmpty()) return;
 
     var totalMass: Vec2F = @splat(0);
     // Cleanup from previous iterations
     cameraDragVelocity = @splat(0);
 
     // Iterate over all bodies and find visible one.
-    //                      >____< Ignore black hole in center.
     for (engine.bodies.items[1..]) |body| {
+        //                   ^^^  Ignore black hole in the middle.
 
         // Converting vectors
         const body_p = rl.Vector2.init(body.position[0], body.position[1]);
@@ -136,7 +136,7 @@ fn dragCamera(delta: f32) void {
     }
 
     // We dont want to devide by zero.
-    //            __ < X and Y are same in mass.
+    //           >-< X and Y are same in mass.
     if (totalMass[0] <= 0) return;
 
     // Find AVG velocity
@@ -144,8 +144,13 @@ fn dragCamera(delta: f32) void {
 
     // Apply
     // TODO: We could use oneliner for this...
-    player.x += (cameraDragVelocity[0] * delta) / camera.zoom;
-    player.y += (cameraDragVelocity[1] * delta) / camera.zoom;
+    // Apply to player first
+    player.x += (cameraDragVelocity[0] * getFinalDelta());
+    player.y += (cameraDragVelocity[1] * getFinalDelta());
+
+    // And move camera instantly to prevent from lerping
+    camera.target.x += (cameraDragVelocity[0] * getFinalDelta());
+    camera.target.y += (cameraDragVelocity[1] * getFinalDelta());
 }
 
 fn moveCameraWithMouse() void {
