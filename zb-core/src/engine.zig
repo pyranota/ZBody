@@ -112,6 +112,10 @@ pub fn Engine() type {
                 try self.addBody(obj);
         }
 
+        pub fn isEmpty(self: Self) bool {
+            return self.bodies.items.len == 0;
+        }
+
         /// Returns the smallest power of two that is greater than or equal to the input `x`.
         ///
         /// Parameters:
@@ -255,7 +259,8 @@ pub fn Engine() type {
             try self.calcAccels();
             // const endStep = try Instant.now();
 
-            self.applyAcceleration(delta);
+            //                             G
+            self.applyAcceleration(delta * 1);
             // const endApplyAccel = try Instant.now();
 
             // const elapsed1: f64 = @floatFromInt(endMerge.since(start));
@@ -369,7 +374,6 @@ pub fn Engine() type {
 
                 body.position += body.velocity * sd;
                 // std.debug.print("\n{}", .{body.velocity});
-                accel.* = @splat(0);
             }
         }
     };

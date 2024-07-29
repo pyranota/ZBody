@@ -145,6 +145,9 @@ pub fn Tree() type {
         pub fn step(self: Self, delta: f32, args: callbacks.stepArgs) void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
+
+            // Reset from prev step
+            args.accel.* = @splat(0);
             _ = delta; // autofix
             self.traverse(callbacks.calcForcesCB, args) catch unreachable;
         }

@@ -69,12 +69,13 @@ pub fn main() anyerror!void {
     //--------------------------------------------------------------------------------------
 
     // Window creation
+    // TODO: Make dynamic
     rl.initWindow(ctrl.screenWidth, ctrl.screenHeight, "Z-body");
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // We want our simulation to be more precise
     // So we higher FPS a little bit.
-    rl.setTargetFPS(80);
+    rl.setTargetFPS(60);
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
@@ -85,6 +86,7 @@ pub fn main() anyerror!void {
         try ctrl.handleControls();
 
         // Make a step in simulation
+        // TODO: Add delta
         try ctrl.simStep();
 
         // Draw

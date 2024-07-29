@@ -26,6 +26,7 @@ pub fn handleDebugWorld() !void {
     mapKeys();
     try debugLoD();
     try debugBounds();
+    // TODO: Add debugMassHeatMap();
 }
 /// Handles debug in the HUD
 /// It will draw all elements as well
