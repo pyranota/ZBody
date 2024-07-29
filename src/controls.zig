@@ -187,13 +187,15 @@ pub fn infiniteSpace() void {
 
 /// Apply move settings to camera
 fn lerpCamera() void {
-    // NOTE: Lerp is disabled for now
+    const final_cam_pos = rl.Vector2.init(player.x, player.y);
+
+    // Uncomment to disable lerp
     // camera.target.x = final_cam_pos.x;
     // camera.target.y = final_cam_pos.y;
+    // return;
 
-    const final_cam_pos = rl.Vector2.init(player.x, player.y);
-    camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.12);
-    camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.12);
+    camera.target.x = rl.math.lerp(camera.target.x, final_cam_pos.x, 0.15);
+    camera.target.y = rl.math.lerp(camera.target.y, final_cam_pos.y, 0.15);
 }
 
 fn mapKeys() !void {
