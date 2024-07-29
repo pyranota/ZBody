@@ -62,7 +62,5 @@ fn mapKeys() void {
             if (isTargetModeOn) isLocked = false;
             isTargetModeOn = !isTargetModeOn;
         }
-    } else {
-        isTargetModeOn = false;
-    }
+    } else isTargetModeOn = false;
 }
