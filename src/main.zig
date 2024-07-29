@@ -75,7 +75,7 @@ pub fn main() anyerror!void {
 
     // We want our simulation to be more precise
     // So we higher FPS a little bit.
-    rl.setTargetFPS(80);
+    rl.setTargetFPS(60);
 
     // Main game loop
     while (!rl.windowShouldClose()) { // Detect window close button or ESC key
