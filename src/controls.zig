@@ -31,6 +31,23 @@ pub var camera = rl.Camera2D{
 pub var isPause: bool = false;
 pub var fastMode: bool = false;
 var isMultiThreaded = true;
+/// Modify delta
+/// Used to slow down or speed up simulation
+pub var deltaModifier: f32 = 1;
+
+/// Get pure delta
+pub fn getDelta() f32 {
+    // Normally delta is dynamic value,
+    // But here its hardcoded.
+    // It allows us to make simulation precise.
+    // If fps drops, simulation slows down.
+    return 1e-2;
+}
+
+/// Get delta with modifier
+pub fn getFinalDelta() f32 {
+    return getDelta() * deltaModifier;
+}
 
 /// Is camera auto-drag enabled
 pub var isAutoDrag: bool = true;
@@ -45,12 +62,7 @@ pub fn getCameraDragVelocity() Vec2F {
 
 pub fn simStep() !void {
     if (!isPause)
-        if (fastMode)
-            try engine.step(2e1)
-        else
-            // We speed up simulation if zoom is low
-            // And slow down if zoom is high
-            try engine.step(3e-2 / camera.zoom);
+        try engine.step(getFinalDelta());
 }
 
 /// Entry point for Controls, handles everything.
@@ -58,6 +70,9 @@ pub fn simStep() !void {
 pub fn handleControls() !void {
     // Listen for keys
     try mapKeys();
+
+    // Speed up simulation
+    modifyDelta();
 
     // Auto-drag
     dragCamera(3e-2);
@@ -71,6 +86,18 @@ pub fn handleControls() !void {
 
     // Dynamically Extend
     infiniteSpace();
+}
+
+/// Modify speed of time
+/// It handles slow downs and speed up of simulation
+fn modifyDelta() void {
+    // If fast mode disabled
+    // We speed up simulation if zoom is low
+    // And slow down if zoom is high      >---------------<
+    deltaModifier = if (fastMode) 3e2 else 1 / camera.zoom;
+    //                            ^^^
+    // If fast mode is enabled
+    // We just multiply delta by constant
 }
 
 /// Auto-drag logic
