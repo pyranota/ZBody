@@ -29,8 +29,10 @@ pub var camera = rl.Camera2D{
 };
 
 pub var isPause: bool = false;
-pub var fastMode: bool = false;
 var isMultiThreaded = true;
+/// If true, modifies delta
+pub var fastMode: bool = false;
+
 /// Modify delta
 /// Used to slow down or speed up simulation
 pub var deltaModifier: f32 = 1;
