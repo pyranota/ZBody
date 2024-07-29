@@ -18,7 +18,7 @@ pub fn render() void {
     for (engine.bodies.items) |body| {
         var col = body.color;
         if (isDebugThreads.*) {
-            var rnd = std.rand.DefaultPrng.init(body.assigned_thread);
+            var rnd = std.rand.DefaultPrng.init(body.assigned_thread + 1);
             col = rnd.random().int(u32) | 0xff;
         }
 
