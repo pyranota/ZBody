@@ -1,6 +1,5 @@
 
 
-
 <h1 align="center">
   <br>
   <img src="media/splash-v1-high-rez.png" alt="ZBody logo" width="500">
@@ -36,6 +35,7 @@
 ## How To Use
 
 To clone and run this application, you'll need  [Nix](https://nixos.org/download/) and [Git](https://git-scm.com).
+Thats it, no extra stuff required!
 
 > **Note**
 > You need nix Flakes enabled.
