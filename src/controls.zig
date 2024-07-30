@@ -86,9 +86,17 @@ pub fn simStep() !void {
         try engine.step(getFinalDelta());
 }
 
+/// Move camera offset towards pointer location
+/// Allows to zoom where pointer in, intead of zooming into center of screen (W.I.P)
+fn moveCameraOffset() void {
+    camera.offset.x = @as(f32, @floatFromInt(rl.getScreenWidth())) / 2;
+    camera.offset.y = @as(f32, @floatFromInt(rl.getScreenHeight())) / 2;
+}
+
 /// Entry point for Controls, handles everything.
 /// Should be called before everything
 pub fn handleControls() !void {
+    moveCameraOffset();
     // Listen for keys
     try mapKeys();
 
