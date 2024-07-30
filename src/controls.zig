@@ -242,6 +242,8 @@ fn mapKeys() !void {
         };
 }
 
+// TODO: Zoom towards the spot mouse is pointing
+/// Handles zoom with lerp (linear interpolation)
 fn smoothZoom() void {
     zoom += rl.getMouseWheelMove() * 0.19 * zoom;
     zoom = rl.math.clamp(zoom, 1e-4, 19.0);
