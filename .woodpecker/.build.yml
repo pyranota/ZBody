@@ -3,8 +3,9 @@ steps:
     image: debian:stable-slim
     commands:
       - echo building
-      - apt -y update
-      - apt -y upgrade
+      # - apt -y update
+      # - apt -y upgrade
+      - sh <(curl -L https://nixos.org/nix/install) --no-daemon
       - apt install -y build-essential git
       - apt install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
       - zig build

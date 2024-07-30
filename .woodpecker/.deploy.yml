@@ -1,0 +1,8 @@
+steps:
+  - name: deploy
+    image: debian:stable-slim
+    commands:
+      - echo deploying
+
+depends_on:
+  - build
