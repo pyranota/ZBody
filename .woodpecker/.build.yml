@@ -17,6 +17,7 @@ steps:
       - apt install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
       - ./zig-linux-x86_64-0.12.1/zig build
       - ls zig-out/bin
+
   publish:
     image: woodpeckerci/plugin-release
     settings:
