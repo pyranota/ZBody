@@ -12,10 +12,11 @@ const draw = @import("drawing.zig");
 pub var isMenuShown = false;
 //HUD initialization
 const menu = rl.Rectangle{
-    .x = ((ctrl.screenWidth / 4) * 2.2),
-    .y = (ctrl.screenHeight / 3), //
-    .width = (ctrl.screenWidth / 2), //
-    .height = ((ctrl.screenHeight / 2.5) * 1.5),
+    // TODO: Make dynamic
+    .x = ((1000 / 4) * 2.2),
+    .y = (1000 / 3), //
+    .width = (1000 / 2), //
+    .height = ((1000 / 2.5) * 1.5),
 };
 
 pub fn handleHUD() void {
@@ -34,7 +35,7 @@ fn drawHUD() void {
     //
     @ptrCast("h - hide/show hud"),
     //
-    3, @intFromFloat((ctrl.screenHeight) - 20),
+    3, ((ctrl.scrHeight()) - 20),
     //
     20, rl.Color.dark_green);
 
@@ -45,7 +46,7 @@ fn drawHUD() void {
     //
     3,
     //
-    @intFromFloat((ctrl.screenHeight) - 40),
+    ((ctrl.scrHeight()) - 40),
     //
     20,
     //
@@ -58,7 +59,7 @@ fn drawHUD() void {
     //
     3,
     //
-    @intFromFloat((ctrl.screenHeight) - 60),
+    ((ctrl.scrHeight()) - 60),
     //
     20,
     //
