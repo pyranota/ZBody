@@ -70,7 +70,9 @@ pub fn main() anyerror!void {
 
     // Window creation
     // TODO: Make dynamic
-    rl.initWindow(ctrl.screenWidth, ctrl.screenHeight, "Z-body");
+    rl.setConfigFlags(rl.ConfigFlags{ .window_resizable = true });
+
+    rl.initWindow(ctrl.scrWidth(), ctrl.scrHeight(), "ZDody");
     defer rl.closeWindow(); // Close window and OpenGL context
 
     // We want our simulation to be more precise
