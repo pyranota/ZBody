@@ -8,6 +8,9 @@ steps:
       # Install zigup
       - apt-get update -y && apt-get install -y wget
       - wget -O - https://github.com/marler8997/zigup/releases/download/v2024_05_05/zigup-x86_64-linux.tar.gz | tar xz
+      - which zigup
+      - cat .bashrc
+      - echo $PATH
       - zigup 0.12.0
       - zig version
       - apt install -y build-essential git
