@@ -4,7 +4,7 @@ steps:
     # this step gets ran on "master" and "dev" branch.
     # also runs on pull requests targeting these branch.
     when:
-      branch: [master, dev]
+      branch: [master, dev, woodpecker]
       event: [push, pull_request]
     commands: |
       # alpine uses build-base for dev utilies such as system headers, make etc.
