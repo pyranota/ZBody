@@ -2,8 +2,7 @@ steps:
   build:
     image: debian:stable-slim
     when:
-      - branch: main
-      - event: tag
+      event: [tag, push]
     commands:
       - echo building
       # - apt -y update
@@ -26,8 +25,7 @@ steps:
   publish:
     image: woodpeckerci/plugin-release
     when:
-      - branch: main
-      - event: tag
+      event: [tag, push]
     settings:
       files:
         # Could also be "hello-world*" to match both
