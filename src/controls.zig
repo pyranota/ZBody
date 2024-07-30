@@ -6,37 +6,67 @@
 // --------------------------------------------------------
 
 //! This file is controlling time, camera movement and threading also controlls execution of program
+
+// Static imports
 const rl = @import("raylib");
 const main = @import("main.zig");
 const Vec2F = @import("zb-core").vec2.Vec2F;
 const std = @import("std");
+const render = @import("render.zig");
 
+// Dynamic imports
 const planetStartPoint = &@import("spawn.zig").planetStartPoint;
 const isLocked = &@import("lock.zig").isLocked;
 const isMenuShown = &@import("ui.zig").isMenuShown;
+const engine = &main.engine;
 
-pub const screenWidth = 1000;
-pub const screenHeight = 1000;
-// Camera position basically
+// Export variables provided by module
+pub var isPause: bool = false;
+pub var isMultiThreaded = true;
+/// If true, modifies delta
+pub var fastMode: bool = false;
+
+/// Is camera auto-drag enabled
+pub var isAutoDrag: bool = true;
+/// Add velocity to camera, to "move along" with visible objects
+var cameraDragVelocity: Vec2F = @splat(0);
+/// Get velocity of camera, which "moves along" with visible objects
+pub fn getCameraDragVelocity() Vec2F {
+    return cameraDragVelocity;
+}
+
+// Dynamic window sizes
+var screenWidth: i32 = 1000;
+var screenHeight: i32 = 1000;
+
+pub fn scrWidth() i32 {
+    return screenWidth;
+}
+
+pub fn scrHeight() i32 {
+    return screenHeight;
+}
+
+// NOTE: These two variables does not directly change the camera position nor zoom
+// Camera will be slowling moving to given parameters in these 2 vars
+// If you want to quickly jump to specific coord / zoom, than modify one/both variables here and modify camera as well.
+// It will prevent camera from lerping
+// Camera position
 pub var player = rl.Rectangle{ .x = 1e3, .y = 1e3, .width = 40, .height = 40 };
+// pub var observer= rl.Vector2{ .x = 1e3, .y = 1e3};
+// Camera zoom
 var zoom: f32 = 9e-4;
-var engine = &main.engine;
+
 pub var camera = rl.Camera2D{
     .target = rl.Vector2.init(1000, 1000),
-    .offset = rl.Vector2.init(screenWidth / 2, screenHeight / 2),
+    .offset = rl.Vector2.init(0, 500),
     .rotation = 0,
     .zoom = 2e-4,
 };
 
-pub var isPause: bool = false;
-var isMultiThreaded = true;
-/// If true, modifies delta
-pub var fastMode: bool = false;
-
 /// Modify delta
 /// Used to slow down or speed up simulation
 pub var deltaModifier: f32 = 1;
-
 /// Get pure delta
 pub fn getDelta() f32 {
     // Normally delta is dynamic value,
@@ -49,17 +79,6 @@ pub fn getDelta() f32 {
 /// Get delta with modifier
 pub fn getFinalDelta() f32 {
     return getDelta() * deltaModifier;
-}
-
-/// Is camera auto-drag enabled
-pub var isAutoDrag: bool = true;
-
-/// Add velocity to camera, to "move along" with visible objects
-var cameraDragVelocity: Vec2F = @splat(0);
-
-/// Get velocity of camera, which "moves along" with visible objects
-pub fn getCameraDragVelocity() Vec2F {
-    return cameraDragVelocity;
 }
 
 pub fn simStep() !void {
