@@ -13,6 +13,7 @@ const main = @import("main.zig");
 const Vec2F = @import("zb-core").vec2.Vec2F;
 const std = @import("std");
 const render = @import("render.zig");
+const utils = @import("utils.zig");
 
 // Dynamic imports
 const planetStartPoint = &@import("spawn.zig").planetStartPoint;
@@ -139,6 +140,8 @@ fn dragCamera() void {
     var totalMass: Vec2F = @splat(0);
     // Cleanup from previous iterations
     cameraDragVelocity = @splat(0);
+    // Delta
+    const dt: Vec2F = @splat(getFinalDelta());
 
     // Iterate over all bodies and find visible one.
     for (engine.bodies.items[1..]) |body| {
@@ -163,25 +166,27 @@ fn dragCamera() void {
     // Find AVG velocity
     cameraDragVelocity /= totalMass;
 
-    // Apply
-    // TODO: We could use oneliner for this...
-    // Apply to player first
+    // Convert
+    const velocity = utils.@"Vec2F to Vector2"(cameraDragVelocity * dt);
 
-    observer.x += (cameraDragVelocity[0] * getFinalDelta());
-    observer.y += (cameraDragVelocity[1] * getFinalDelta());
+    // Apply to observer first
+    observer = observer.add(velocity);
 
     // And move camera instantly to prevent from lerping
-    camera.target.x += (cameraDragVelocity[0] * getFinalDelta());
-    camera.target.y += (cameraDragVelocity[1] * getFinalDelta());
+    camera.target = camera.target.add(velocity);
 }
 
+/// Drag camera with mouse and move it
 fn moveCameraWithMouse() void {
     // Mouse controls
     if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown.* and !isLocked.*) {
-        const d = rl.getMouseDelta();
+        // Delta mouse
+        const dm = rl.getMouseDelta();
+
         const sens = 1;
-        observer.x -= (d.x * sens) / camera.zoom;
-        observer.y -= (d.y * sens) / camera.zoom;
+
+        observer.x -= (dm.x * sens) / camera.zoom;
+        observer.y -= (dm.y * sens) / camera.zoom;
     }
 }
 
@@ -194,18 +199,22 @@ pub fn infiniteSpace() void {
     const move_amount = try engine.fitBodies();
 
     if (move_amount != 0) {
-        const x: f32 = @floatFromInt(move_amount);
-        const y: f32 = @floatFromInt(move_amount);
+        // Scalar offset
+        const scalar: f32 = @floatFromInt(move_amount);
+
+        // Directional offset
+        const offset = rl.Vector2.init(scalar, scalar);
 
         // Also we need to modify planet start point for `spawn.zig`
+        // TODO: Move somewhere else >:[
         planetStartPoint.x += @floatFromInt(move_amount);
         planetStartPoint.y += @floatFromInt(move_amount);
 
-        observer.x += x;
-        observer.y += y;
+        // Apply to observer first
+        observer = observer.add(offset);
 
-        camera.target.x += x;
-        camera.target.y += y;
+        // And move camera instantly to prevent from lerping
+        camera.target = camera.target.add(offset);
     }
 }
 

@@ -90,6 +90,7 @@ fn debugValues() !void {
 }
 
 fn mapKeys() void {
+    // TODO: Change keys from these contrintuitive bindings to 1, 2, 3, 4, 5 or f1, f2, f3...
     if (rl.isKeyPressed(rl.KeyboardKey.key_o)) {
         isDebugLoD = !isDebugLoD;
         isDebugBounds = false;
