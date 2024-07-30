@@ -3,10 +3,11 @@ steps:
     image: debian:stable-slim
     commands:
       - echo building
-      - apt update
-      - apt upgrade
-      - apt install build-essential git
-      - apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+      - apt -y update
+      - apt -y upgrade
+      - apt install -y build-essential git
+      - apt install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
       - zig build
+      - ls zig-out/bin
 
     
