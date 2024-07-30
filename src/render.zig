@@ -8,6 +8,8 @@
 const std = @import("std");
 const rl = @import("raylib");
 const draw = @import("drawing.zig");
+const core = @import("zb-core");
+const Vec2F = core.vec2.Vec2F;
 
 const isDebugThreads = &@import("debug.zig").isDebugThreads;
 var engine = &@import("main.zig").engine;
@@ -22,11 +24,35 @@ pub fn render() void {
             col = rnd.random().int(u32) | 0xff;
         }
 
-        const body_p = rl.Vector2.init(body.position[0], body.position[1]);
-        const scr_coords = rl.getWorldToScreen2D(body_p, camera.*);
-
-        if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
-            continue;
-        draw.drawPlanet(body.position[0], body.position[1], body.radius, col);
+        if (isVisible(body.position, camera.*))
+            draw.drawPlanet(body.position[0], body.position[1], body.radius, col);
     }
+}
+
+/// Find out if body is visible
+/// Also knows as occlusion Culling
+pub fn isVisible(body_world_position: Vec2F, cam: rl.Camera2D) bool {
+
+    // Convert internal Vec2F of zb-core into internal Vector2 of Raylib
+    const body_position_raylib_vec2 = rl.Vector2.init(body_world_position[0], body_world_position[1]);
+
+    // Convert world space coordinate of body to coordinates on screen
+    const scr_coords = rl.getWorldToScreen2D(body_position_raylib_vec2, cam);
+
+    // f32 version of screen width (default is i32)
+    const sw: f32 = @floatFromInt(rl.getScreenWidth());
+    // f32 version of screen height (default is i32)
+    const sh: f32 = @floatFromInt(rl.getScreenHeight());
+
+    // Screen padding. E.G. Black border size
+    const pad = 20;
+
+    return if ( //
+    scr_coords.x > sw - pad //
+    or scr_coords.y > sh - pad //
+    or scr_coords.y < pad //
+    or scr_coords.x < pad)
+        false
+    else
+        true;
 }
