@@ -1,0 +1,8 @@
+pipeline:
+  build:
+    image: woodpeckerci/zig:latest
+    commands:
+      - zig build
+    artifacts:
+      paths:
+        - main
