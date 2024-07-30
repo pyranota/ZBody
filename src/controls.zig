@@ -117,14 +117,8 @@ fn dragCamera() void {
     for (engine.bodies.items[1..]) |body| {
         //                   ^^^  Ignore black hole in the middle.
 
-        // Converting vectors
-        const body_p = rl.Vector2.init(body.position[0], body.position[1]);
-        const scr_coords = rl.getWorldToScreen2D(body_p, camera);
-
         // Cull
-        // TODO: Move out somewhere else.
-        // TODO: Make dynamic
-        if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
+        if (!render.isVisible(body.position, camera))
             continue;
 
         // Find total mass of all bodies in visible zone
