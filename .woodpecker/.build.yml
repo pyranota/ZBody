@@ -5,7 +5,10 @@ steps:
       - echo building
       # - apt -y update
       # - apt -y upgrade
-      - sh <(curl -L https://nixos.org/nix/install) --no-daemon
+      - apt install -y snapd
+      - snap install snapd
+      - snap install zig --beta --classic
+      - zig version
       - apt install -y build-essential git
       - apt install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
       - zig build
