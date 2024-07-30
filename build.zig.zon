@@ -16,8 +16,11 @@
     // internet connectivity.
     .dependencies = .{
         .@"raylib-zig" = .{
+            // TODO: Fix to specific commit.
+            // Now if there is update on devel branch, our hash becoming invalid
             .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
-            .hash = "1220361ce363a465c3f52e7e35ca5f1d9c2f5ed8a9207b79c2edb4396cdf31009c48",
+            // .hash = "1220361ce363a465c3f52e7e35ca5f1d9c2f5ed8a9207b79c2edb4396cdf31009c48",
+            .hash = "12202b55e516247ae27b38919685b8da1543467cfd15cd92d4d4a840dc236d9dc754",
         },
         .@"zb-core" = .{
             .path = "./zb-core",
