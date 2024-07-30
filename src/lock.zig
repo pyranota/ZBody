@@ -36,6 +36,7 @@ pub fn handleLock() void {
                 rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, rl.Color.white);
                 rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, rl.Color.white);
             }
+
             if ( //
             rl.checkCollisionPointCircle(pos, bodyVec, body.radius * 1.25) //
             and rl.isMouseButtonPressed(rl.MouseButton.mouse_button_left) //
@@ -47,8 +48,10 @@ pub fn handleLock() void {
             }
             if (isLocked and targetBodyId == body.id) {
                 targetBody = body;
-                player.x = targetBody.position[0];
-                player.y = targetBody.position[1];
+
+                observer.x = targetBody.position[0];
+                observer.y = targetBody.position[1];
+
                 ctrl.camera.target.x = targetBody.position[0];
                 ctrl.camera.target.y = targetBody.position[1];
             }

@@ -52,8 +52,8 @@ pub fn scrHeight() i32 {
 // If you want to quickly jump to specific coord / zoom, than modify one/both variables here and modify camera as well.
 // It will prevent camera from lerping
 // Camera position
-pub var player = rl.Rectangle{ .x = 1e3, .y = 1e3, .width = 40, .height = 40 };
-// pub var observer= rl.Vector2{ .x = 1e3, .y = 1e3};
+// pub var player = rl.Rectangle{ .x = 1e3, .y = 1e3, .width = 40, .height = 40 };
+pub var observer = rl.Vector2.init(0, 0);
 // Camera zoom
 var zoom: f32 = 9e-4;
 
@@ -166,8 +166,9 @@ fn dragCamera() void {
     // Apply
     // TODO: We could use oneliner for this...
     // Apply to player first
-    player.x += (cameraDragVelocity[0] * getFinalDelta());
-    player.y += (cameraDragVelocity[1] * getFinalDelta());
+
+    observer.x += (cameraDragVelocity[0] * getFinalDelta());
+    observer.y += (cameraDragVelocity[1] * getFinalDelta());
 
     // And move camera instantly to prevent from lerping
     camera.target.x += (cameraDragVelocity[0] * getFinalDelta());
@@ -179,8 +180,8 @@ fn moveCameraWithMouse() void {
     if (rl.isMouseButtonDown(rl.MouseButton.mouse_button_left) and !isMenuShown.* and !isLocked.*) {
         const d = rl.getMouseDelta();
         const sens = 1;
-        player.x -= (d.x * sens) / camera.zoom;
-        player.y -= (d.y * sens) / camera.zoom;
+        observer.x -= (d.x * sens) / camera.zoom;
+        observer.y -= (d.y * sens) / camera.zoom;
     }
 }
 
@@ -199,8 +200,10 @@ pub fn infiniteSpace() void {
         // Also we need to modify planet start point for `spawn.zig`
         planetStartPoint.x += @floatFromInt(move_amount);
         planetStartPoint.y += @floatFromInt(move_amount);
-        player.x += x;
-        player.y += y;
+
+        observer.x += x;
+        observer.y += y;
+
         camera.target.x += x;
         camera.target.y += y;
     }
@@ -208,7 +211,7 @@ pub fn infiniteSpace() void {
 
 /// Apply move settings to camera
 fn lerpCamera() void {
-    const final_cam_pos = rl.Vector2.init(player.x, player.y);
+    const final_cam_pos = rl.Vector2.init(observer.x, observer.y);
 
     // Uncomment to disable lerp
     // camera.target.x = final_cam_pos.x;
@@ -244,8 +247,8 @@ fn mapKeys() !void {
     // Go to center of mass
     if (rl.isKeyPressed(rl.KeyboardKey.key_c))
         if (engine.getCenterOfMass()) |p| {
-            player.x = p[0];
-            player.y = p[1];
+            observer.x = p[0];
+            observer.y = p[1];
             zoom = 1;
         };
 }
@@ -261,15 +264,17 @@ fn smoothZoom() void {
 
 fn arrowKeysMove() void {
     // Player movement arrow keys
+    // TODO: Refactor. Use 2D vector of inputs instead.
+    // Delete these todo if its impossible
     if (!isLocked) {
         if (rl.isKeyDown(rl.KeyboardKey.key_right))
-            player.x += 9
+            observer.x += 9
         else if (rl.isKeyDown(rl.KeyboardKey.key_left))
-            player.x -= 9;
+            observer.x -= 9;
 
         if (rl.isKeyDown(rl.KeyboardKey.key_up))
-            player.y -= 9
+            observer.y -= 9
         else if (rl.isKeyDown(rl.KeyboardKey.key_down))
-            player.y += 9;
+            observer.y += 9;
     }
 }
