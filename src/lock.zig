@@ -5,22 +5,42 @@
 // Licensed under the MIT License
 // --------------------------------------------------------
 
-const core = @import("zb-core");
+// Static imports
 const rl = @import("raylib");
+const core = @import("zb-core");
+const main = @import("main.zig");
+const debug = @import("debug.zig");
+const render = @import("render.zig");
 const ctrl = @import("controls.zig");
-const isPause = &ctrl.isPause;
-const player = &ctrl.player;
-const camera = &ctrl.camera;
-const isDebugBounds = &@import("debug.zig").isDebugBounds;
 
-var isTargetModeOn: bool = false;
-var targetBodyId: u32 = undefined;
-pub var targetBody: core.Body = undefined;
-var engine = &@import("main.zig").engine;
+// Dynamic imports (Pointers)
+var engine = &main.engine;
+const observer = &ctrl.observer;
+const camera = &ctrl.camera;
+const isPause = &ctrl.isPause;
+const isDebugBounds = &debug.isDebugBounds;
+
+// Export variables
 pub var isLocked = false;
+pub var targetBody: core.Body = undefined;
+
+// Locally used variables
+var targetBodyId: u32 = undefined;
+var isTargetModeOn: bool = false;
+
 /// Allows you to "lock" camera on body and spectate it.
 pub fn handleLock() void {
+
+    // Listen for key events
     mapKeys();
+
+    // Handle locks
+    targetMode();
+}
+
+// TODO: Refactor
+// TODO: Write comments
+fn targetMode() void {
     if (isTargetModeOn) {
         for (engine.bodies.items) |body| {
             const pos = rl.getScreenToWorld2D(rl.getMousePosition(), ctrl.camera);
@@ -28,11 +48,12 @@ pub fn handleLock() void {
 
             // A bit embeded debug here.
             if (isDebugBounds.*) {
-                const body_p = rl.Vector2.init(body.position[0], body.position[1]);
-                const scr_coords = rl.getWorldToScreen2D(body_p, ctrl.camera);
 
-                if (scr_coords.x > 980 or scr_coords.y > 980 or scr_coords.y < 20 or scr_coords.x < 20)
+                // Cull
+                // NOTE: It will actually be a bottleneck in program, if we dont cull it
+                if (!render.isVisible(body.position, camera.*))
                     continue;
+
                 rl.drawCircle(@intFromFloat(pos.x), @intFromFloat(pos.y), 10, rl.Color.white);
                 rl.drawCircle(@intFromFloat(bodyVec.x), @intFromFloat(bodyVec.y), body.radius * 1.25, rl.Color.white);
             }
@@ -60,11 +81,14 @@ pub fn handleLock() void {
 }
 
 fn mapKeys() void {
-    if (isPause.*) {
+    if (isPause.*)
         if (rl.isKeyPressed(rl.KeyboardKey.key_l)) {
+            // TODO: Wtf? You like playin with fire i see
             targetBody = undefined;
+
             if (isTargetModeOn) isLocked = false;
+
+            // Toggle
             isTargetModeOn = !isTargetModeOn;
-        }
-    }
+        };
 }
