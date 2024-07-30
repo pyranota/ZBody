@@ -3,4 +3,10 @@ steps:
     image: debian:stable-slim
     commands:
       - echo building
-      - sleep 5
+      - apt update
+      - apt upgrade
+      - apt install build-essential git
+      - apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+      - zig build
+
+    
