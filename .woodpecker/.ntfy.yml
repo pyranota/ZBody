@@ -8,7 +8,7 @@ steps:
           # token:
           #     from_secret: your-super-secret-ntfy-access-token
           title: Commit by ${CI_COMMIT_AUTHOR} on ${CI_COMMIT_BRANCH}
-          priority: urgent
+          priority: low
           actions: "view, Open portal, https://home.nest.com/, clear=true; http, Turn down, https://api.nest.com/, body='{\"temperature\": 65}'"
           click: https://where.to.go
           icon: https://woodpecker-ci.org/img/logo.svg
