@@ -47,6 +47,7 @@ const draw = @import("drawing.zig");
 const ctrl = @import("controls.zig");
 const ui = @import("ui.zig");
 const rndr = @import("render.zig");
+const tex = @import("textures.zig");
 
 // ----------- Export ------------ //
 pub var engine: core.engine.Engine() = undefined;
@@ -109,9 +110,10 @@ pub fn main() anyerror!void {
         try debug.handleDebugWorld();
 
         // Render and Draw all bodies in scene. (With culling enabled)
-        rndr.render();
+        // rndr.render();
 
         ctrl.camera.end();
+        tex.drawTexture(tex.drawPlanetsTexture(tex.planetsTexture));
         //--------------------------------------------
 
         // UI
@@ -122,6 +124,8 @@ pub fn main() anyerror!void {
 
         rl.endDrawing();
         //----------------------------------------------------------------------------------
+
+        rl.unloadRenderTexture(tex.planetsTexture);
     }
 }
 
