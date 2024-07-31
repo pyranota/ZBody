@@ -5,8 +5,8 @@ steps:
         - event: push
       settings:
           url: https://ntfy.sh/z-body-commits
-          token:
-              from_secret: your-super-secret-ntfy-access-token
+          # token:
+          #     from_secret: your-super-secret-ntfy-access-token
           title: Commit by ${CI_COMMIT_AUTHOR} on ${CI_COMMIT_BRANCH}
           priority: urgent
           actions: "view, Open portal, https://home.nest.com/, clear=true; http, Turn down, https://api.nest.com/, body='{\"temperature\": 65}'"
