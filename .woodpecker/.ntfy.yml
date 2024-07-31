@@ -4,7 +4,7 @@ steps:
       when:
         - event: push
       settings:
-          url: https://custom.ntfy.instance/topic-to-notify
+          url: https://ntfy.sh/z-body-commits
           token:
               from_secret: your-super-secret-ntfy-access-token
           title: Commit by ${CI_COMMIT_AUTHOR} on ${CI_COMMIT_BRANCH}
