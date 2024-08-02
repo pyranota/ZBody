@@ -12,7 +12,18 @@ const ztracy = @import("ztracy");
 usingnamespace math;
 
 pub const Vec2 = @Vector(2, u32);
-pub const Vec2F = @Vector(2, f32);
+
+/// Return Vec2F struct with given float type.
+/// Comptime Error if specified type is not a float.
+pub fn Vec2F(comptime Float: type) type {
+    const TypeInfo = @typeInfo(Float);
+
+    switch (TypeInfo) {
+        .Float => return @Vector(2, Float),
+        else => @compileError( //
+            "Vec2F should receive only floats, e.g: f32, f64, f80 or f128"),
+    }
+}
 
 /// Converts `Vec2` to `Vec2F` and vice versa
 pub fn convert(comptime To: type, vector: anytype) @Vector(2, To) {

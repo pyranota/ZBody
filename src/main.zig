@@ -48,8 +48,12 @@ const ctrl = @import("controls.zig");
 const ui = @import("ui.zig");
 const rndr = @import("render.zig");
 
+/// Float type used in simulator. Supported: f32, f64, f80, f128
+/// Larger type, more memory it uses, more precision it has, less performance.
+const Float = f32;
+
 // ----------- Export ------------ //
-pub var engine: core.engine.Engine() = undefined;
+pub var engine: core.engine.Engine(Float) = undefined;
 
 // --------- Allocators ---------- //
 const Alloc = std.mem.Allocator;
@@ -59,7 +63,7 @@ pub fn main() anyerror!void {
 
     // Z-Body engine initialization
     //--------------------------------------------------------------------------------------
-    engine = try core.engine.Engine().init( //
+    engine = try core.engine.Engine(Float).init( //
         128, null, null);
 
     defer engine.deinit();

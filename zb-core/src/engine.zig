@@ -9,7 +9,6 @@ const tree = @import("tree.zig");
 const Body = @import("body.zig");
 const std = @import("std");
 const vec2 = @import("vec2.zig");
-const Vec2F = vec2.Vec2F;
 const Vec2 = vec2.Vec2;
 const ztracy = @import("ztracy");
 const time = std.time;
@@ -20,11 +19,14 @@ const RndGen = std.rand.DefaultPrng;
 
 const List = std.ArrayList;
 
-pub fn Engine() type {
+pub fn Engine(comptime Float: type) type {
     return struct { //
+        const Vec2F = vec2.Vec2F(Float);
         const SPEED_O_LIGHT: f32 = 1e3;
 
-        tree: tree.Tree(),
+        comptime Float: type = Float,
+
+        tree: tree.Tree(Float),
         bodies: List(Body),
         accels: List(Vec2F),
 
@@ -41,6 +43,7 @@ pub fn Engine() type {
         var buffer: [1e9]u8 = undefined;
         var fba = std.heap.FixedBufferAllocator.init(&buffer);
 
+        // TODO: Refactor that all
         /// Init the engine.
         /// Allocators are optional, default for engine is page allocator
         /// And for tree fixed buffer allocator
@@ -52,7 +55,7 @@ pub fn Engine() type {
             if (engine_alloc) |alloc| ally = alloc;
             return .{ //
                 .thread_amount = try std.Thread.getCpuCount(),
-                .tree = try tree.Tree().init( //
+                .tree = try tree.Tree(Float).init( //
                     if (tree_allloc) |alloc| //
                     alloc
                 else

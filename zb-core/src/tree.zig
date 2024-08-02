@@ -11,11 +11,11 @@ const Vec2 = vec2.Vec2;
 const Vec2F = vec2.Vec2F;
 const TreeError = @import("error.zig").TreeError;
 const callbacks = @import("callbacks.zig");
-const Node = @import("node.zig").Node;
 const ztracy = @import("ztracy");
 const alloc = std.heap.page_allocator;
 
-pub fn Tree() type {
+pub fn Tree(comptime Float: type) type {
+    const Node = @import("node.zig").Node(Float);
     return struct {
         const Self = @This();
 
