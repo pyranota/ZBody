@@ -12,6 +12,8 @@ const ztracy = @import("ztracy");
 usingnamespace math;
 
 pub const Vec2 = @Vector(2, u32);
+/// Vec2 with 2 f32
+pub const Vec2F32 = Vec2F(f32);
 
 /// Return Vec2F struct with given float type.
 /// Comptime Error if specified type is not a float.

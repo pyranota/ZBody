@@ -6,7 +6,6 @@
 // --------------------------------------------------------
 
 const tree = @import("tree.zig");
-const Body = @import("body.zig");
 const std = @import("std");
 const vec2 = @import("vec2.zig");
 const Vec2 = vec2.Vec2;
@@ -20,11 +19,11 @@ const RndGen = std.rand.DefaultPrng;
 const List = std.ArrayList;
 
 pub fn Engine(comptime Float: type) type {
+    const Body = @import("body.zig").Body(Float);
+
     return struct { //
         const Vec2F = vec2.Vec2F(Float);
         const SPEED_O_LIGHT: f32 = 1e3;
-
-        comptime Float: type = Float,
 
         tree: tree.Tree(Float),
         bodies: List(Body),
@@ -109,7 +108,7 @@ pub fn Engine(comptime Float: type) type {
         }
 
         pub fn generateGalaxy(self: *Self) !void {
-            const objects = try gxg.generateGalaxy(ally);
+            const objects = try gxg.generateGalaxy(Float, ally);
             defer objects.deinit();
             for (objects.items) |obj|
                 try self.addBody(obj);

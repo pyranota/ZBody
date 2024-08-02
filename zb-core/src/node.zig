@@ -35,7 +35,7 @@ pub fn Node(comptime Float: type) type {
             size: u32,
             /// Find out in which quadrant should we put node with given position
             pub fn which(self: @This(), position: Vec2) u2 {
-                const node = Node{ .branch = self };
+                const node = Node(Float){ .branch = self };
                 return node.which(position);
             }
         };
@@ -59,8 +59,8 @@ pub fn Node(comptime Float: type) type {
             // TODO: Not leaf check
 
             // Allocate
-            var node = try ally.create(Node);
-            node.* = Node{ .leaf = .{ .size = 0 } };
+            var node = try ally.create(Node(Float));
+            node.* = Node(Float){ .leaf = .{ .size = 0 } };
             var leaf = &node.leaf;
 
             leaf.* = self.leaf;
@@ -79,7 +79,7 @@ pub fn Node(comptime Float: type) type {
                 .size = leaf.size,
             };
 
-            self.* = Node{ .branch = branch };
+            self.* = Node(Float){ .branch = branch };
 
             // TODO: Safetychecks on 0
             if (leaf.size == 1) {

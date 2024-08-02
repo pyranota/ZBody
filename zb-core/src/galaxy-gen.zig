@@ -138,6 +138,7 @@ pub fn generateGalaxy(comptime Float: type, ally: std.mem.Allocator) !std.ArrayL
             return @sqrt(mass2 / max_accel);
         }
     };
+
     const objects = Objects.init(ally);
 
     // gen.generateSolarSystem(&objects);

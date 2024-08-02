@@ -8,7 +8,6 @@
 const std = @import("std");
 const vec2 = @import("vec2.zig");
 const Vec2 = vec2.Vec2;
-const Vec2F = vec2.Vec2F;
 const TreeError = @import("error.zig").TreeError;
 const callbacks = @import("callbacks.zig");
 const ztracy = @import("ztracy");
@@ -16,6 +15,11 @@ const alloc = std.heap.page_allocator;
 
 pub fn Tree(comptime Float: type) type {
     const Node = @import("node.zig").Node(Float);
+    const Vec2F = vec2.Vec2F(Float);
+
+    // Callbacks
+    const Cbs = callbacks.Fns(Float);
+
     return struct {
         const Self = @This();
 
@@ -71,7 +75,7 @@ pub fn Tree(comptime Float: type) type {
             if (@max(positionF[0], positionF[1]) >= self.size)
                 return TreeError.PositionOutOfBound;
 
-            try Tree().visitNode(&self.root, mass, position, self.size);
+            try Tree(Float).visitNode(&self.root, mass, position, self.size);
         }
 
         fn visitNode(node: *?*Node, mass: f32, position: Vec2F, size: u32) !void {
@@ -94,7 +98,7 @@ pub fn Tree(comptime Float: type) type {
                 var br = &n.branch;
 
                 // Call it recursivly
-                try Tree().visitNode(
+                try Tree(Float).visitNode(
                     // Formatter
                     // &branch.children[quadrant],
                     @constCast(&br.children[quadrant]),
@@ -142,14 +146,14 @@ pub fn Tree(comptime Float: type) type {
         }
 
         // TODO: Remove delta
-        pub fn step(self: Self, delta: f32, args: callbacks.stepArgs) void {
+        pub fn step(self: Self, delta: f32, args: callbacks.Fns().stepArgs) void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
             // Reset from prev step
             args.accel.* = @splat(0);
             _ = delta; // autofix
-            self.traverse(callbacks.calcForcesCB, args) catch unreachable;
+            self.traverse(Cbs.calcForcesCB, args) catch unreachable;
         }
 
         pub fn finalize(self: *Self) void {
@@ -157,24 +161,25 @@ pub fn Tree(comptime Float: type) type {
             defer zone.End();
 
             self.final = true;
-            self.traverse(callbacks.finalizeCB, .{}) catch unreachable;
+            self.traverse(Cbs.finalizeCB, .{}) catch unreachable;
         }
 
         pub fn showForceBounds(self: Self, args: anytype) !void {
             // TODO: Fix. its crashing if there is just one node
             args.@"1"(@splat(0), self.size, if (self.root) |root| root.coordinates() else null);
-            try self.traverse(callbacks.forceBoundsCB, args);
+            try self.traverse(Cbs.forceBoundsCB, args);
         }
 
         pub fn showBounds(self: Self, callb: anytype) !void {
             callb(@splat(0), self.size);
-            try self.traverse(callbacks.treeBoundsCB, callb);
+            try self.traverse(Cbs.treeBoundsCB, callb);
         }
 
         /// Takes callback which optionally returns boolean.
         pub fn traverse(self: Self, callback: anytype, args: anytype) !void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
+
             if (!self.final)
                 return TreeError.NotFinalized;
 
