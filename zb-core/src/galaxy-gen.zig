@@ -139,10 +139,8 @@ pub fn generateGalaxy(comptime Float: type, ally: std.mem.Allocator) !std.ArrayL
         }
     };
 
-    const objects = Objects.init(ally);
+    var objects = Objects.init(ally);
 
-    // gen.generateSolarSystem(&objects);
-    try Generator.generateSolarSystem(@constCast(&objects));
-
+    try Generator.generateSolarSystem(&objects);
     return objects;
 }

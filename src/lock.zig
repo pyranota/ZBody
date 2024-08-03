@@ -22,7 +22,7 @@ const isDebugBounds = &debug.isDebugBounds;
 
 // Export variables
 pub var isLocked = false;
-pub var targetBody: core.Body = undefined;
+pub var targetBody: core.Body(f32) = undefined;
 
 // Locally used variables
 var targetBodyId: u32 = undefined;

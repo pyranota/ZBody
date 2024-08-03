@@ -26,7 +26,8 @@ pub var planetStartPoint = rl.Vector2{
 };
 
 var isPlanetBeingCreated: bool = false;
-pub fn spawnBodyWithVelocity() !void {
+pub fn spawnBodyWithVelocity(comptime Float: type) !void {
+    const Body = core.Body(Float);
     playerMass = draw.playerMass;
     playerRadius = draw.playerRadius;
     playerColor = draw.playerColor;
@@ -45,7 +46,7 @@ pub fn spawnBodyWithVelocity() !void {
         const x = pos.x;
         const y = pos.y;
         if (x == planetStartPoint.x and y == planetStartPoint.y) {
-            try engine.addBody(core.Body{
+            try engine.addBody(Body{
                 .mass = (playerMass),
                 .position = .{ //
                     planetStartPoint.x, planetStartPoint.y,
@@ -54,7 +55,7 @@ pub fn spawnBodyWithVelocity() !void {
                 .radius = (playerRadius),
                 .color = c,
             });
-        } else try engine.addBody(core.Body{ //
+        } else try engine.addBody(Body{ //
             .mass = (playerMass),
             .position = .{ //
                 planetStartPoint.x, planetStartPoint.y,

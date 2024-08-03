@@ -42,7 +42,7 @@ const rg = @import("raygui");
 // ----------- Modules ------------ //
 const debug = @import("debug.zig");
 const spawn = @import("spawn.zig");
-const lock = @import("lock.zig");
+// const lock = @import("lock.zig");
 const draw = @import("drawing.zig");
 const ctrl = @import("controls.zig");
 const ui = @import("ui.zig");
@@ -84,49 +84,49 @@ pub fn main() anyerror!void {
     rl.setTargetFPS(60);
 
     // Main game loop
-    // while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+    while (!rl.windowShouldClose()) { // Detect window close button or ESC key
 
-    rl.clearBackground(rl.Color.black);
+        rl.clearBackground(rl.Color.black);
 
-    // Handle camera, time, threading, execution
-    try ctrl.handleControls();
+        // Handle camera, time, threading, execution
+        try ctrl.handleControls();
 
-    // Make a step in simulation
-    // TODO: Add delta
-    try ctrl.simStep();
+        // Make a step in simulation
+        // TODO: Add delta
+        try ctrl.simStep();
 
-    // Draw
-    //----------------------------------------------------------------------------------
-    // rl.beginDrawing();
+        // Draw
+        //----------------------------------------------------------------------------------
+        rl.beginDrawing();
 
-    // Camera begin
-    //--------------------------------------------
-    // ctrl.camera.begin();
+        // Camera begin
+        //--------------------------------------------
+        ctrl.camera.begin();
 
-    // Lock camera to specific body
-    // lock.handleLock();
+        // Lock camera to specific body
+        // lock.handleLock();
 
-    // Spawn bodies with Right click
-    // try spawn.spawnBodyWithVelocity();
+        // Spawn bodies with Right click
+        try spawn.spawnBodyWithVelocity(Float);
 
-    // Show debug information withing simulation world
-    // try debug.handleDebugWorld();
+        // Show debug information withing simulation world
+        try debug.handleDebugWorld();
 
-    // Render and Draw all bodies in scene. (With culling enabled)
-    // rndr.render();
+        // Render and Draw all bodies in scene. (With culling enabled)
+        rndr.render();
 
-    // ctrl.camera.end();
-    //--------------------------------------------
+        ctrl.camera.end();
+        //--------------------------------------------
 
-    // UI
-    // ui.handleHUD();
+        // UI
+        ui.handleHUD();
 
-    // Show debug information in HUD
-    // try debug.handleDebugHUD();
+        // Show debug information in HUD
+        try debug.handleDebugHUD();
 
-    // rl.endDrawing();
-    //----------------------------------------------------------------------------------
-    // }
+        rl.endDrawing();
+        //----------------------------------------------------------------------------------
+    }
 }
 
 test "test memory leak" {

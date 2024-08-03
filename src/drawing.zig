@@ -18,7 +18,7 @@ const boxSize: u32 = 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
-const Vec2F = core.vec2.Vec2F;
+const Vec2F = core.vec2.Vec2F(f32);
 const time = std.time;
 const Instant = time.Instant;
 
