@@ -28,12 +28,25 @@ pub fn Vec2F(comptime Float: type) type {
 }
 
 /// Converts `Vec2` to `Vec2F` and vice versa
-pub fn convert(comptime To: type, vector: anytype) @Vector(2, To) {
+pub fn convert(comptime T: type, vector: anytype) @Vector(2, T) {
     const zone = ztracy.Zone(@src());
     defer zone.End();
-    var res: @Vector(2, To) = undefined;
-    inline for (0..2) |i| res[i] = if (To == u32) @intFromFloat(vector[i]) else @floatFromInt(vector[i]);
-    return res;
+
+    const ToInfo = @typeInfo(T);
+    const FromInfo = @typeInfo(@TypeOf(vector[0]));
+
+    // Detect if we try to convert to same type. e.g: from f32 to f64 or from i32 to i32
+    return if (@intFromEnum(ToInfo) == @intFromEnum(FromInfo))
+        @compileError(std.fmt.comptimePrint( //
+            "Trying to convert to same type:\n\t {s} -> {s} is not allowed", //
+            .{ @typeName(@TypeOf(vector[0])), @typeName(T) }))
+    else if (T == u32)
+        // TODO:  ^^^ Make general Int instead of u32
+        // Convert to Int if destination is u32
+        @intFromFloat(vector)
+    else
+        // Convert to Float if destination type is float
+        @floatFromInt(vector);
 }
 
 pub fn fit(comptime To: type, self: anytype, width: u32) @Vector(2, To) {
