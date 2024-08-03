@@ -15,7 +15,7 @@ pub fn main() !void {
     // Also with threshold
     const size = 1024 * 256;
 
-    var e = try engine.Engine().init(size, null, null);
+    var e = try engine.Engine(f32).init(size, null, null);
     defer e.deinit();
 
     for (0..40) |x| {

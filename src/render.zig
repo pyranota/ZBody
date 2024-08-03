@@ -9,7 +9,7 @@ const std = @import("std");
 const rl = @import("raylib");
 const draw = @import("drawing.zig");
 const core = @import("zb-core");
-const Vec2F = core.vec2.Vec2F;
+const Vec2F = core.vec2.Vec2F(f32);
 
 const isDebugThreads = &@import("debug.zig").isDebugThreads;
 var engine = &@import("main.zig").engine;

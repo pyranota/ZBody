@@ -9,7 +9,7 @@ const rl = @import("raylib");
 const vec2 = @import("zb-core").vec2;
 
 // Primitives
-const Vec2F = vec2.Vec2F;
+const Vec2F = vec2.Vec2F(f32);
 const Vector2 = rl.Vector2;
 
 /// Convert zb-core's Vec2F to raylib's Vector2

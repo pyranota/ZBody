@@ -10,8 +10,7 @@
 // Static imports
 const rl = @import("raylib");
 const main = @import("main.zig");
-const Vec2F = @import("zb-core").vec2.Vec2F;
-const Vec2F32 = @import("zb-core").vec2.Vec2F32;
+const Vec2F = @import("zb-core").vec2.Vec2F(f32);
 const std = @import("std");
 const render = @import("render.zig");
 const utils = @import("utils.zig");
@@ -138,7 +137,7 @@ fn dragCamera() void {
     // Safety checks
     if (!isAutoDrag or isPause or engine.isEmpty()) return;
 
-    var totalMass: Vec2F32 = @splat(0);
+    var totalMass: Vec2F = @splat(0);
     // Cleanup from previous iterations
     cameraDragVelocity = @splat(0);
     // Delta

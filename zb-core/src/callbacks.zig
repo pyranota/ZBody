@@ -7,18 +7,18 @@
 
 const vec2 = @import("vec2.zig");
 const Vec2 = vec2.Vec2;
-const Vec2F = vec2.Vec2F;
+const node_module = @import("node.zig");
 
 const TreeError = @import("error.zig").TreeError;
 const tree = @import("tree.zig");
 const ztracy = @import("ztracy");
 
-const Threshold = tree.Tree().threshhold;
-const Safety = tree.Tree().safety;
-
 /// Get callback functions as a struct
-pub fn Fns(comptime Float: type) type {
-    const Node = @import("node.zig").Node(Float);
+// TODO: Write docs
+pub fn Fns(comptime Float: type, Threshold: f32, Safety: f32) type {
+    // Imports
+    const Node = node_module.Node(Float);
+    const Vec2F = vec2.Vec2F(Float);
 
     return struct {
         pub const stepArgs = struct {

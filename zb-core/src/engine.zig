@@ -253,13 +253,13 @@ pub fn Engine(comptime Float: type) type {
             // const start = try Instant.now();
 
             try self.mergeSamePositions();
-            // const endMerge = try Instant.now();
+            // // const endMerge = try Instant.now();
 
             try self.addBodiesToTree();
-            // const endAdd = try Instant.now();
+            // // const endAdd = try Instant.now();
 
             try self.calcAccels();
-            // const endStep = try Instant.now();
+            // // const endStep = try Instant.now();
 
             //                             G
             self.applyAcceleration(delta * 1);
@@ -278,12 +278,15 @@ pub fn Engine(comptime Float: type) type {
             // });
         }
 
+        // TODO: Rename to buildTree
+        // TODO: Write docs
         fn addBodiesToTree(self: *Self) !void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
+
             self.tree.clean();
             fba.reset();
-            // const num_threads: usize = 3; // adjust this to your liking
+
             for (self.bodies.items) |body| {
                 try self.tree.addBody(body.mass, body.position);
             }

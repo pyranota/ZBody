@@ -14,11 +14,16 @@ const ztracy = @import("ztracy");
 const alloc = std.heap.page_allocator;
 
 pub fn Tree(comptime Float: type) type {
+    // TODO: Make dynamic and smart
+    // TODO: Prevent from being 0 or 1
+    const threshhold: f32 = 0.9;
+    const safety: f32 = 1e4;
+
     const Node = @import("node.zig").Node(Float);
     const Vec2F = vec2.Vec2F(Float);
 
     // Callbacks
-    const Cbs = callbacks.Fns(Float);
+    const Cbs = callbacks.Fns(Float, threshhold, safety);
 
     return struct {
         const Self = @This();
@@ -29,11 +34,6 @@ pub fn Tree(comptime Float: type) type {
         // const ally = fba.allocator();
 
         var ally: std.mem.Allocator = undefined;
-
-        // TODO: Make dynamic and smart
-        // TODO: Prevent from being 0 or 1
-        pub const threshhold: f32 = 0.9;
-        pub const safety: f32 = 1e4;
 
         root: ?*Node = null,
         // TODO: Make dynamic?
@@ -146,7 +146,7 @@ pub fn Tree(comptime Float: type) type {
         }
 
         // TODO: Remove delta
-        pub fn step(self: Self, delta: f32, args: callbacks.Fns().stepArgs) void {
+        pub fn step(self: Self, delta: f32, args: Cbs.stepArgs) void {
             const zone = ztracy.Zone(@src());
             defer zone.End();
 
