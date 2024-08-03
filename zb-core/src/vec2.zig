@@ -27,6 +27,7 @@ pub fn Vec2F(comptime Float: type) type {
     }
 }
 
+// NOTE: Possibly could be deprecated in favour of @castFromFloat and other builtins
 /// Converts `Vec2` to `Vec2F` and vice versa
 pub fn convert(comptime T: type, vector: anytype) @Vector(2, T) {
     const zone = ztracy.Zone(@src());
@@ -49,8 +50,8 @@ pub fn convert(comptime T: type, vector: anytype) @Vector(2, T) {
         @floatFromInt(vector);
 }
 
-pub fn fit(comptime To: type, self: anytype, width: u32) @Vector(2, To) {
-    const w: f32 = @floatFromInt(width);
+pub fn fit(self: anytype, width: u32) @Vector(2, @TypeOf(self[0])) {
+    const w: @TypeOf(self[0]) = @floatFromInt(width);
     // TODO: Use splat and vec % width
     // TODO: Could be faster with bit shifting
     return .{ //
@@ -58,15 +59,16 @@ pub fn fit(comptime To: type, self: anytype, width: u32) @Vector(2, To) {
         @rem(self[1], w),
     };
 }
-
-pub fn max(comptime T: type, self: anytype) T {
+/// Take Vector and return max element
+pub fn max(self: anytype) @TypeOf(self[0]) {
     if (self[0] > self[1])
         return self[0]
     else
         return self[1];
 }
 
-pub fn min(comptime T: type, self: anytype) T {
+/// Take Vector and return min element
+pub fn min(self: anytype) @TypeOf(self[0]) {
     if (self[0] < self[1])
         return self[0]
     else
@@ -97,7 +99,9 @@ pub fn isEq(comptime T: type, self: anytype, other: anytype) bool {
 
     return true;
 }
+
 /// Converts vectors to given type and calcluates the distance
+// TODO: Refactor
 pub fn distance(comptime T: type, self: anytype, other: anytype) T {
     const zone = ztracy.Zone(@src());
     defer zone.End();
@@ -127,93 +131,3 @@ pub fn toArray(comptime To: type, vector: anytype) [2]To {
     const res: [2]To = vector;
     return res;
 }
-// pub const Vec2 = struct {
-//     x: u32 = 0,
-//     y: u32 = 0,
-//     /// Devide all fields by 2
-//     pub fn half(self: *const @This()) @This() {
-//         const div: u32 = 2;
-//         return .{ //
-//             // Zig for some reasont cant just self.x / 2
-//             .x = self.x / div,
-//             .y = self.y / div,
-//         };
-//     }
-
-//     pub fn toVec2F(self: @This()) Vec2F {
-//         return .{ .x = @floatFromInt(self.x), .y = @floatFromInt(self.y) };
-//     }
-
-//     // TODO: Return f32
-//     pub fn distance(self: @This(), other: Vec2) u32 {
-//         const sx: i32 = @intCast(self.x);
-//         const sy: i32 = @intCast(self.y);
-
-//         const ox: i32 = @intCast(other.x);
-//         const oy: i32 = @intCast(other.y);
-
-//         const dx = ox - sx;
-//         const dy = oy - sy;
-//         const dQ: u32 = @intCast(dx * dx + dy * dy);
-
-//         const d = math.sqrt(dQ);
-//         return d;
-//     }
-
-//     pub fn fit(self: @This(), width: u32) @This() {
-//         return .{ //
-//             .x = @rem(self.x, width),
-//             .y = @rem(self.y, width),
-//         };
-//     }
-
-//     /// Return largest value.
-//     pub fn max(self: @This()) u32 {
-//         if (self.x > self.y) {
-//             return self.x;
-//         } else {
-//             return self.y;
-//         }
-//     }
-// };
-
-// pub const Vec2F = struct {
-//     x: f32 = 0.0,
-//     y: f32 = 0.0,
-//     /// Devide all fields by 2
-//     pub fn half(self: *const @This()) @This() {
-//         const div: f32 = 2;
-//         return .{ //
-//             // Zig for some reasont cant just self.x / 2
-//             .x = self.x / div,
-//             .y = self.y / div,
-//         };
-//     }
-//     pub fn distance(self: @This(), other: Vec2F) f32 {
-//         const dx = other.x - self.x;
-//         const dy = other.y - self.y;
-//         const dQ = dx * dx + dy * dy;
-
-//         const d = math.sqrt(dQ);
-//         return d;
-//     }
-
-//     pub fn fit(self: @This(), width: u32) @This() {
-//         const w: f32 = @floatFromInt(width);
-//         return .{ //
-//             .x = @rem(self.x, w),
-//             .y = @rem(self.y, w),
-//         };
-//     }
-//     /// Return largest value.
-//     pub fn max(self: @This()) f32 {
-//         if (self.x > self.y) {
-//             return self.x;
-//         } else {
-//             return self.y;
-//         }
-//     }
-//     pub fn toVec2(self: @This()) Vec2 {
-//         return .{ .x = @intFromFloat(self.x), .y = @intFromFloat(self.y) };
-//     }
-// };

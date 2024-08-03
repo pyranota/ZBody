@@ -105,7 +105,7 @@ pub fn Tree(comptime Float: type) type {
                     // Why are you
                     mass,
                     // Not working correctly??
-                    vec2.fit(f32, position, size / 2),
+                    vec2.fit(position, size / 2),
                     //
                     size / 2,
                 );
@@ -164,9 +164,9 @@ pub fn Tree(comptime Float: type) type {
             self.traverse(Cbs.finalizeCB, .{}) catch unreachable;
         }
 
+        // TODO: Rename
         pub fn showForceBounds(self: Self, args: anytype) !void {
-            // TODO: Fix. its crashing if there is just one node
-            args.@"1"(@splat(0), self.size, if (self.root) |root| root.coordinates() else null);
+            args[1](@splat(0), self.size, if (self.root) |root| @floatCast(root.coordinates()) else null);
             try self.traverse(Cbs.forceBoundsCB, args);
         }
 

@@ -160,8 +160,8 @@ pub fn Engine(comptime Float: type) type {
 
             for (self.bodies.items) |body| {
                 const size: f32 = @floatFromInt(self.tree.size);
-                const max = vec2.max(f32, body.position);
-                const min = vec2.min(f32, body.position);
+                const max = vec2.max(body.position);
+                const min = vec2.min(body.position);
 
                 if (max > size)
                     self.tree.size = nextPowerOfTwo(@intFromFloat(max))

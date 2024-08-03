@@ -51,9 +51,9 @@ pub fn drawBound(position: Vec2, size: u32) void {
 pub fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
     // Also add padding
     var padding: u32 = 4;
-    if (size <= padding * 8) {
+    if (size <= padding * 8)
         padding = 0;
-    }
+
     const col = if (centerOfMass != null) Color.brown else Color.dark_green;
     // std.debug.print("Is null? {?} \n", .{centerOfMass});
     rl.drawRectangleLines( //

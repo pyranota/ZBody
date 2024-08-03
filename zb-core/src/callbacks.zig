@@ -49,7 +49,7 @@ pub fn Fns(comptime Float: type, Threshold: f32, Safety: f32) type {
             const accelerationCalcZone = ztracy.ZoneN(@src(), "vector calculation zone");
 
             // Node position (f32)
-            const np = vec2.convert(f32, nodePosition);
+            const np = vec2.convert(Float, nodePosition);
             // Global position
             const global_position = container_position + np;
             // Direction from our node and target
@@ -57,7 +57,7 @@ pub fn Fns(comptime Float: type, Threshold: f32, Safety: f32) type {
             const dir: Vec2F = global_position - args.bodyPos;
             // Distance
             const vec_zero: Vec2F = @splat(0);
-            const r = vec2.distance(f32, vec_zero, dir);
+            const r = vec2.distance(Float, vec_zero, dir);
 
             // Tracy
             accelerationCalcZone.End();
@@ -106,14 +106,15 @@ pub fn Fns(comptime Float: type, Threshold: f32, Safety: f32) type {
             switch (node.*) {
                 .branch => |br| {
                     // Global position
-                    const g = vec2.convert(f32, nodePosition) + br.centerOfMass;
+                    const g = vec2.convert(Float, nodePosition) + br.centerOfMass;
                     // Distance
-                    const d: f32 = vec2.distance(f32, g, targetPos);
+                    const d = vec2.distance(Float, g, targetPos);
                     // Size
-                    const s: f32 = @floatFromInt(br.size);
+                    const s: Float = @floatFromInt(br.size);
 
                     if (s / d < Threshold) {
-                        callb(nodePosition, br.size, g);
+                        callb(nodePosition, br.size, @floatCast(g));
+                        //         Center of mass    ^
                         return false;
                     }
                 },

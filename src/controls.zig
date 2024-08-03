@@ -148,15 +148,17 @@ fn dragCamera() void {
         //                   ^^^  Ignore black hole in the middle.
 
         // Cull
-        if (!render.isVisible(body.position, camera))
-            continue;
+        if (!render.isVisible(@floatCast(body.position), camera))
+            continue; //  Convert any float to f32 ^^^^^^^^^^
 
         // Find total mass of all bodies in visible zone
         totalMass += @splat(body.mass);
 
         // Sum up all velocities multiplied by body mass each
         // This value will be divided by total mass after to find out AVG velocity
-        cameraDragVelocity += body.velocity * @as(Vec2F, @splat(body.mass));
+        cameraDragVelocity += @as(Vec2F, @floatCast(body.velocity))
+        //                    ^^^^^^^^^^^^^^^^^^^^^ Downcast any float to f32
+        * @as(Vec2F, @splat(body.mass));
     }
 
     // We dont want to devide by zero.
@@ -256,8 +258,8 @@ fn mapKeys() !void {
     // Go to center of mass
     if (rl.isKeyPressed(rl.KeyboardKey.key_c))
         if (engine.getCenterOfMass()) |p| {
-            observer.x = p[0];
-            observer.y = p[1];
+            observer.x = @floatCast(p[0]);
+            observer.y = @floatCast(p[1]);
             zoom = 1;
         };
 }

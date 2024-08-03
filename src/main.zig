@@ -50,7 +50,7 @@ const rndr = @import("render.zig");
 
 /// Float type used in simulator. Supported: f32, f64, f80, f128
 /// Larger type, more memory it uses, more precision it has, less performance.
-const Float = f32;
+const Float = f64;
 
 // ----------- Export ------------ //
 pub var engine: core.engine.Engine(Float) = undefined;

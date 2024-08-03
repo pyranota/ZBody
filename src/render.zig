@@ -9,7 +9,7 @@ const std = @import("std");
 const rl = @import("raylib");
 const draw = @import("drawing.zig");
 const core = @import("zb-core");
-const Vec2F = core.vec2.Vec2F(f32);
+const Vec2F32 = core.vec2.Vec2F(f32);
 
 const isDebugThreads = &@import("debug.zig").isDebugThreads;
 var engine = &@import("main.zig").engine;
@@ -24,14 +24,17 @@ pub fn render() void {
             col = rnd.random().int(u32) | 0xff;
         }
 
-        if (isVisible(body.position, camera.*))
-            draw.drawPlanet(body.position[0], body.position[1], body.radius, col);
+        // body.position could be f64 or larger, but rl has only f32
+        const render_pos: Vec2F32 = @floatCast(body.position);
+
+        if (isVisible(render_pos, camera.*))
+            draw.drawPlanet(render_pos[0], render_pos[1], body.radius, col);
     }
 }
 
 /// Find out if body is visible
 /// Also knows as occlusion Culling
-pub fn isVisible(body_world_position: Vec2F, cam: rl.Camera2D) bool {
+pub fn isVisible(body_world_position: Vec2F32, cam: rl.Camera2D) bool {
 
     // Convert internal Vec2F of zb-core into internal Vector2 of Raylib
     const body_position_raylib_vec2 = rl.Vector2.init(body_world_position[0], body_world_position[1]);

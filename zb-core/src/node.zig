@@ -92,7 +92,7 @@ pub fn Node(comptime Float: type) type {
 
             // TODO: Move into leaf struct itself
             // Fit leaf's position to new quadrant which is 2 times smaller
-            leaf.position = vec2.fit(f32, leaf.position, leaf.size);
+            leaf.position = vec2.fit(leaf.position, leaf.size);
             // var newNode = ally.alloc(Node, 1);
 
             // self.position.fit();
