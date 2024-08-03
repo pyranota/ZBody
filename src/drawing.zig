@@ -18,7 +18,7 @@ const boxSize: u32 = 256;
 // Amount of space objects in galaxy
 const amount = 5040;
 const Vec2 = core.vec2.Vec2;
-const Vec2F = core.vec2.Vec2F(f32);
+const Vec2F32 = core.vec2.Vec2F(f32);
 const time = std.time;
 const Instant = time.Instant;
 
@@ -48,7 +48,7 @@ pub fn drawBound(position: Vec2, size: u32) void {
         col);
 }
 
-pub fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F) void {
+pub fn drawBoundForceAndCoM(position: Vec2, size: u32, centerOfMass: ?Vec2F32) void {
     // Also add padding
     var padding: u32 = 4;
     if (size <= padding * 8)

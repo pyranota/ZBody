@@ -10,7 +10,7 @@
 // Static imports
 const rl = @import("raylib");
 const main = @import("main.zig");
-const Vec2F = @import("zb-core").vec2.Vec2F(f32);
+const Vec2F32 = @import("zb-core").vec2.Vec2F(f32);
 const std = @import("std");
 const render = @import("render.zig");
 const utils = @import("utils.zig");
@@ -30,9 +30,9 @@ pub var fastMode: bool = false;
 /// Is camera auto-drag enabled
 pub var isAutoDrag: bool = true;
 /// Add velocity to camera, to "move along" with visible objects
-var cameraDragVelocity: Vec2F = @splat(0);
+var cameraDragVelocity: Vec2F32 = @splat(0);
 /// Get velocity of camera, which "moves along" with visible objects
-pub fn getCameraDragVelocity() Vec2F {
+pub fn getCameraDragVelocity() Vec2F32 {
     return cameraDragVelocity;
 }
 
@@ -137,11 +137,11 @@ fn dragCamera() void {
     // Safety checks
     if (!isAutoDrag or isPause or engine.isEmpty()) return;
 
-    var totalMass: Vec2F = @splat(0);
+    var totalMass: Vec2F32 = @splat(0);
     // Cleanup from previous iterations
     cameraDragVelocity = @splat(0);
     // Delta
-    const dt: Vec2F = @splat(getFinalDelta());
+    const dt: Vec2F32 = @splat(getFinalDelta());
 
     // Iterate over all bodies and find visible one.
     for (engine.bodies.items[1..]) |body| {
@@ -156,9 +156,9 @@ fn dragCamera() void {
 
         // Sum up all velocities multiplied by body mass each
         // This value will be divided by total mass after to find out AVG velocity
-        cameraDragVelocity += @as(Vec2F, @floatCast(body.velocity))
+        cameraDragVelocity += @as(Vec2F32, @floatCast(body.velocity))
         //                    ^^^^^^^^^^^^^^^^^^^^^ Downcast any float to f32
-        * @as(Vec2F, @splat(body.mass));
+        * @as(Vec2F32, @splat(body.mass));
     }
 
     // We dont want to devide by zero.
@@ -169,7 +169,7 @@ fn dragCamera() void {
     cameraDragVelocity /= totalMass;
 
     // Convert
-    const velocity = utils.@"Vec2F to Vector2"(cameraDragVelocity * dt);
+    const velocity = utils.@"Vec2F32 to Vector2"(cameraDragVelocity * dt);
 
     // Apply to observer first
     observer = observer.add(velocity);
