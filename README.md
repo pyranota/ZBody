@@ -18,7 +18,7 @@
 
 <h1 align="center">
   <br>
-  <kbd width="80%" min-width="80%" style="min-width: 80%;"><img src="media/demo.gif" alt="ZBody showcase video" width="100%" ></kbd >
+  <kbd width="80%" min-width="80%" style="min-width: 80%; border-radius: 25px; padding: 0px; color: red; background-color: red;"><img src="media/demo.gif" alt="ZBody showcase video" width="100%" ></kbd >
 
 </h1>
 
