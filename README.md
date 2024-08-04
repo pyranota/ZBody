@@ -22,6 +22,14 @@
 
 </h1>
 
+> [![screenshot][1]][1]
+
+  [1]: media/demo.gif
+
+| ![Alt name of image](media/demo.gif) |
+|-|
+
+
 ## Key Features
 
 * Barnes-Hut Algorithm
