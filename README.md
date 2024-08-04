@@ -18,7 +18,7 @@
 
 <h1 align="center">
   <br>
-  <kbd><img src="media/demo.gif" alt="ZBody showcase video" width="85%"></kbd>
+  <kbd><img src="media/demo.gif" alt="ZBody showcase video" width="85vw"></kbd>
 
 </h1>
 
