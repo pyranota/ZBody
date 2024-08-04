@@ -1,5 +1,4 @@
 
-
 <h1 align="center">
   <br>
   <img src="media/splash-v1-high-rez.png" alt="ZBody logo" width="500">
@@ -19,6 +18,13 @@
 </p>
 
 
+
+
+<h1 align="center">
+  <br>
+  <kbd><img src="media/showcase2.gif" alt="ZBody showcase video" width="800"></kbd>
+
+</h1>
 
 ## Key Features
 
