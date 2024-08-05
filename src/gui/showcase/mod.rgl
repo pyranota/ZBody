@@ -1,0 +1,35 @@
+#
+# rgl layout text file (v4.0) - raygui layout file generated using rGuiLayout
+#
+# Number of controls:     23
+#
+# Ref. window:    r <x> <y> <width> <height>
+# Anchor info:    a <id> <name> <posx> <posy> <enabled>
+# Control info:   c <id> <type> <name> <rectangle> <anchor_id> <text>
+#
+r 0 40 -1 -1
+a 001 anchor01 24 24 1
+a 002 anchor02 216 24 1
+c 000 1 GroupBox000 0 0 168 384 1 SAMPLE TEXT
+c 001 0 WindowBox001 0 0 312 384 2 SAMPLE TEXT
+c 002 2 Line002 24 16 120 16 1 
+c 003 3 Panel003 24 48 120 36 1 
+c 004 4 Label004 24 96 120 24 1 SAMPLE TEXT
+c 005 5 Button005 24 144 120 24 1 SAMPLE TEXT
+c 006 6 LabelButton006 24 192 120 24 1 SAMPLE TEXT
+c 007 8 Toggle007 56 240 88 24 1 SAMPLE TEXT
+c 008 7 CheckBoxEx008 24 240 24 24 1 SAMPLE TEXT
+c 009 9 ToggleGroup009 24 288 40 24 1 ONE;TWO;THREE
+c 010 10 ComboBox010 24 336 120 24 1 ONE;TWO;THREE
+c 011 11 DropdownBox011 24 48 120 24 2 ONE;TWO;THREE
+c 012 12 TextBox012 24 96 120 24 2 SAMPLE TEXT
+c 013 14 ValueBOx013 24 144 120 24 2 SAMPLE TEXT
+c 014 15 Spinner014 24 192 120 24 2 SAMPLE TEXT
+c 015 16 Slider015 24 240 120 16 2 
+c 016 17 SliderBar016 24 264 120 16 2 
+c 017 18 ProgressBar017 24 288 120 16 2 
+c 018 19 StatusBar018 24 336 120 24 2 SAMPLE TEXT
+c 019 20 ScrollPanel019 168 48 120 72 2 
+c 020 21 ListView020 168 144 120 72 2 ONE;TWO;THREE
+c 021 22 ColorPicker021 168 240 96 96 2 
+c 022 23 DummyRec022 168 344 120 24 2 SAMPLE TEXT
