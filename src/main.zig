@@ -47,6 +47,7 @@ const draw = @import("drawing.zig");
 const ctrl = @import("controls.zig");
 const ui = @import("ui.zig");
 const rndr = @import("render.zig");
+const gui = @import("gui/mod.zig");
 
 // ----------- Export ------------ //
 pub var engine: core.engine.Engine() = undefined;
@@ -55,7 +56,36 @@ pub var engine: core.engine.Engine() = undefined;
 const Alloc = std.mem.Allocator;
 
 // --------- Entry point --------- //
+// const c = @cImport({
+//     @cDefine("GUI_WINDOW_IMPLEMENTATION", {});
+//     @cInclude("gui_Window.h");
+// });
+
+// const w = @cImport({
+//     @cDefine("GUI_SHOWCASE_IMPLEMENTATION", {});
+//     // @cDefine("RAYGUI_IMPLEMENTATION", {});
+//     // @cDefine("GUI_LAYOUT_NAME_H", {});
+//     @cInclude("showcase.h");
+// });
+
+// extern "Button005" Button005();
+
+// extern fn Button005() void {
+//     std.debug.print("Click from ZIG", .{});
+// }
+// extern "c" fn Button005() void;
+
+pub export fn Button005() void {
+    std.debug.print("Hello from zig\n", .{});
+}
+
+// const w = @cImport(@cInclude("gui_Window.h"));
+
 pub fn main() anyerror!void {
+
+    // _ = c.main2();
+    // var state = w.InitGuiShowcase();
+    gui.init();
 
     // Z-Body engine initialization
     //--------------------------------------------------------------------------------------
@@ -113,6 +143,10 @@ pub fn main() anyerror!void {
 
         ctrl.camera.end();
         //--------------------------------------------
+
+        // w.GuiShowcase(@ptrCast(&state));
+
+        gui.draw();
 
         // UI
         ui.handleHUD();

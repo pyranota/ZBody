@@ -37,6 +37,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    // exe.addCSourceFile(.{ .file = b.path("src/gui/gui_Window.h") });
+    exe.addIncludePath(b.path("src/gui/"));
     // const ztracy = b.dependency("ztracy", .{
     //     .enable_ztracy = true,
     //     .enable_fibers = true,
@@ -49,6 +51,8 @@ pub fn build(b: *std.Build) void {
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("raygui", raygui);
     exe.root_module.addImport("zb-core", zb_core_module);
+
+    exe.linkLibC();
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
