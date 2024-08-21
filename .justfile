@@ -6,11 +6,11 @@ default: run
 
 # Compile and run
 run: 
-    nixGL zig build run
+    zig build run
 
 # Compile and run in release mode
 run-fast: 
-    nixGL zig build run --release=fast
+    zig build run --release=fast
 
 # Speeeeeeed 󱐌
 gotta-go-fast: run-fast
@@ -31,7 +31,7 @@ build:
 
 profile: 
     cd zb-core; zig build -DenableTracy
-    nixGL tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
+    tracy -a 127.0.01 & zb-core/zig-out/bin/zb-bench
 
 build-core: 
     cd zb-core; zig build
