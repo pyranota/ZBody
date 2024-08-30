@@ -1,5 +1,4 @@
 
-
 <h1 align="center">
   <br>
   <img src="media/splash-v1-high-rez.png" alt="ZBody logo" width="500">
@@ -40,6 +39,8 @@ Thats it, no extra stuff required!
 > **Note**
 > You need nix Flakes enabled.
 
+> **Warning**
+> Running and Installing not working yet, you can build it with nix.
 ### Run directly
 ```bash
 $ nix run codeberg:pyranota/Z-body
@@ -69,15 +70,6 @@ $ just
 
 
 
-
-## Download
-
-You can [download]() the latest installable version of ZBody for Linux, macOS and windows are NOT avalible.
-
-## Benchmark
-
-TODO
-
 ## Credits
 
 This software uses the following open source packages:
@@ -86,7 +78,7 @@ This software uses the following open source packages:
 - [Raylib](https://www.raylib.com/)
 - [Tracy](https://github.com/wolfpld/tracy)
 - [Hyperfine](https://github.com/sharkdp/hyperfine)
-- [Just](just.systems)
+- [Just](https://just.systems)
 - [Nix](https://nixos.org/)
 
 
