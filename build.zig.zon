@@ -20,7 +20,7 @@
             // Now if there is update on devel branch, our hash becoming invalid
             .url = "https://github.com/Not-Nik/raylib-zig/archive/devel.tar.gz",
             // .hash = "1220361ce363a465c3f52e7e35ca5f1d9c2f5ed8a9207b79c2edb4396cdf31009c48",
-            .hash = "12202b55e516247ae27b38919685b8da1543467cfd15cd92d4d4a840dc236d9dc754",
+            .hash = "1220df9aa89d657f5dca24ab0ac3d187f7a992a4d27461fd9e76e934bf0670ca9a90",
         },
         .@"zb-core" = .{
             .path = "./zb-core",
